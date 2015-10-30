@@ -21,6 +21,10 @@ file(GLOB HEADERS
 # Directory of external code
 set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
 
+# Cuda kernels
+set(CUDAKERNEL_PATH ${CMAKE_SOURCE_DIR}/kernels)
+add_subdirectory(${CUDAKERNEL_PATH})
+
 # Add GLM
 file(GLOB_RECURSE GLM
     "${EXTERNAL_DIR}/GLM/glm/*.hpp")
@@ -110,7 +114,7 @@ ELSE(WIN32)
 ENDIF(WIN32)
 
 # Creation of executeable
-add_executable(${APPNAME} ${ALL_CODE})
+cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
 
 # Linking
 target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
