@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(AnimSim)
+project(RealtimeRendering)
 set(APPNAME VoxelConeTracing)
 
 # Activate C++11 in GCC
@@ -96,7 +96,7 @@ IF(WIN32)
 	# CUDA
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
-	
+
 	#assimp
 	find_package(ASSIMP REQUIRED)
 	include_directories(${ASSIMP_INCLUDE_DIRS})
@@ -115,7 +115,7 @@ ELSE(WIN32)
 	# CUDA
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
-	
+
 	#assimp
 	find_package(ASSIMP REQUIRED)
 	include_directories(${ASSIMP_INCLUDE_DIRS})
@@ -130,10 +130,10 @@ target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_
 IF(WIN32)
 
     # Copy dlls
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
-			"${PROJECT_BINARY_DIR}/glfw3.dll")
+                add_custom_command(TARGET ${APPNAME} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        "${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
+                        "${PROJECT_BINARY_DIR}/glfw3.dll")
 
 ENDIF(WIN32)
 
