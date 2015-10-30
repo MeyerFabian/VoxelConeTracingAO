@@ -1,3 +1,8 @@
+extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
+{
+    void test();    // test.cuh
+}
+
 #include <iostream>
 
 #include "External/OpenGLLoader/gl_core_4_3.h"
@@ -19,6 +24,9 @@ static void errorCallback(int error, const char* description)
 // Main
 int main(void)
 {
+    std::cout << "hello from gcc" << std::endl;
+    test();
+
     int width = 800;
     int height = 600;
 
@@ -91,7 +99,7 @@ int main(void)
         glfwSwapBuffers(pWindow);
         glfwPollEvents();
 
-        std::cout << "\r" << "FPS: " << (int)(1.0f / deltaTime);
+        //std::cout << "\r" << "FPS: " << (int)(1.0f / deltaTime);
     }
 
     // Termination
