@@ -4,7 +4,7 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 }
 
 #include <iostream>
-
+#include <assimp/scene.h>
 #include "External/OpenGLLoader/gl_core_4_3.h"
 #include "External/GLFW/include/GLFW/glfw3.h"
 #include "External/GLM/glm/glm.hpp"

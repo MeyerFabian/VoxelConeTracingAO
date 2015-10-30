@@ -96,6 +96,10 @@ IF(WIN32)
 	# CUDA
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
+	
+	#assimp
+	find_package(ASSIMP REQUIRED)
+	include_directories(${ASSIMP_INCLUDE_DIRS})
 ELSE(WIN32)
 
 	# GLFW 3 (needs to be installed via package manager)
@@ -111,13 +115,17 @@ ELSE(WIN32)
 	# CUDA
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
+	
+	#assimp
+	find_package(ASSIMP REQUIRED)
+	include_directories(${ASSIMP_INCLUDE_DIRS})
 ENDIF(WIN32)
 
 # Creation of executeable
 cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
 
 # Linking
-target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
 IF(WIN32)
 
