@@ -89,6 +89,9 @@ IF(WIN32)
 	find_package(OpenGL REQUIRED)
 	include_directories(${OPENGL_INCLUDE_DIR})
 
+	# CUDA
+	find_package(CUDA REQUIRED)
+	include_directories(${CUDA_TOOLKIT_INCLUDE})
 ELSE(WIN32)
 
 	# GLFW 3 (needs to be installed via package manager)
@@ -101,14 +104,16 @@ ELSE(WIN32)
 	include_directories(${OpenGL_INCLUDE_DIRS})
 	link_directories(${OpenGL_LIBRARY_DIRS})
 
+	# CUDA
+	find_package(CUDA REQUIRED)
+	include_directories(${CUDA_TOOLKIT_INCLUDE})
 ENDIF(WIN32)
 
 # Creation of executeable
 add_executable(${APPNAME} ${ALL_CODE})
 
 # Linking
-target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES})
-target_link_libraries(${APPNAME} ${GLFW_LIBRARIES})
+target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
 IF(WIN32)
 

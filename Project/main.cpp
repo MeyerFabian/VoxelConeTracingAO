@@ -6,6 +6,10 @@
 #include "External/GLM/glm/gtc/matrix_transform.hpp"
 #include "External/picoPNG/picopng.h"
 
+// has to be included after opengl
+#include <cuda.h>
+#include <cuda_gl_interop.h>
+
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
 {
@@ -40,6 +44,15 @@ int main(void)
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_3D);
     glEnable(GL_CULL_FACE);
+
+    // init cuda and enable opengl interop
+    auto error = cudaGLSetGLDevice(0);
+
+    // test if a cuda capable device is available
+    if(error != static_cast<cudaError>(CUDA_SUCCESS))
+    {
+        std::cerr << "no cuda capable device" << std::endl;
+    }
 
     // Variables for the loop
     GLfloat prevTime = (GLfloat)glfwGetTime();
