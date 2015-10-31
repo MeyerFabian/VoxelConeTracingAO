@@ -137,11 +137,11 @@ target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_
 
 IF(WIN32)
 
-    # Copy dlls
-                add_custom_command(TARGET ${APPNAME} POST_BUILD
-                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                        "${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
-                        "${PROJECT_BINARY_DIR}/glfw3.dll")
+  # Copy dlls
+	add_custom_command(TARGET ${APPNAME} POST_BUILD
+			    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			    "${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
+			    "${PROJECT_BINARY_DIR}/glfw3.dll")
 
 ENDIF(WIN32)
 
