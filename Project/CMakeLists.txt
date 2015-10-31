@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(RealtimeRendering)
 set(APPNAME VoxelConeTracing)
-
 # Activate C++11 in GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -46,7 +45,7 @@ include_directories(${EXTERNAL_DIR}/gl3w/include)
 # Add picoPNG
 file(GLOB_RECURSE PICO_PNG
     "${EXTERNAL_DIR}/picoPNG/*")
-    
+
 # Add ImGui
 file(GLOB_RECURSE IM_GUI
     "${EXTERNAL_DIR}/ImGui/*.h"
@@ -84,24 +83,11 @@ ENDIF(MSVC)
 
 # Find other libraries
 IF(WIN32)
+	set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake CACHE PATH "Project specific path. Set manually if it was not found.")
 
 	# GLFW 3
-	set(GLFW_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/External/GLFW")
-	include_directories("${GLFW_DIRECTORY}/include")
-
-	IF(MSVC10)
-		set(GLFW_LIBRARIES_DIRECTORY "${GLFW_DIRECTORY}/lib-vc2012")
-	ELSEIF(MSVC11)
-		set(GLFW_LIBRARIES_DIRECTORY "${GLFW_DIRECTORY}/lib-vc2013")
-	ELSE()
-		set(GLFW_LIBRARIES_DIRECTORY "${GLFW_DIRECTORY}/lib-vc2015")
-	ENDIF()
-
-	find_library(GLFW_LIBRARIES
-		NAMES glfw glfw3
-		HINTS "${GLFW_LIBRARIES_DIRECTORY}")
-
-	set(GLFW_BINARIES_DIRECTORY "${GLFW_LIBRARIES_DIRECTORY}")
+	find_package(GLFW3 REQUIRED)
+	include_directories(${GLFW_INCLUDE_DIRS})
 
 	# OpenGL
 	# ${OPENGL_LIBRARIES}
@@ -146,10 +132,26 @@ target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_
 IF(WIN32)
 
   # Copy dlls
-	add_custom_command(TARGET ${APPNAME} POST_BUILD
-			    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			    "${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
-			    "${PROJECT_BINARY_DIR}/glfw3.dll")
+  add_custom_command(TARGET ${APPNAME} POST_BUILD
+			    COMMAND ${CMAKE_COMMAND}
+          -E copy_if_different
+          "${ASSIMP_DLL_RELEASE}/assimp.dll"
+			    "${PROJECT_BINARY_DIR}/Release/assimp.dll"
+			    )
+
+  add_custom_command(TARGET ${APPNAME} POST_BUILD
+          COMMAND ${CMAKE_COMMAND}
+          -E copy_if_different
+          "${ASSIMP_DLL_DEBUG}/assimpd.dll"
+          "${PROJECT_BINARY_DIR}/Debug/assimpd.dll"
+          )
+  add_custom_command(TARGET ${APPNAME} POST_BUILD
+  			    COMMAND ${CMAKE_COMMAND}
+            -E copy_if_different
+                      "${GLFW_DLL}/glfw3.dll"
+                      "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/glfw3.dll"
+  			    )
+
 
 ENDIF(WIN32)
 
@@ -157,4 +159,3 @@ ENDIF(WIN32)
 add_custom_command(TARGET ${APPNAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets assets)
-

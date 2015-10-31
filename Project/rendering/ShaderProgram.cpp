@@ -87,7 +87,7 @@ void ShaderProgram::readOutputs(Shader& fragmentShader)
 	std::string instruction;
 	
 	// define a state machine
-	enum Outputfinding{SEARCHING, OUT, TYPENAME};
+	enum Outputfinding{SEARCHING, OUTPUT, TYPENAME};
 	Outputfinding outputfinder = SEARCHING;
 	int outputIndex = 0;
 	// read each line
@@ -106,9 +106,9 @@ void ShaderProgram::readOutputs(Shader& fragmentShader)
 				switch (outputfinder)
 				{
 				case SEARCHING:	// last state was searching, now out was found
-					if (word == "out") outputfinder = OUT;
+					if (word == "out") outputfinder = OUTPUT;
 					break;
-				case OUT:		// last state was out, next word must be a type name
+				case OUTPUT:		// last state was out, next word must be a type name
 					if (word != "") outputfinder = TYPENAME;
 					break;
 				case TYPENAME:
