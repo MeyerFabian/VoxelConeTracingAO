@@ -16,7 +16,15 @@ file(GLOB SOURCES
     "*.c")
 
 file(GLOB HEADERS
-    "*.h")
+    "*.h"
+    "*.hpp")
+
+# used to find shaders within c++ code
+set(SHADERS_PATH ${CMAKE_SOURCE_DIR}/shaders CACHE PATH "Project specific path. Set manually if it was not found.")
+add_definitions(-DSHADERS_PATH="${SHADERS_PATH}")
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/rendering")
+add_subdirectory("${PROJECT_SOURCE_DIR}/shaders")
 
 # Directory of external code
 set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)
