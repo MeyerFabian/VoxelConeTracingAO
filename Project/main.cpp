@@ -77,7 +77,6 @@ int main(void)
     // Load Fonts
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontDefault();
-    io.Fonts->AddFontFromFileTTF("assets/extra_fonts/Cousine-Regular.ttf", 15.0f);
 
     // Variables for the loop
     GLfloat prevTime = (GLfloat)glfwGetTime();
