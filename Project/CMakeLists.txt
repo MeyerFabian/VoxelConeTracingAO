@@ -19,7 +19,7 @@ file(GLOB HEADERS
     "*.h"
     "*.hpp")
 
-# used to find shaders within c++ code
+# Used to find shaders within c++ code
 set(SHADERS_PATH ${CMAKE_SOURCE_DIR}/shaders CACHE PATH "Project specific path. Set manually if it was not found.")
 add_definitions(-DSHADERS_PATH="${SHADERS_PATH}")
 
@@ -113,9 +113,10 @@ IF(WIN32)
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
 
-	#assimp
+	# Assimp
 	find_package(ASSIMP REQUIRED)
 	include_directories(${ASSIMP_INCLUDE_DIRS})
+	
 ELSE(WIN32)
 
 	# GLFW 3 (needs to be installed via package manager)
@@ -132,9 +133,10 @@ ELSE(WIN32)
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
 
-	#assimp
+	# Assimp
 	find_package(ASSIMP REQUIRED)
 	include_directories(${ASSIMP_INCLUDE_DIRS})
+	
 ENDIF(WIN32)
 
 # Creation of executeable
@@ -147,9 +149,9 @@ IF(WIN32)
 
   # Copy dlls
 	add_custom_command(TARGET ${APPNAME} POST_BUILD
-			    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			    "${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
-			    "${PROJECT_BINARY_DIR}/glfw3.dll")
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		"${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
+		"${PROJECT_BINARY_DIR}/glfw3.dll")
 
 ENDIF(WIN32)
 
