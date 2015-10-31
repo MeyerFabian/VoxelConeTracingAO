@@ -19,7 +19,6 @@ App::App()
     int height = 600;
 
     // Initialize GLFW and OpenGL
-
     glfwSetErrorCallback(errorCallback);
     if (!glfwInit())
         exit(EXIT_FAILURE);
@@ -87,6 +86,9 @@ App::App()
     );
 
     // TODO: make some nice class with unbinding...
+
+    // Voxelization
+    mupVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
 }
 
 App::~App()
@@ -127,15 +129,6 @@ void App::run()
             mPrevHeight = height;
         }
 
-        // 1. Show a simple window
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        {
-            static float f = 0.0f;
-            ImGui::Text("Hello, world!");
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        }
-
         // Use our shader
         pSimpleShader->use();
         pSimpleShader->updateUniform("color", glm::vec4(1,0,0,1));
@@ -147,11 +140,25 @@ void App::run()
         glBindVertexArray(vertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        // Render ImGui
+        // Update all controllables
+        for(Controllable* pControllable : mControllables)
+        {
+            pControllable->updateGui();
+        }
+
+        // Global gui
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+        // Render ImGui (that what is defined by controllables)
         ImGui::Render();
 
         // Prepare next frame
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
     }
+}
+
+void App::registerControllable(Controllable* pControllable)
+{
+    mControllables.push_back(pControllable);
 }
