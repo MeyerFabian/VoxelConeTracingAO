@@ -17,6 +17,8 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 #include <cuda.h>
 #include <cuda_gl_interop.h>
 
+#include "rendering/ShaderProgram.h"
+
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
 {
@@ -83,8 +85,29 @@ int main(void)
     GLint prevWidth = 0;
     GLint prevHeight = 0;
 
-    glm::mat4 uniformView;
+    glm::mat4 uniformView = glm::lookAt(glm::vec3(0, 0, 5),glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), ((GLfloat)width / (GLfloat)height), 0.1f, 100.f);
+    glm::mat4 uniformModel = glm::mat4(1.f);
+
+    // Shader demo TODO: add model loading.. not this stupid triangle
+
+    GLuint VertexArrayID;
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
+
+    static const GLfloat g_vertex_buffer_data[] = {
+            -1.0f, -1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            0.0f,  1.0f, 0.0f,
+    };
+
+    GLuint vertexbuffer;
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+    ShaderProgram* simpleShader = new ShaderProgram("/vertex_shaders/modelViewProjection.vert","/fragment_shaders/simpleColor.frag");
+    simpleShader->updateUniform("color", glm::vec4(1.0f,0.0f,0.0f,1.0f));
 
     // Loop
     while (!glfwWindowShouldClose(pWindow))
@@ -122,6 +145,30 @@ int main(void)
         // Render ImGui
         ImGui::Render();
 
+        // use our shader
+        simpleShader->use();
+        simpleShader->updateUniform("color", glm::vec4(clear_color.x, clear_color.y, clear_color.z, clear_color.w));
+        simpleShader->updateUniform("projection", uniformProjection);
+        simpleShader->updateUniform("view", uniformView);
+        simpleShader->updateUniform("model", uniformModel);
+
+        //TODO: load models or draw something fancy
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glVertexAttribPointer(
+                0,
+                3,
+                GL_FLOAT,
+                GL_FALSE,
+                0,
+                (void*)0
+        );
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glDisableVertexAttribArray(0);
+        // - END TODO
+
+
         // Calc time per frame
         GLfloat currentTime = (GLfloat)glfwGetTime();
         deltaTime = currentTime - prevTime;
@@ -130,11 +177,11 @@ int main(void)
         // Prepare next frame
         glfwSwapBuffers(pWindow);
         glfwPollEvents();
-
-        //std::cout << "\r" << "FPS: " << (int)(1.0f / deltaTime);
     }
 
     // Termination
+    delete simpleShader;
+
     glfwDestroyWindow(pWindow);
     glfwTerminate();
     exit(EXIT_SUCCESS);
