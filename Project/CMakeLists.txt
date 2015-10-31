@@ -30,9 +30,10 @@ file(GLOB_RECURSE GLM
     "${EXTERNAL_DIR}/GLM/glm/*.hpp")
 include_directories(${EXTERNAL_DIR}/GLM)
 
-# Add OpenGLLoader
-file(GLOB_RECURSE OPEN_GL_LOADER
-    "${EXTERNAL_DIR}/OpenGLLoader/*")
+# Add gl3w
+file(GLOB_RECURSE GL3W
+    "${EXTERNAL_DIR}/gl3w/src/*")
+include_directories(${EXTERNAL_DIR}/gl3w/include)
 
 # Add picoPNG
 file(GLOB_RECURSE PICO_PNG
@@ -49,7 +50,7 @@ set(ALL_CODE
 	${SOURCES}
 	${HEADERS}
 	${GLM}
-	${OPEN_GL_LOADER}
+	${GL3W}
 	${PICO_PNG}
 	${IM_GUI})
 
@@ -144,8 +145,8 @@ IF(WIN32)
 
 ENDIF(WIN32)
 
-# Copy content
+# Copy assets
 add_custom_command(TARGET ${APPNAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/Content Content)
+    ${CMAKE_SOURCE_DIR}/assets assets)
 

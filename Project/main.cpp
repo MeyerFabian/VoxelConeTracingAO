@@ -5,7 +5,7 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 
 #include <iostream>
 #include <assimp/scene.h>
-#include "externals/OpenGLLoader/gl_core_4_3.h"
+#include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
@@ -45,7 +45,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
     glfwMakeContextCurrent(pWindow);
-    ogl_LoadFunctions();
+    gl3wInit();
 
     // OpenGL initialization
     glDisable(GL_DEPTH_TEST);
@@ -75,7 +75,7 @@ int main(void)
     // Load Fonts
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontDefault();
-    io.Fonts->AddFontFromFileTTF("externals/ImGui/extra_fonts/Cousine-Regular.ttf", 15.0f);
+    io.Fonts->AddFontFromFileTTF("assets/extra_fonts/Cousine-Regular.ttf", 15.0f);
 
     // Variables for the loop
     GLfloat prevTime = (GLfloat)glfwGetTime();
@@ -107,11 +107,25 @@ int main(void)
             prevHeight = height;
         }
 
+        // 1. Show a simple window
+        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+        {
+            static float f = 0.0f;
+            ImGui::Text("Hello, world!");
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+            ImGui::ColorEdit3("clear color", (float*)&clear_color);
+            if (ImGui::Button("Test Window")) show_test_window ^= 1;
+            if (ImGui::Button("Another Window")) show_another_window ^= 1;
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        }
+
+        // Render ImGui
+        ImGui::Render();
+
         // Calc time per frame
         GLfloat currentTime = (GLfloat)glfwGetTime();
         deltaTime = currentTime - prevTime;
         prevTime = currentTime;
-
 
         // Prepare next frame
         glfwSwapBuffers(pWindow);
