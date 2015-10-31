@@ -5,11 +5,13 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 
 #include <iostream>
 #include <assimp/scene.h>
-#include "External/OpenGLLoader/gl_core_4_3.h"
-#include "External/GLFW/include/GLFW/glfw3.h"
-#include "External/GLM/glm/glm.hpp"
-#include "External/GLM/glm/gtc/matrix_transform.hpp"
-#include "External/picoPNG/picopng.h"
+#include "externals/OpenGLLoader/gl_core_4_3.h"
+#include "externals/GLFW/include/GLFW/glfw3.h"
+#include "externals/GLM/glm/glm.hpp"
+#include "externals/GLM/glm/gtc/matrix_transform.hpp"
+#include "externals/picoPNG/picopng.h"
+#include "externals/ImGui/imgui.h"
+#include "externals/ImGui/imgui_impl_glfw_gl3.h"
 
 // has to be included after opengl
 #include <cuda.h>
@@ -53,14 +55,27 @@ int main(void)
     glEnable(GL_TEXTURE_3D);
     glEnable(GL_CULL_FACE);
 
-    // init cuda and enable opengl interop
+    // Init Cuda and enable OpenGL interop
     auto error = cudaGLSetGLDevice(0);
 
-    // test if a cuda capable device is available
+    // Test if a Cuda capable device is available
     if(error != static_cast<cudaError>(CUDA_SUCCESS))
     {
         std::cerr << "no cuda capable device" << std::endl;
     }
+
+    // Init ImGui
+    ImGui_ImplGlfwGL3_Init(pWindow, true);
+
+    // Values for ImGui
+    bool show_test_window = true;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImColor(114, 144, 154);
+
+    // Load Fonts
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontDefault();
+    io.Fonts->AddFontFromFileTTF("externals/ImGui/extra_fonts/Cousine-Regular.ttf", 15.0f);
 
     // Variables for the loop
     GLfloat prevTime = (GLfloat)glfwGetTime();
@@ -76,6 +91,9 @@ int main(void)
     {
         // Clear buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // ImGui new frame
+        ImGui_ImplGlfwGL3_NewFrame();
 
         // Get window resolution
         GLint width, height;

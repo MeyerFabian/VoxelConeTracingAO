@@ -19,7 +19,7 @@ file(GLOB HEADERS
     "*.h")
 
 # Directory of external code
-set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
+set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)
 
 # Cuda kernels
 set(CUDAKERNEL_PATH ${CMAKE_SOURCE_DIR}/kernels)
@@ -37,6 +37,12 @@ file(GLOB_RECURSE OPEN_GL_LOADER
 # Add picoPNG
 file(GLOB_RECURSE PICO_PNG
     "${EXTERNAL_DIR}/picoPNG/*")
+    
+# Add ImGui
+file(GLOB_RECURSE IM_GUI
+    "${EXTERNAL_DIR}/ImGui/*.h"
+    "${EXTERNAL_DIR}/ImGui/*.cpp")
+include_directories(${EXTERNAL_DIR}/ImGui)
 
 # Collect all code
 set(ALL_CODE
@@ -44,7 +50,8 @@ set(ALL_CODE
 	${HEADERS}
 	${GLM}
 	${OPEN_GL_LOADER}
-	${PICO_PNG})
+	${PICO_PNG}
+	${IM_GUI})
 
 # Filtering for Visual Studio
 IF(MSVC)
