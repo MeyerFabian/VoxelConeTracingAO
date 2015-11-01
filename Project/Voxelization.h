@@ -1,9 +1,9 @@
+/* At the moment only test to show how to make subclass of Controllable. */
+
 #ifndef VOXELIZATION_H_
 #define VOXELIZATION_H_
 
 #include "Controllable.h"
-
-// Example how to use Controllable
 
 class Voxelization : public Controllable
 {
@@ -13,7 +13,7 @@ public:
 
 protected:
 
-    virtual void fillGui();
+    virtual void fillGui(); // Implementation of Controllable
 
 private:
 
