@@ -15,20 +15,21 @@ SET(GLFW3_SEARCH_PATHS
 	/opt/local		# APPLE
 	$ENV{PROGRAMFILES}/GLFW/
 	C:/GLFW
-    ${CMAKE_CURRENT_SOURCE_DIR}/External/GLFW
+        ${CMAKE_CURRENT_SOURCE_DIR}/externals/GLFW
 )
 
 IF (MSVC)
     FIND_PATH(GLFW_INCLUDE_DIRS
         NAMES
-            GLFW/glfw3.h
+                GLFW/glfw3.h
         PATHS
-            ${GLFW3_SEARCH_PATHS}
+                ${GLFW3_SEARCH_PATHS}
         PATH_SUFFIXES
-            include
+                include
         DOC
-            "The directory where GLFW/glfw3.h resides"
+                "The directory where GLFW/glfw3.h resides"
     )
+
     IF(MSVC11)
         set(SUFFIX "lib-vc2012")
     ELSEIF(MSVC12)
@@ -38,24 +39,27 @@ IF (MSVC)
     ENDIF()
 
     FIND_PATH( GLFW_DLL
+
         NAMES
-						glfw3.dll
+                glfw3.dll
         PATHS
-            ${GLFW3_SEARCH_PATHS}
+                ${GLFW3_SEARCH_PATHS}
         PATH_SUFFIXES
-            ${SUFFIX}
+                ${SUFFIX}
         DOC
-            "The glfw3.dll library."
+                "The glfw3.dll library."
 	)
+
     FIND_LIBRARY( GLFW_LIBRARIES
+
         NAMES
-            glfw3dll.lib
+                glfw3dll.lib
         PATHS
-            ${GLFW3_SEARCH_PATHS}
+                ${GLFW3_SEARCH_PATHS}
         PATH_SUFFIXES
-            ${SUFFIX}
+                ${SUFFIX}
         DOC
-            "The glfw3dll.lib library."
+                "The glfw3dll.lib library."
     )
 
 

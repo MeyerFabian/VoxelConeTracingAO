@@ -25,35 +25,35 @@ SET(ASSIMP_SEARCH_PATHS
 
 IF (MSVC)
         FIND_PATH(ASSIMP_INCLUDE_DIRS
-			NAMES
-					assimp/ai_assert.h
-			PATHS
-	    		${ASSIMP_SEARCH_PATHS}
-			PATH_SUFFIXES
-				include
-			DOC
-                "The directory where assimp/ai_assert.h resides"
+                NAMES
+                        assimp/ai_assert.h
+                PATHS
+                        ${ASSIMP_SEARCH_PATHS}
+                PATH_SUFFIXES
+                        include
+                DOC
+                        "The directory where assimp/ai_assert.h resides"
 	)
 
 	FIND_LIBRARY(ASSIMP_LIBRARY_RELEASE
 		NAMES
-			assimp.lib
+                        assimp.lib
 		PATHS
-            ${ASSIMP_SEARCH_PATHS}
+                        ${ASSIMP_SEARCH_PATHS}
 		PATH_SUFFIXES
 			lib/Release
 		DOC
-		"The assimp.lib library."
+                        "The assimp.lib library."
 	)
 	FIND_LIBRARY(ASSIMP_LIBRARY_DEBUG
 		NAMES
 			assimpd.lib
 		PATHS
-            ${ASSIMP_SEARCH_PATHS}
+                        ${ASSIMP_SEARCH_PATHS}
 		PATH_SUFFIXES
 			lib/Debug
 		DOC
-		"The assimpd.lib library."
+                        "The assimpd.lib library."
 	)
 
 	FIND_PATH( ASSIMP_DLL_DEBUG
