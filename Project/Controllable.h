@@ -1,3 +1,8 @@
+/* All classes that make use of gui should be subclass of this.
+Controllable takes pointer to app and registers itself for calling
+updateGui() per frame. The fillGui() method must be implemented by
+subclasses to fill the gui. */
+
 #ifndef CONTROLLABLE_H_
 #define CONTROLLABLE_H_
 
