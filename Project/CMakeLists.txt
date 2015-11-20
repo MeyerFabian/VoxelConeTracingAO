@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(AnimSim)
+project(RealtimeRendering)
 set(APPNAME VoxelConeTracing)
-
 # Activate C++11 in GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -16,10 +15,18 @@ file(GLOB SOURCES
     "*.c")
 
 file(GLOB HEADERS
-    "*.h")
+    "*.h"
+    "*.hpp")
+
+# Used to find shaders within c++ code
+set(SHADERS_PATH ${CMAKE_SOURCE_DIR}/shaders CACHE PATH "Project specific path. Set manually if it was not found.")
+add_definitions(-DSHADERS_PATH="${SHADERS_PATH}")
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/rendering")
+add_subdirectory("${PROJECT_SOURCE_DIR}/shaders")
 
 # Directory of external code
-set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
+set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)
 
 # Cuda kernels
 set(CUDAKERNEL_PATH ${CMAKE_SOURCE_DIR}/kernels)
@@ -30,21 +37,29 @@ file(GLOB_RECURSE GLM
     "${EXTERNAL_DIR}/GLM/glm/*.hpp")
 include_directories(${EXTERNAL_DIR}/GLM)
 
-# Add OpenGLLoader
-file(GLOB_RECURSE OPEN_GL_LOADER
-    "${EXTERNAL_DIR}/OpenGLLoader/*")
+# Add gl3w
+file(GLOB_RECURSE GL3W
+    "${EXTERNAL_DIR}/gl3w/src/*")
+include_directories(${EXTERNAL_DIR}/gl3w/include)
 
 # Add picoPNG
 file(GLOB_RECURSE PICO_PNG
     "${EXTERNAL_DIR}/picoPNG/*")
+
+# Add ImGui
+file(GLOB_RECURSE IM_GUI
+    "${EXTERNAL_DIR}/ImGui/*.h"
+    "${EXTERNAL_DIR}/ImGui/*.cpp")
+include_directories(${EXTERNAL_DIR}/ImGui)
 
 # Collect all code
 set(ALL_CODE
 	${SOURCES}
 	${HEADERS}
 	${GLM}
-	${OPEN_GL_LOADER}
-	${PICO_PNG})
+	${GL3W}
+	${PICO_PNG}
+	${IM_GUI})
 
 # Filtering for Visual Studio
 IF(MSVC)
@@ -68,24 +83,11 @@ ENDIF(MSVC)
 
 # Find other libraries
 IF(WIN32)
+	set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake CACHE PATH "Project specific path. Set manually if it was not found.")
 
 	# GLFW 3
-	set(GLFW_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/External/GLFW")
-	include_directories("${GLFW_DIRECTORY}/include")
-
-	IF(MSVC10)
-		set(GLFW_LIBRARIES_DIRECTORY "${GLFW_DIRECTORY}/lib-vc2012")
-	ELSEIF(MSVC11)
-		set(GLFW_LIBRARIES_DIRECTORY "${GLFW_DIRECTORY}/lib-vc2013")
-	ELSE()
-		set(GLFW_LIBRARIES_DIRECTORY "${GLFW_DIRECTORY}/lib-vc2015")
-	ENDIF()
-
-	find_library(GLFW_LIBRARIES
-		NAMES glfw glfw3
-		HINTS "${GLFW_LIBRARIES_DIRECTORY}")
-
-	set(GLFW_BINARIES_DIRECTORY "${GLFW_LIBRARIES_DIRECTORY}")
+	find_package(GLFW3 REQUIRED)
+	include_directories(${GLFW_INCLUDE_DIRS})
 
 	# OpenGL
 	# ${OPENGL_LIBRARIES}
@@ -96,6 +98,11 @@ IF(WIN32)
 	# CUDA
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
+
+	# Assimp
+	find_package(ASSIMP REQUIRED)
+	include_directories(${ASSIMP_INCLUDE_DIRS})
+	
 ELSE(WIN32)
 
 	# GLFW 3 (needs to be installed via package manager)
@@ -111,26 +118,47 @@ ELSE(WIN32)
 	# CUDA
 	find_package(CUDA REQUIRED)
 	include_directories(${CUDA_TOOLKIT_INCLUDE})
+
+	# Assimp
+	find_package(ASSIMP REQUIRED)
+	include_directories(${ASSIMP_INCLUDE_DIRS})
+	
 ENDIF(WIN32)
 
 # Creation of executeable
 cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
 
 # Linking
-target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
 IF(WIN32)
 
-    # Copy dlls
-		add_custom_command(TARGET ${APPNAME} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${GLFW_BINARIES_DIRECTORY}/glfw3.dll"
-			"${PROJECT_BINARY_DIR}/glfw3.dll")
+  # Copy dlls
+  add_custom_command(TARGET ${APPNAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND}
+       	-E copy_if_different
+        "${ASSIMP_DLL_RELEASE}/assimp.dll"
+	"${PROJECT_BINARY_DIR}/Release/assimp.dll"
+	)
+
+  add_custom_command(TARGET ${APPNAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        -E copy_if_different
+       	"${ASSIMP_DLL_DEBUG}/assimpd.dll"
+       	"${PROJECT_BINARY_DIR}/Debug/assimpd.dll"
+        )
+  
+  add_custom_command(TARGET ${APPNAME} POST_BUILD
+  	COMMAND ${CMAKE_COMMAND}
+        -E copy_if_different
+        "${GLFW_DLL}/glfw3.dll"
+        "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/glfw3.dll"
+  	)
+
 
 ENDIF(WIN32)
 
-# Copy content
+# Copy assets
 add_custom_command(TARGET ${APPNAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/Content Content)
-
+    ${CMAKE_SOURCE_DIR}/assets assets)
