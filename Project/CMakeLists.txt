@@ -30,6 +30,7 @@ add_definitions(-DSHADERS_PATH="${SHADERS_PATH}")
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/rendering")
 add_subdirectory("${PROJECT_SOURCE_DIR}/shaders")
+add_subdirectory("${PROJECT_SOURCE_DIR}/SparseOctree")
 
 # Directory of external code
 set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)

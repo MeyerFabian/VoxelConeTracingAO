@@ -4,6 +4,7 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 }
 
 #include "App.h"
+#include "SparseOctree/BrickPool.h"
 
 #include <iostream>
 #include <assimp/scene.h>
@@ -28,5 +29,9 @@ int main(void)
     }
 
     App app;
+
+    BrickPool pool;
+    pool.init();
+
     app.run();
 }
