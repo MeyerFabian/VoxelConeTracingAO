@@ -7,6 +7,12 @@ IF(CMAKE_COMPILER_IS_GNUCC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
+#make sure we dont propagate c++11 to cuda (problems with ubuntu (maybe because of old cuda version))
+set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+
+#fuck ubuntu
+set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+
 include_directories(.)
 
 # Collect files
