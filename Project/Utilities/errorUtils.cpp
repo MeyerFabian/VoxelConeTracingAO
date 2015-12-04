@@ -11,7 +11,7 @@ void ErrorHandler::gpuAssert(cudaError_t code, const char *file, int line)
 {
     if (code != cudaSuccess)
     {
-        throw(CudaException(std::string("CUDA Error: ") + cudaGetErrorString(code) +file + " " + std::to_string(line)));
+        throw(CudaException(std::string("CUDA Error: ") + cudaGetErrorString(code) + " " + file + " " + std::to_string(line)));
     }
 }
 

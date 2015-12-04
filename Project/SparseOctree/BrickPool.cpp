@@ -5,6 +5,7 @@
 #include "BrickPool.h"
 #include <cuda_gl_interop.h>
 #include <cuda_runtime_api.h>
+#include <iostream>
 #include "Utilities/errorUtils.h"
 
 
@@ -24,7 +25,6 @@ void BrickPool::init(int width, int height, int depth)
     glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &max);
 
     //TODO: implement a method that is able to query the real max size.. depends on type and format..
-
     //load data into a 3D texture
     glGenTextures(1, &m_brickPoolID);
     glBindTexture(GL_TEXTURE_3D, m_brickPoolID);
@@ -36,7 +36,7 @@ void BrickPool::init(int width, int height, int depth)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA32F,width,height,depth,0,GL_RGBA,GL_FLOAT, nullptr);
+    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA32F,width,height,depth,0,GL_RGBA, GL_FLOAT, NULL);
 
     GLenum error = glGetError();
 
@@ -63,7 +63,12 @@ void BrickPool::init(int width, int height, int depth)
 }
 
 
-void BrickPool::registerTextureForCUDA()
+void BrickPool::registerTextureForCUDAWriting()
+{
+    cudaErrorCheck(cudaGraphicsGLRegisterImage(&m_brickPoolRessource, m_brickPoolID, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsSurfaceLoadStore));
+}
+
+void BrickPool::registerTextureForCUDAReading()
 {
     cudaErrorCheck(cudaGraphicsGLRegisterImage(&m_brickPoolRessource, m_brickPoolID, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
 }

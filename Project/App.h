@@ -7,15 +7,17 @@
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
 #include "externals/GLM/glm/glm.hpp"
-#include "rendering/ShaderProgram.h"
 
 #include <vector>
 #include <memory>
 
+#include "SparseOctree/BrickPool.h"
+#include "SparseOctree/NodePool.h"
+#include "rendering/ShaderProgram.h"
+
 class App
 {
 public:
-
     App();
     virtual ~App(); // Virtual not necessary
     void run();
@@ -37,6 +39,10 @@ private:
     glm::mat4 uniformModel;
     GLuint vertexArrayID;
     ShaderProgram* pSimpleShader;
+
+
+    BrickPool m_brickPool;
+    NodePool m_nodePool;
 };
 
 #endif // APP_H_

@@ -30,8 +30,5 @@ int main(void)
 
     App app;
 
-    BrickPool pool;
-    pool.init();
-
     app.run();
 }

@@ -16,7 +16,8 @@ public:
     ~BrickPool();
 
     void init(int width = 512, int height = 512, int depth = 512);
-    void registerTextureForCUDA();
+    void registerTextureForCUDAWriting();
+    void registerTextureForCUDAReading();
     void unregisterTextureForCUDA();
 private:
     GLuint m_brickPoolID;
