@@ -19,6 +19,11 @@ public:
     void registerTextureForCUDAWriting();
     void registerTextureForCUDAReading();
     void unregisterTextureForCUDA();
+
+    void voxelizeMaxDetail();
+    void subdivideOctree();
+    void fillBricks();
+
 private:
     GLuint m_brickPoolID;
     cudaGraphicsResource_t  m_brickPoolRessource;

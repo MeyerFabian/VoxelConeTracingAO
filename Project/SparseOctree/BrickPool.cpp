@@ -77,3 +77,18 @@ void BrickPool::unregisterTextureForCUDA()
 {
     cudaErrorCheck(cudaGraphicsUnregisterResource(m_brickPoolRessource));
 }
+
+void BrickPool::voxelizeMaxDetail()
+{
+    // TODO: Voxelize the current meshes as stated in: "OpenGL Insights"
+}
+
+void BrickPool::subdivideOctree()
+{
+    // TODO: mark all nodes that should be subdivided
+}
+
+void BrickPool::fillBricks()
+{
+    // TODO: call kernel that fills all "mipmaplevels" manually
+}
