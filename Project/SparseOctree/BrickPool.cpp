@@ -8,7 +8,6 @@
 #include <iostream>
 #include "Utilities/errorUtils.h"
 
-
 BrickPool::BrickPool()
 {
 

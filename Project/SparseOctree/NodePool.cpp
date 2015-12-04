@@ -4,7 +4,7 @@
 
 #include "NodePool.h"
 
-void NodePool::init(int nodeTileCount)
+void NodePool::init(int nodeCount)
 {
     // TODO: call nvcc method that generates the memory
 }

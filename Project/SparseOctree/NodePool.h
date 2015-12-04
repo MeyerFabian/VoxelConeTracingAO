@@ -21,7 +21,7 @@ class NodePool
 {
 public:
     NodePool(){}
-    void init(int nodeTileCount = 8192); // i chose 8192 without any practical experience => maximum count that fits in constant memory
+    void init(int nodeCount = 8192); // i chose 8192 without any practical experience => maximum count that fits in constant memory
                                          // copying global to const memory before traversal might improve the performance
 
     void updateConstMemory();
