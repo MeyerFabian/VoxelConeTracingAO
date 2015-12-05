@@ -15,7 +15,7 @@ public:
     BrickPool();
     ~BrickPool();
 
-    void init(int width = 512, int height = 512, int depth = 512);
+	void init(int width = 384, int height = 384, int depth = 384);
     void registerTextureForCUDAWriting();
     void registerTextureForCUDAReading();
     void unregisterTextureForCUDA();
