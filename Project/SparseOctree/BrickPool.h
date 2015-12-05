@@ -27,6 +27,10 @@ public:
 private:
     GLuint m_brickPoolID;
     cudaGraphicsResource_t  m_brickPoolRessource;
+    cudaArray_t m_brickPoolArray;
+
+    void mapRessourceToArray();
+    void unmapRessource();
 };
 
 

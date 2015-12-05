@@ -91,3 +91,13 @@ void BrickPool::fillBricks()
 {
     // TODO: call kernel that fills all "mipmaplevels" manually
 }
+
+void BrickPool::mapRessourceToArray()
+{
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_brickPoolRessource, 0));
+    cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_brickPoolArray, m_brickPoolRessource, 0, 0));
+}
+
+void BrickPool::unmapRessource() {
+    cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
+}
