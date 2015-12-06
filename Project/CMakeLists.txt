@@ -120,8 +120,7 @@ IF(WIN32)
 ELSE(WIN32)
 
 	# GLFW 3 (needs to be installed via package manager)
-	find_package(PkgConfig REQUIRED)
-	pkg_search_module(GLFW REQUIRED glfw3)
+	find_package(GLFW3 REQUIRED)
 	include_directories(${GLFW_INCLUDE_DIRS})
 
 	# OpenGL

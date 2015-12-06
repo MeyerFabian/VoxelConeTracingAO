@@ -62,7 +62,11 @@ IF (MSVC)
                 "The glfw3dll.lib library."
     )
 
-
+else()
+    FIND_PATH(GLFW_INCLUDE_DIRS GLFW/glfw3.h)
+    FIND_LIBRARY(GLFW_LIBRARIES
+                NAMES glfw3 glfw
+                PATH_SUFFIXES dynamic)
 ENDIF ()
 
 
