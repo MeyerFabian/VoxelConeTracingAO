@@ -4,14 +4,14 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 }
 
 #include "App.h"
-#include "SparseOctree/BrickPool.h"
+#include "Utilities/errorUtils.h"
 
 #include <iostream>
 #include <assimp/scene.h>
 
 // has to be included after opengl
-#include <cuda.h>
 #include <cuda_gl_interop.h>
+
 
 // Main
 int main(void)
@@ -20,13 +20,7 @@ int main(void)
     test();
 
     // Init Cuda and enable OpenGL interop
-    auto error = cudaGLSetGLDevice(0);
-
-    // Test if a Cuda capable device is available
-    if(error != static_cast<cudaError>(CUDA_SUCCESS))
-    {
-        std::cerr << "no cuda capable device" << std::endl;
-    }
+    cudaErrorCheck(cudaGLSetGLDevice(0));
 
     App app;
 
