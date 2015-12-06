@@ -25,6 +25,8 @@
         static void gpuAssert(cudaError_t code, const char *file, int line);
 
         static GLenum checkGLError(bool printIfNoError = false);
+
+        static void log(std::string message);
     };
 
 #endif //ERRORUTILS_H

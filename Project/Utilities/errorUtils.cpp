@@ -45,3 +45,8 @@ GLenum ErrorHandler::checkGLError(bool printIfNoError)
     }
     return error;
 }
+
+void ErrorHandler::log(std::string message)
+{
+    std::cout << message << std::endl;
+}
