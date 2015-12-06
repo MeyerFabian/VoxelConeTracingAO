@@ -96,51 +96,20 @@ IF(MSVC)
 
 ENDIF(MSVC)
 
-# Find other libraries
-IF(WIN32)
+# Find and add other libraries
+find_package(GLFW3 REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(CUDA REQUIRED)
+find_package(ASSIMP REQUIRED)
 
-	# GLFW 3
-	find_package(GLFW3 REQUIRED)
-	include_directories(${GLFW_INCLUDE_DIRS})
+include_directories(${GLFW_INCLUDE_DIRS}
+					${OPENGL_INCLUDE_DIR}
+					${CUDA_TOOLKIT_INCLUDE}
+					${ASSIMP_INCLUDE_DIRS})
 
-	# OpenGL
-	# ${OPENGL_LIBRARIES}
-	# ${OPENGL_INCLUDE_DIR}
-	find_package(OpenGL REQUIRED)
-	include_directories(${OPENGL_INCLUDE_DIR})
-
-	# CUDA
-	find_package(CUDA REQUIRED)
-	include_directories(${CUDA_TOOLKIT_INCLUDE})
-
-	# Assimp
-	find_package(ASSIMP REQUIRED)
-	include_directories(${ASSIMP_INCLUDE_DIRS})
-	
-ELSE(WIN32)
-
-	# GLFW 3 (needs to be installed via package manager)
-	find_package(GLFW3 REQUIRED)
-	include_directories(${GLFW_INCLUDE_DIRS})
-
-	# OpenGL
-	find_package(OpenGL REQUIRED)
-	include_directories(${OpenGL_INCLUDE_DIRS})
-	link_directories(${OpenGL_LIBRARY_DIRS})
-
-	# CUDA
-	find_package(CUDA REQUIRED)
-	include_directories(${CUDA_TOOLKIT_INCLUDE})
-
-	# Assimp
-	find_package(ASSIMP REQUIRED)
-	include_directories(${ASSIMP_INCLUDE_DIRS})
-	
-ENDIF(WIN32)
 
 # Creation of executeable
 cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
-
 # Linking
 target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
@@ -167,8 +136,7 @@ IF(WIN32)
         "${GLFW_DLL}/glfw3.dll"
         "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/glfw3.dll"
   	)
-
-
+	
 ENDIF(WIN32)
 
 # Copy assets
