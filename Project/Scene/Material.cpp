@@ -7,9 +7,11 @@ Material::Material(aiMaterial const * material)
 {
     for(int i = 0; i < material->mNumProperties; i++)
     {
-        std::string key = material->mProperties[i]->mKey;
+        std::string key(material->mProperties[i]->mKey.C_Str());
 
-        std::cout << key << std::endl;
+        std::string property(material->mProperties[i]->mData);
+
+        std::cout << key << ": " << property << std::endl;
     }
 }
 

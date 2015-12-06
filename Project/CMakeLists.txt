@@ -38,6 +38,14 @@ file(GLOB HEADERS
 set(SHADERS_PATH ${CMAKE_SOURCE_DIR}/shaders CACHE PATH "Project specific path. Set manually if it was not found.")
 add_definitions(-DSHADERS_PATH="${SHADERS_PATH}")
 
+# Used to find meshes within c++ code
+set(MESHES_PATH ${CMAKE_SOURCE_DIR}/meshes CACHE PATH "Project specific path. Set manually if it was not found.")
+add_definitions(-DMESHES_PATH="${MESHES_PATH}")
+
+# Used to find textures within c++ code
+set(TEXTURES_PATH ${CMAKE_SOURCE_DIR}/textures CACHE PATH "Project specific path. Set manually if it was not found.")
+add_definitions(-DTEXTURES_PATH="${TEXTURES_PATH}")
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/rendering")
 add_subdirectory("${PROJECT_SOURCE_DIR}/shaders")
 add_subdirectory("${PROJECT_SOURCE_DIR}/SparseOctree")

@@ -9,7 +9,9 @@
 
 #include <vector>
 #include <memory>
-#include <SparseOctree/SparseVoxelOctree.h>
+
+#include "SparseOctree/SparseVoxelOctree.h"
+#include "Scene/Scene.h"
 
 #include "SparseOctree/BrickPool.h"
 #include "SparseOctree/NodePool.h"
@@ -32,6 +34,7 @@ private:
 
     std::vector<Controllable*> mControllables; // Could be weak pointers
     std::unique_ptr<SparseVoxelOctree> m_svo;
+    std::unique_ptr<Scene> m_scene;
 
     // Testing
     glm::mat4 uniformView;

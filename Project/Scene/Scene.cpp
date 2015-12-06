@@ -6,7 +6,10 @@
 
 #include "Utilities/errorUtils.h"
 
-Scene::Scene(std::string filepath)
+// TODO: testing
+#include <iostream>
+
+Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
     // Create instance of assimp
     Assimp::Importer importer;
@@ -57,4 +60,9 @@ Scene::Scene(std::string filepath)
 Scene::~Scene()
 {
     // Nothing to do
+}
+
+void Scene::fillGui()
+{
+
 }

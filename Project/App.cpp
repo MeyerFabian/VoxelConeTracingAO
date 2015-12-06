@@ -87,6 +87,9 @@ App::App()
 
     // TODO: make some nice class with unbinding...
 
+    // Scene
+    m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
+
     // Voxelization
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
 
