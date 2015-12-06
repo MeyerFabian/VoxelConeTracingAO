@@ -28,3 +28,6 @@
 
 # Clion Indexing
 Project/.idea
+
+# QtCreator Project
+*.txt.user
