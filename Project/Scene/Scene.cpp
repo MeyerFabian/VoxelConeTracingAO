@@ -8,9 +8,6 @@
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 
-// TODO: testing
-#include <iostream>
-
 Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
     // Prepare the one and only shader
@@ -73,7 +70,7 @@ void Scene::draw() const
     // Use the one and only shader
     mupShader->use();
 
-    // TEST
+    // TODO: TEST
     glm::mat4 uniformView = glm::lookAt(glm::vec3(0, 0, -10),glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
     glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), ((GLfloat)800 / (GLfloat)600), 0.1f, 100.f);
     glm::mat4 uniformModel = glm::mat4(1.f);
@@ -81,7 +78,7 @@ void Scene::draw() const
     mupShader->updateUniform("color", glm::vec4(1,1,1,1));
     mupShader->updateUniform("projection", uniformProjection);
     mupShader->updateUniform("view", uniformView);
-    mupShader->updateUniform("model", uniformModel); // all meshes have pivot in 0,0,0
+    mupShader->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
     // Render all the buckets' content
     for(auto& bucket : mRenderBuckets)
