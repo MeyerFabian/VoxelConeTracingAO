@@ -42,6 +42,7 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/rendering")
 add_subdirectory("${PROJECT_SOURCE_DIR}/shaders")
 add_subdirectory("${PROJECT_SOURCE_DIR}/SparseOctree")
 add_subdirectory("${PROJECT_SOURCE_DIR}/Utilities")
+add_subdirectory("${PROJECT_SOURCE_DIR}/Scene")
 
 # Directory of external code
 set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)
