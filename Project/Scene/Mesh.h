@@ -1,19 +1,24 @@
 #ifndef MESH_H_
 #define MESH_H_
 
+#include <assimp/scene.h>
 #include <string>
+#include <vector>
 
 class Mesh
 {
 public:
 
-    Mesh(std::string filepath);
+    Mesh(aiMesh const * pAssimpMesh);
     virtual ~Mesh();
 
 private:
 
     // Members
-    // Submeshes...
+    int mVertexBuffer;
+    int mNormalBuffer;
+    int mIndexBuffer;
+    int mUVBuffer;
 };
 
 #endif // MESH_H_

@@ -1,66 +1,72 @@
 #include "Mesh.h"
+#include <GL/gl3w.h>
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
-#include "Utilities/errorUtils.h"
-
-Mesh::Mesh(std::string filepath)
+Mesh::Mesh(aiMesh const * pAssimpMesh)
 {
-    // Create instance of assimp
-    Assimp::Importer importer;
-
-    // Import
-    const aiScene* scene = importer.ReadFile(filepath,
-        aiProcess_CalcTangentSpace       |
-        aiProcess_Triangulate            |
-        aiProcess_JoinIdenticalVertices  |
-        aiProcess_SortByPType);
-
-    // Check whether import was successful
-    if(!scene)
+    // Vertices
+    float *vertices = new float[mesh->mNumVertices * 3];
+    for(int i = 0; i < mesh->mNumVertices; i++)
     {
-        ErrorHandler::log(importer.GetErrorString());
+        vertices[i * 3] = mesh->mVertices[i].x;
+        vertices[i * 3 + 1] = mesh->mVertices[i].y;
+        vertices[i * 3 + 2] = mesh->mVertices[i].z;
     }
 
-    // Perpare OpenGL buffers
+    glGenBuffers(1, &mVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
+    delete[] vertices;
 
-    // Iterate over meshes in scene
-    for(int i = 0; i < scene->mNumMeshes; i++)
+    // Normals
+    float *normals = new float[mesh->mNumVertices * 3];
+    for(int i = 0; i < mesh->mNumVertices; ++i)
     {
-        aiMesh* mesh = scene->mMeshes[i];
-
-        // Collect positions
-        float *vertices = new float[mesh->mNumVertices * 3];
-        for(int i = 0; i < mesh->mNumVertices; i++) {
-            vertices[i * 3] = mesh->mVertices[i].x;
-            vertices[i * 3 + 1] = mesh->mVertices[i].y;
-            vertices[i * 3 + 2] = mesh->mVertices[i].z;
-        }
-
-        /*glGenBuffers(1, &mVBOs[VERTEX_BUFFER]);
-        glBindBuffer(GL_ARRAY_BUFFER, mVBOs[VERTEX_BUFFER]);
-        glBufferData(GL_ARRAY_BUFFER, 3 * mesh->mNumVertices * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        glEnableVertexAttribArray (0);*/
-
-        delete[] vertices;
-
-        // Collect normals
-
-        // Collect indices
-
-        // Get material
-
+        normals[i * 3] = mesh->mNormals[i].x;
+        normals[i * 3 + 1] = mesh->mNormals[i].y;
+        normals[i * 3 + 2] = mesh->mNormals[i].z;
     }
 
-    // Scene deleted by importer destructor
+    glGenBuffers(1, &mNormalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mNormalBuffer);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
+
+    delete[] normals;
+
+    // Indices
+    unsigned int *indices = new unsigned int[mesh->mNumFaces * 3];
+    for(int i = 0; i < mesh->mNumFaces; ++i)
+    {
+        indices[i * 3] = mesh->mFaces[i].mIndices[0];
+        indices[i * 3 + 1] = mesh->mFaces[i].mIndices[1];
+        indices[i * 3 + 2] = mesh->mFaces[i].mIndices[2];
+    }
+
+    glGenBuffers(1, &mIndexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->mNumFaces * 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
+
+    delete[] indices;
+
+    // Texture coordinates
+    float *texCoords = new float[mesh->mNumVertices * 2];
+    for(int i = 0; i < mesh->mNumVertices; ++i)
+    {
+        texCoords[i * 2] = mesh->mTextureCoords[0][i].x;
+        texCoords[i * 2 + 1] = mesh->mTextureCoords[0][i].y;
+    }
+
+    glGenBuffers(1, &mUVBuffers[i]);
+    glBindBuffer(GL_ARRAY_BUFFER, mUVBuffers[i]);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 2 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
+
+    delete[] texCoords;
 }
 
 Mesh::~Mesh()
 {
-
+    glDeleteBuffers(1, &mVertexBuffer);
+    glDeleteBuffers(1, &mNormalBuffer);
+    glDeleteBuffers(1, &mIndexBuffer);
+    glDeleteBuffers(1, &mUVBuffer);
 }
