@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <memory>
+#include <SparseOctree/SparseVoxelOctree.h>
 
 #include "SparseOctree/BrickPool.h"
 #include "SparseOctree/NodePool.h"
@@ -32,6 +33,7 @@ private:
 
     std::vector<Controllable*> mControllables; // Could be weak pointers
     std::unique_ptr<Voxelization> mupVoxelization;
+    std::unique_ptr<SparseVoxelOctree> m_svo;
 
     // Testing
     glm::mat4 uniformView;
@@ -39,10 +41,6 @@ private:
     glm::mat4 uniformModel;
     GLuint vertexArrayID;
     ShaderProgram* pSimpleShader;
-
-
-    BrickPool m_brickPool;
-    NodePool m_nodePool;
 };
 
 #endif // APP_H_

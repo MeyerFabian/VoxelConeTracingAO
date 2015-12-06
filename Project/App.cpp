@@ -89,11 +89,9 @@ App::App()
 
     // Voxelization
     mupVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
+    m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
 
-
-    // testsing for node and brick-pool
-
-    m_brickPool.init();
+    m_svo->init();
 }
 
 App::~App()
@@ -134,12 +132,7 @@ void App::run()
             mPrevHeight = height;
         }
 
-        // we might set this only once.. i think opengl is still able to read from a texture that is registered to cuda
-        m_brickPool.registerTextureForCUDAWriting();
-        // DO STUFF WITH CUDA
-
-        m_brickPool.unregisterTextureForCUDA();
-        // DO STUFF WITH OPENGL again
+        m_svo->updateOctree();
 
         // Use our shader
         pSimpleShader->use();
