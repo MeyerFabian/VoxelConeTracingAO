@@ -102,7 +102,7 @@ find_package(OpenGL REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(ASSIMP REQUIRED)
 
-include_directories(${GLFW_INCLUDE_DIRS}
+include_directories(${GLFW3_INCLUDE_PATH}
 					${OPENGL_INCLUDE_DIR}
 					${CUDA_TOOLKIT_INCLUDE}
 					${ASSIMP_INCLUDE_DIRS})
@@ -111,7 +111,7 @@ include_directories(${GLFW_INCLUDE_DIRS}
 # Creation of executeable
 cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
 # Linking
-target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
+target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
 IF(WIN32)
 
