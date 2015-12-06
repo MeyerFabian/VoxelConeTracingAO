@@ -88,7 +88,6 @@ App::App()
     // TODO: make some nice class with unbinding...
 
     // Voxelization
-    mupVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
 
     m_svo->init();

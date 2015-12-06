@@ -2,7 +2,6 @@
 #define APP_H_
 
 #include "Controllable.h"
-#include "Voxelization.h"
 
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
@@ -32,7 +31,6 @@ private:
     GLint mPrevHeight = 0;
 
     std::vector<Controllable*> mControllables; // Could be weak pointers
-    std::unique_ptr<Voxelization> mupVoxelization;
     std::unique_ptr<SparseVoxelOctree> m_svo;
 
     // Testing
