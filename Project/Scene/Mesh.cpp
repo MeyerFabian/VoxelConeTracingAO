@@ -28,6 +28,23 @@ Mesh::Mesh(aiMesh const * mesh)
 
     delete[] vertices;
 
+    // Texture coordinates
+    float *texCoords = new float[mesh->mNumVertices * 2];
+    for(int i = 0; i < mesh->mNumVertices; i++)
+    {
+        texCoords[i * 2] = mesh->mTextureCoords[0][i].x;
+        texCoords[i * 2 + 1] = mesh->mTextureCoords[0][i].y;
+    }
+
+    glGenBuffers(1, &mUVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mUVBuffer);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 2 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    delete[] texCoords;
+
     // Normals
     float *normals = new float[mesh->mNumVertices * 3];
     for(int i = 0; i < mesh->mNumVertices; i++)
@@ -42,7 +59,7 @@ Mesh::Mesh(aiMesh const * mesh)
     glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
     delete[] normals;
 
@@ -59,27 +76,7 @@ Mesh::Mesh(aiMesh const * mesh)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->mNumFaces * 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
     delete[] indices;
-
-    // Texture coordinates
-    float *texCoords = new float[mesh->mNumVertices * 2];
-    for(int i = 0; i < mesh->mNumVertices; i++)
-    {
-        texCoords[i * 2] = mesh->mTextureCoords[0][i].x;
-        texCoords[i * 2 + 1] = mesh->mTextureCoords[0][i].y;
-    }
-
-    glGenBuffers(1, &mUVBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mUVBuffer);
-    glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 2 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    delete[] texCoords;
 
     // Unbind vertex array object
     glBindVertexArray(0);

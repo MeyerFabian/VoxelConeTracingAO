@@ -15,7 +15,6 @@
 
 #include "SparseOctree/BrickPool.h"
 #include "SparseOctree/NodePool.h"
-#include "rendering/ShaderProgram.h"
 
 class App
 {
@@ -35,13 +34,6 @@ private:
     std::vector<Controllable*> mControllables; // Could be weak pointers
     std::unique_ptr<SparseVoxelOctree> m_svo;
     std::unique_ptr<Scene> m_scene;
-
-    // Testing
-    glm::mat4 uniformView;
-    glm::mat4 uniformProjection;
-    glm::mat4 uniformModel;
-    GLuint vertexArrayID;
-    ShaderProgram* pSimpleShader;
 };
 
 #endif // APP_H_

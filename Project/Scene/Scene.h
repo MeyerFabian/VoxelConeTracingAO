@@ -4,9 +4,17 @@
 #include "Controllable.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "rendering/ShaderProgram.h"
 #include <vector>
 #include <map>
 #include <memory>
+
+// TODO
+/*
+ * Indexed rendering of meshes works?
+ * Diffuse has to be used in shader (and deactivated if necessary)
+ * Camera must be implemented
+ * /
 
 class Scene : public Controllable
 {
@@ -15,11 +23,14 @@ public:
     Scene(App* pApp, std::string filepath);
     virtual ~Scene();
 
+    void draw() const;
+
 private:
 
     virtual void fillGui() override; // Implementation of Controllable
 
     // Members
+    std::unique_ptr<ShaderProgram> mupShader;
     std::vector<std::unique_ptr<Material> > mMaterials;
     std::vector<std::unique_ptr<Mesh> > mMeshes;
     std::map<Material const *, std::vector<Mesh const *> > mRenderBuckets;

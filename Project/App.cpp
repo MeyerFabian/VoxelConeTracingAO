@@ -1,6 +1,5 @@
 #include "App.h"
 
-#include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/ImGui/imgui.h"
 #include "externals/ImGui/imgui_impl_glfw_gl3.h"
 
@@ -52,41 +51,6 @@ App::App()
     mPrevWidth = 0;
     mPrevHeight = 0;
 
-    uniformView = glm::lookAt(glm::vec3(0, 0, 5),glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-    uniformProjection = glm::perspective(glm::radians(35.0f), ((GLfloat)width / (GLfloat)height), 0.1f, 100.f);
-    uniformModel = glm::mat4(1.f);
-
-    // Shader demo TODO: add model loading.. not this stupid triangle
-    glGenVertexArrays(1, &vertexArrayID);
-    glBindVertexArray(vertexArrayID);
-
-    static const GLfloat g_vertex_buffer_data[] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            0.0f,  1.0f, 0.0f,
-    };
-
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    pSimpleShader = new ShaderProgram("/vertex_shaders/modelViewProjection.vert","/fragment_shaders/simpleColor.frag");
-    pSimpleShader->use();
-    pSimpleShader->updateUniform("color", glm::vec4(1.0f,0.0f,0.0f,1.0f));
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            (void*)0
-    );
-
-    // TODO: make some nice class with unbinding...
-
     // Scene
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
@@ -98,9 +62,6 @@ App::App()
 
 App::~App()
 {
-    // Termination
-    delete pSimpleShader;
-
     glfwDestroyWindow(mpWindow);
     glfwTerminate();
     exit(EXIT_SUCCESS);
@@ -136,16 +97,8 @@ void App::run()
 
         m_svo->updateOctree();
 
-        // Use our shader
-        pSimpleShader->use();
-        pSimpleShader->updateUniform("color", glm::vec4(1,0,0,1));
-        pSimpleShader->updateUniform("projection", uniformProjection);
-        pSimpleShader->updateUniform("view", uniformView);
-        pSimpleShader->updateUniform("model", uniformModel);
-
-        // TODO: OpenGL draw test
-        glBindVertexArray(vertexArrayID);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // Draw scene
+        m_scene->draw();
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
