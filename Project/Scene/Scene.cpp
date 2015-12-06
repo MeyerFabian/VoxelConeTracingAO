@@ -24,13 +24,37 @@ Scene::Scene(std::string filepath)
         ErrorHandler::log(importer.GetErrorString());
     }
 
+    // Iterate over materials in scene
+    for(int i = 0; i < scene->mNumMaterials; i++)
+    {
+        // Fetch pointer to assimp structure
+        aiMaterial* material = scene->mMaterials[i];
+
+        // Create material from assimp data
+        std::unique_ptr<Material> upMaterial = std::unique_ptr<Material>(new Material(material));
+
+        // Move to materials
+        mMaterials.push_back(std::move(upMaterial));
+    }
+
     // Iterate over meshes in scene
     for(int i = 0; i < scene->mNumMeshes; i++)
     {
+        // Fetch pointer to assimp structure
         aiMesh* mesh = scene->mMeshes[i];
 
-        mMeshes.push_back(Mesh(mesh));
+        // Create mesh from assimp data
+        std::unique_ptr<Mesh> upMesh = std::unique_ptr<Mesh>(new Mesh(mesh));
 
-        // TODO: Fetch material / sortiere die meshes irgendwie damit: map!
+        // Move to meshes
+        mMeshes.push_back(std::move(upMesh));
 
+        // Register in render bucket
+        // TODO
+    }
+}
+
+Scene::~Scene()
+{
+    // Nothing to do
 }

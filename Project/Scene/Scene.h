@@ -2,8 +2,10 @@
 #define SCENE_H_
 
 #include "Mesh.h"
+#include "Material.h"
 #include <vector>
-
+#include <map>
+#include <memory>
 
 class Scene
 {
@@ -14,9 +16,9 @@ public:
 
 private:
 
-    // TODO: Sortiere meshes nach materialien
-    std::vector<Mesh> mMeshes;
-
+    std::vector<std::unique_ptr<Material> > mMaterials;
+    std::vector<std::unique_ptr<Mesh> > mMeshes;
+    std::map<Material const *, std::vector<Mesh const *> > mRenderBuckets;
 };
 
 #endif // SCENE_H_
