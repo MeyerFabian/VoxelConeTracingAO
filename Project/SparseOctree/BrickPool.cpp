@@ -8,6 +8,12 @@
 #include <iostream>
 #include "Utilities/errorUtils.h"
 
+extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
+{
+    void updateBrickPool(cudaArray_t &brickPool);
+}
+
+
 BrickPool::BrickPool()
 {
 
@@ -77,20 +83,6 @@ void BrickPool::unregisterTextureForCUDA()
     cudaErrorCheck(cudaGraphicsUnregisterResource(m_brickPoolRessource));
 }
 
-void BrickPool::voxelizeMaxDetail()
-{
-    // TODO: Voxelize the current meshes as stated in: "OpenGL Insights"
-}
-
-void BrickPool::subdivideOctree()
-{
-    // TODO: mark all nodes that should be subdivided
-}
-
-void BrickPool::fillBricks()
-{
-    // TODO: call kernel that fills all "mipmaplevels" manually
-}
 
 void BrickPool::mapRessourceToArray()
 {
@@ -100,4 +92,11 @@ void BrickPool::mapRessourceToArray()
 
 void BrickPool::unmapRessource() {
     cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
+}
+
+cudaArray_t *BrickPool::fillBrickPool(const NodePool &nodepool)
+{
+    updateBrickPool(m_brickPoolArray);
+
+    return &m_brickPoolArray;
 }

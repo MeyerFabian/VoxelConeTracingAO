@@ -8,6 +8,7 @@
 #include <driver_types.h>
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
+#include "NodePool.h"
 
 class BrickPool
 {
@@ -20,9 +21,7 @@ public:
     void registerTextureForCUDAReading();
     void unregisterTextureForCUDA();
 
-    void voxelizeMaxDetail();
-    void subdivideOctree();
-    void fillBricks();
+    cudaArray_t *fillBrickPool(const NodePool &nodepool);
 
 private:
     GLuint m_brickPoolID;
