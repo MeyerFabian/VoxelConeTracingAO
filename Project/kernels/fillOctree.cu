@@ -16,8 +16,8 @@ void testFilling(dim3 texture_dim)
         return;
     }
 
-    float4 element = make_float4(1.0f, 1.0f, 1.0f, 1.0f);
-    surf3Dwrite(element, surfRef, x*sizeof(float4), y, z);
+    uchar4 element = make_uchar4(255, 255, 255, 255);
+    surf3Dwrite(element, surfRef, x*sizeof(uchar4), y, z);
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
