@@ -6,6 +6,7 @@
 #define BRICKPOOL_H
 
 #include <driver_types.h>
+#include <vector_types.h>
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
 #include "NodePool.h"
@@ -27,6 +28,8 @@ private:
     GLuint m_brickPoolID;
     cudaGraphicsResource_t  m_brickPoolRessource;
     cudaArray_t m_brickPoolArray;
+
+	dim3 m_poolSize;
 
     void mapRessourceToArray();
     void unmapRessource();

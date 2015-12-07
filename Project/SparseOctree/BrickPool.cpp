@@ -10,7 +10,7 @@
 
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
-    void updateBrickPool(cudaArray_t &brickPool);
+    cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim);
 }
 
 
@@ -29,6 +29,10 @@ void BrickPool::init(int width, int height, int depth)
     int max;
     glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &max);
 
+    m_poolSize.x = static_cast<unsigned int>(width);
+    m_poolSize.y = static_cast<unsigned int>(height);
+    m_poolSize.z = static_cast<unsigned int>(depth);
+
     //TODO: implement a method that is able to query the real max size.. depends on type and format..
     //load data into a 3D texture
     glGenTextures(1, &m_brickPoolID);
@@ -41,7 +45,7 @@ void BrickPool::init(int width, int height, int depth)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA16F,width,height,depth,0,GL_RGBA, GL_FLOAT, NULL);
+    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA32F,width,height,depth,0,GL_RGBA, GL_FLOAT, NULL);
 
     GLenum error = glGetError();
 
@@ -96,7 +100,8 @@ void BrickPool::unmapRessource() {
 
 cudaArray_t *BrickPool::fillBrickPool(const NodePool &nodepool)
 {
-    updateBrickPool(m_brickPoolArray);
-
+    mapRessourceToArray();
+    updateBrickPool(m_brickPoolArray, m_poolSize);
+    unmapRessource();
     return &m_brickPoolArray;
 }
