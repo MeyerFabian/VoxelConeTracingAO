@@ -3,11 +3,12 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
+#include <iostream>
 #include "Utilities/errorUtils.h"
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 
+std::vector<Mesh*> meshes;
 Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
     // Prepare the one and only shader
@@ -55,6 +56,8 @@ Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
         Mesh const * pMesh = upMesh.get();
         mMeshes.push_back(std::move(upMesh));
 
+        meshes.push_back(new Mesh(mesh));
+
         // Register in render bucket
         mRenderBuckets[mMaterials[mesh->mMaterialIndex].get()].push_back(pMesh);
     }
@@ -71,16 +74,21 @@ void Scene::draw() const
     mupShader->use();
 
     // TODO: TEST
-    glm::mat4 uniformView = glm::lookAt(glm::vec3(0, 0, -10),glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
+    glm::mat4 uniformView = glm::lookAt(glm::vec3(0, 50, 50),glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
     glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), ((GLfloat)800 / (GLfloat)600), 0.1f, 100.f);
     glm::mat4 uniformModel = glm::mat4(1.f);
+    uniformModel = glm::scale(uniformModel,glm::vec3(0.005f));
 
     mupShader->updateUniform("color", glm::vec4(1,1,1,1));
     mupShader->updateUniform("projection", uniformProjection);
     mupShader->updateUniform("view", uniformView);
     mupShader->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
+
+    for(int i=0;i<meshes.size();i++)
+        meshes.at(i)->draw();
     // Render all the buckets' content
+    /*
     for(auto& bucket : mRenderBuckets)
     {
         // Bind material of bucket (which binds its uniforms and textures)
@@ -89,9 +97,11 @@ void Scene::draw() const
         // Draw all meshes in that bucket
         for(Mesh const * pMesh : bucket.second)
         {
+            std::cout << bucket.second.size() << std::endl;
             pMesh->draw();
         }
     }
+     */
 }
 
 void Scene::fillGui()
