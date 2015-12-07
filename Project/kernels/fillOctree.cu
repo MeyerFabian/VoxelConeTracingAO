@@ -28,7 +28,7 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
     cudaGetChannelDesc(&channelDesc, brickPool);
     cudaBindSurfaceToArray(&surfRef, brickPool, &channelDesc);
 
-    dim3 block_dim(8, 8, 6);
+    dim3 block_dim(4, 4, 4);
     dim3 grid_dim(textureDim.x/block_dim.x, textureDim.y/block_dim.y, textureDim.z/block_dim.z);
     testFilling<<<grid_dim, block_dim>>>(textureDim);
     printf("ich fülle den brickpool..\n");
