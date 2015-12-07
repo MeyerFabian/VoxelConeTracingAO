@@ -22,7 +22,7 @@ layout(location = 3) out vec4 fragNormal;
 
 void main()
 {
-    fragColor = color;
+    fragColor = texture(tex,passUVCoord).rgba;
     fragPosition = vec4(passPosition,1);
     fragUVCoord = vec4(passUVCoord,0,0);
     fragNormal = vec4(passNormal,0);
