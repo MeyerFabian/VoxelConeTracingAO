@@ -51,8 +51,8 @@ void testNodeFilling(node *nodePool, int poolSize)
         return;
     }
 
-    nodePool->nodeTilePointer[i] = 10;
-    nodePool->value[i] = 10;
+    nodePool[i].nodeTilePointer = 10;
+    nodePool[i].value = getBits(nodePool[i].nodeTilePointer,31,1);
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
@@ -85,17 +85,17 @@ cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
 
     testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
 
-    struct node *node_h = (struct node*)malloc(sizeof(node) + sizeof(int)*poolSize*2);
+    struct node *node_h = (struct node*)malloc(sizeof(node) * poolSize);
 
-    errorCode = cudaMemcpy(node_h, nodePool, sizeof(node) + sizeof(int)*poolSize*2, cudaMemcpyDeviceToHost);
+    errorCode = cudaMemcpy(node_h, nodePool, sizeof(node) * poolSize, cudaMemcpyDeviceToHost);
 
     if(errorCode != cudaSuccess)
         return errorCode;
 
-/*
+
     for(int i=0;i<poolSize;i++)
-        printf("%d, %d \n",node_h->nodeTilePointer[i],node_h->value[i]);
-*/
+        printf("%d, %d \n",node_h[i].nodeTilePointer,node_h[i].value);
+
 
     free(node_h);
 
@@ -104,7 +104,7 @@ cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
 
 cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize)
 {
-    cudaError_t errorCode = cudaMemcpyToSymbol(constNodePool,nodePool,sizeof(node) + sizeof(int)*poolSize*2,0,cudaMemcpyDeviceToDevice);
+    cudaError_t errorCode = cudaMemcpyToSymbol(constNodePool,nodePool,sizeof(node)*poolSize,0,cudaMemcpyDeviceToDevice);
 
     if(errorCode != cudaSuccess)
     {

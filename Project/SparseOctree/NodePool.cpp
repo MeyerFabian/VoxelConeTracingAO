@@ -19,7 +19,7 @@ void NodePool::init(int nodeCount)
     m_poolSize = nodeCount;
 
     // just initialise the memory for the nodepool once
-    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(node) + sizeof(int)*nodeCount*2));
+    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(node)*nodeCount));
 }
 
 void NodePool::updateConstMemory()
