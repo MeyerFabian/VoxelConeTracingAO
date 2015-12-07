@@ -3,17 +3,21 @@
 //
 
 #include <driver_types.h>
+#include <cuda_runtime.h>
+#include <Utilities/errorUtils.h>
+#include "NodePool.h"
 
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
-    void updateNodePool(cudaArray_t &voxel);
+    cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize);
 }
-
-#include "NodePool.h"
 
 void NodePool::init(int nodeCount)
 {
-    // TODO: call nvcc method that generates the memory
+    m_poolSize = nodeCount;
+
+    // just initialise the memory for the nodepool once
+    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,nodeCount*sizeof(node)));
 }
 
 void NodePool::updateConstMemory()
@@ -23,5 +27,10 @@ void NodePool::updateConstMemory()
 
 void NodePool::fillNodePool(cudaArray_t &voxelList)
 {
-    updateNodePool(voxelList);
+    cudaErrorCheck(updateNodePool(voxelList, m_dNodePool, m_poolSize));
+}
+
+NodePool::~NodePool()
+{
+    cudaFree(m_dNodePool);
 }

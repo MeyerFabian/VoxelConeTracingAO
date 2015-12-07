@@ -6,6 +6,7 @@
 void SparseVoxelOctree::init()
 {
     // testsing for node and brick-pool
+    m_nodePool.init();
     m_brickPool.init();
 }
 

@@ -21,14 +21,18 @@ class NodePool
 {
 public:
     NodePool(){}
+    ~NodePool();
     void init(int nodeCount = 8192); // i chose 8192 without any practical experience => maximum count that fits in constant memory
                                          // copying global to const memory before traversal might improve the performance
 
     void updateConstMemory();
     void fillNodePool(cudaArray_t &voxelList);
 private:
+    int m_poolSize;
     node *m_hNodePool; // host representation of the node pool => initialised once at the beginning of the program
                        // i decided against thrust to make things easier with constant memory mapping
+
+    node *m_dNodePool;
 };
 
 

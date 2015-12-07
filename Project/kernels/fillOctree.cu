@@ -20,6 +20,20 @@ void testFilling(dim3 texture_dim)
     surf3Dwrite(element, surfRef, x*sizeof(uchar4), y, z);
 }
 
+__global__
+void testNodeFilling(node *nodePool, int poolSize)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(i >= poolSize)
+    {
+        return;
+    }
+
+    nodePool[i].nodeTilePointer = 10;
+    nodePool[i].value = 10;
+}
+
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
 {
     cudaError_t errorCode;
@@ -42,7 +56,21 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
     return cudaSuccess;
 }
 
-void updateNodePool(cudaArray_t &voxel)
+cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
 {
-    printf("ich fülle den nodepool..\n");
+    int threadsPerBlock = 16;
+    int blockCount = poolSize / threadsPerBlock;
+
+    testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
+
+    struct node *node_h = (struct node*)malloc(sizeof(struct node)*poolSize);
+
+    cudaMemcpy(node_h, nodePool, sizeof(node)*poolSize, cudaMemcpyDeviceToHost);
+
+    for(int i=0;i<poolSize;i++)
+        printf("%d, %d \n",node_h[i].nodeTilePointer,node_h[i].value);
+
+    free(node_h);
+
+    return cudaSuccess;
 }
