@@ -92,10 +92,10 @@ cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
     if(errorCode != cudaSuccess)
         return errorCode;
 
-
+/*
     for(int i=0;i<poolSize;i++)
         printf("%d, %d \n",node_h[i].nodeTilePointer,node_h[i].value);
-
+*/
 
     free(node_h);
 
