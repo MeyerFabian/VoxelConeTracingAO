@@ -5,30 +5,10 @@
 
 #include <iostream>
 
-// Global variables
-float cameraMovement = 0;
-
 // GLFW callback for errors
 void errorCallback(int error, const char* description)
 {
     std::cout << error << " " << description << std::endl;
-}
-
-// GLFW callback for keys
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-    else if (key == GLFW_KEY_W && action == GLFW_PRESS)
-    {
-        cameraMovement += 1.f;
-    }
-    else if (key == GLFW_KEY_S && action == GLFW_PRESS)
-    {
-        cameraMovement -= 1.f;
-    }
 }
 
 App::App()
@@ -47,9 +27,6 @@ App::App()
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-
-    // GLFW callbacks
-    glfwSetKeyCallback(mpWindow, keyCallback);
 
     // Initialize
     glfwMakeContextCurrent(mpWindow);
@@ -120,11 +97,22 @@ void App::run()
 
         m_svo->updateOctree();
 
-        // Update scene
-        m_scene->update(cameraMovement * deltaTime, 0.5f * deltaTime, 0);
+        // Camera transformation
+        float cameraMovement = 0;
 
-        // Reset camera variables
-        cameraMovement = 0;
+        // Get pressed keys
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
+        {
+            cameraMovement += 10;
+        }
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
+        {
+            cameraMovement -= 10;
+        }
+        std::cout << ImGui::GetCursorPosX() << std::endl;
+
+        // Update scene
+        m_scene->update(cameraMovement * deltaTime, 0, 0);
 
         // Draw scene
         m_scene->draw();
