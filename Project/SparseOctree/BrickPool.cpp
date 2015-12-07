@@ -101,7 +101,7 @@ void BrickPool::unmapRessource() {
 cudaArray_t *BrickPool::fillBrickPool(const NodePool &nodepool)
 {
     mapRessourceToArray();
-    updateBrickPool(m_brickPoolArray, m_poolSize);
+    cudaErrorCheck(updateBrickPool(m_brickPoolArray, m_poolSize));
     unmapRessource();
     return &m_brickPoolArray;
 }

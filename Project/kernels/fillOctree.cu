@@ -22,16 +22,24 @@ void testFilling(dim3 texture_dim)
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
 {
-    const surfaceReference* surfRefPtr;
-    cudaGetSurfaceReference(&surfRefPtr, "surfRef");
+    cudaError_t errorCode;
+
     cudaChannelFormatDesc channelDesc;
-    cudaGetChannelDesc(&channelDesc, brickPool);
-    cudaBindSurfaceToArray(&surfRef, brickPool, &channelDesc);
+    errorCode = cudaGetChannelDesc(&channelDesc, brickPool);
+
+    if(errorCode != cudaSuccess)
+        return errorCode;
+
+    errorCode = cudaBindSurfaceToArray(&surfRef, brickPool, &channelDesc);
+
+    if(errorCode != cudaSuccess)
+        return errorCode;
 
     dim3 block_dim(4, 4, 4);
     dim3 grid_dim(textureDim.x/block_dim.x, textureDim.y/block_dim.y, textureDim.z/block_dim.z);
     testFilling<<<grid_dim, block_dim>>>(textureDim);
-    printf("ich fülle den brickpool..\n");
+
+    return cudaSuccess;
 }
 
 void updateNodePool(cudaArray_t &voxel)
