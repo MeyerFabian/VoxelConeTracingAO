@@ -10,6 +10,21 @@ __constant__ int constNodePool[16384];
 
 surface<void, cudaSurfaceType3D> surfRef;
 
+__device__
+int getBits(int value, int start, int quantity)
+{
+    const unsigned int mask_bits = 0xffffffff;
+
+    assert(start <= 31);
+    if (start > 31)
+        return 0;
+
+    if(quantity > 32-start)
+        quantity = 32-start;
+
+    return (value >> start) & (mask_bits >> (32 - quantity));
+}
+
 __global__
 void testFilling(dim3 texture_dim)
 {
