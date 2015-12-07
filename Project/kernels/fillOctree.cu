@@ -80,7 +80,7 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
 cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
-    int threadsPerBlock = 16;
+    int threadsPerBlock = 64;
     int blockCount = poolSize / threadsPerBlock;
 
     testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);

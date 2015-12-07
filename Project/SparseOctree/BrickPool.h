@@ -30,9 +30,6 @@ private:
     cudaArray_t m_brickPoolArray;
 
 	dim3 m_poolSize;
-
-    void mapRessourceToArray();
-    void unmapRessource();
 };
 
 

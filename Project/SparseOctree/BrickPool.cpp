@@ -75,11 +75,17 @@ void BrickPool::init(int width, int height, int depth)
 void BrickPool::registerTextureForCUDAWriting()
 {
     cudaErrorCheck(cudaGraphicsGLRegisterImage(&m_brickPoolRessource, m_brickPoolID, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsSurfaceLoadStore));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_brickPoolRessource, 0));
+    cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_brickPoolArray, m_brickPoolRessource, 0, 0));
+    cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
 }
 
 void BrickPool::registerTextureForCUDAReading()
 {
     cudaErrorCheck(cudaGraphicsGLRegisterImage(&m_brickPoolRessource, m_brickPoolID, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_brickPoolRessource, 0));
+    cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_brickPoolArray, m_brickPoolRessource, 0, 0));
+    cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
 }
 
 void BrickPool::unregisterTextureForCUDA()
@@ -88,20 +94,10 @@ void BrickPool::unregisterTextureForCUDA()
 }
 
 
-void BrickPool::mapRessourceToArray()
-{
-    cudaErrorCheck(cudaGraphicsMapResources(1, &m_brickPoolRessource, 0));
-    cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_brickPoolArray, m_brickPoolRessource, 0, 0));
-}
-
-void BrickPool::unmapRessource() {
-    cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
-}
-
 cudaArray_t *BrickPool::fillBrickPool(const NodePool &nodepool)
 {
-    mapRessourceToArray();
+
     cudaErrorCheck(updateBrickPool(m_brickPoolArray, m_poolSize));
-    unmapRessource();
+
     return &m_brickPoolArray;
 }

@@ -8,6 +8,12 @@ void SparseVoxelOctree::init()
     // testsing for node and brick-pool
     m_nodePool.init();
     m_brickPool.init();
+
+    m_brickPool.registerTextureForCUDAWriting();
+}
+SparseVoxelOctree::~SparseVoxelOctree()
+{
+    m_brickPool.unregisterTextureForCUDA();
 }
 
 void SparseVoxelOctree::fillGui()
@@ -23,9 +29,8 @@ void SparseVoxelOctree::updateOctree()
     if(m_nodePool.getPoolSize() < 8192)
         m_nodePool.updateConstMemory();
 
-    m_brickPool.registerTextureForCUDAWriting();
-
     m_brickPool.fillBrickPool(m_nodePool);
 
-    m_brickPool.unregisterTextureForCUDA();
+    //
 }
+
