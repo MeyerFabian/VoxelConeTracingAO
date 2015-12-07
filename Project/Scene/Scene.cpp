@@ -65,20 +65,26 @@ Scene::~Scene()
     // Nothing to do
 }
 
+void Scene::update(float movement, float cameraYaw, float cameraPitch)
+{
+    // Update camera
+    mCamera.rotate(glm::vec3(0,1,0), cameraYaw);
+    mCamera.rotate(glm::vec3(1,0,0), cameraPitch);
+    mCamera.translate(movement);
+}
+
 void Scene::draw() const
 {
     // Use the one and only shader
     mupShader->use();
 
     // TODO: TEST
-    glm::mat4 uniformView = glm::lookAt(glm::vec3(0, 50, 50),glm::vec3(0, 0, -1), glm::vec3(0, 1, 0));
     glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), ((GLfloat)800 / (GLfloat)600), 0.1f, 100.f);
     glm::mat4 uniformModel = glm::mat4(1.f);
-    uniformModel = glm::scale(uniformModel,glm::vec3(0.005f));
+    uniformModel = glm::scale(uniformModel,glm::vec3(0.05f));
 
-    mupShader->updateUniform("color", glm::vec4(1,1,1,1));
     mupShader->updateUniform("projection", uniformProjection);
-    mupShader->updateUniform("view", uniformView);
+    mupShader->updateUniform("view", mCamera.getViewMatrix());
     mupShader->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
     // Render all the buckets' content
