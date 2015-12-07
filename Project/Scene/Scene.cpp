@@ -8,7 +8,6 @@
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 
-std::vector<Mesh*> meshes;
 Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
     // Prepare the one and only shader
@@ -56,8 +55,6 @@ Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
         Mesh const * pMesh = upMesh.get();
         mMeshes.push_back(std::move(upMesh));
 
-        meshes.push_back(new Mesh(mesh));
-
         // Register in render bucket
         mRenderBuckets[mMaterials[mesh->mMaterialIndex].get()].push_back(pMesh);
     }
@@ -84,11 +81,7 @@ void Scene::draw() const
     mupShader->updateUniform("view", uniformView);
     mupShader->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
-
-    for(int i=0;i<meshes.size();i++)
-        meshes.at(i)->draw();
     // Render all the buckets' content
-    /*
     for(auto& bucket : mRenderBuckets)
     {
         // Bind material of bucket (which binds its uniforms and textures)
@@ -97,11 +90,9 @@ void Scene::draw() const
         // Draw all meshes in that bucket
         for(Mesh const * pMesh : bucket.second)
         {
-            std::cout << bucket.second.size() << std::endl;
             pMesh->draw();
         }
     }
-     */
 }
 
 void Scene::fillGui()

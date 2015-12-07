@@ -52,7 +52,7 @@ App::App()
     mPrevHeight = 0;
 
     // Scene
-    //m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
+    m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
     // Voxelization
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
@@ -98,7 +98,7 @@ void App::run()
         m_svo->updateOctree();
 
         // Draw scene
-        //m_scene->draw();
+        m_scene->draw();
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
