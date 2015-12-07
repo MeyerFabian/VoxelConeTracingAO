@@ -10,6 +10,7 @@
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
     cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize);
+    cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize);
 }
 
 void NodePool::init(int nodeCount)
@@ -22,7 +23,7 @@ void NodePool::init(int nodeCount)
 
 void NodePool::updateConstMemory()
 {
-    // TODO: call nvcc method that maps the global structure of our octree to the const memory
+    cudaErrorCheck(copyNodePoolToConstantMemory(m_dNodePool, m_poolSize));
 }
 
 void NodePool::fillNodePool(cudaArray_t &voxelList)
@@ -33,4 +34,9 @@ void NodePool::fillNodePool(cudaArray_t &voxelList)
 NodePool::~NodePool()
 {
     cudaFree(m_dNodePool);
+}
+
+int NodePool::getPoolSize()
+{
+    return m_poolSize;
 }

@@ -2,6 +2,12 @@
 #include <cuda_runtime.h>
 #include "fillOctree.cuh"
 
+
+const int maxNodePoolSize = 8192;
+
+bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
+__constant__ node constNodePool[maxNodePoolSize];
+
 surface<void, cudaSurfaceType3D> surfRef;
 
 __global__
@@ -58,6 +64,7 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
 
 cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
 {
+    cudaError_t errorCode = cudaSuccess;
     int threadsPerBlock = 16;
     int blockCount = poolSize / threadsPerBlock;
 
@@ -65,12 +72,33 @@ cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
 
     struct node *node_h = (struct node*)malloc(sizeof(struct node)*poolSize);
 
-    cudaMemcpy(node_h, nodePool, sizeof(node)*poolSize, cudaMemcpyDeviceToHost);
+    errorCode = cudaMemcpy(node_h, nodePool, sizeof(node)*poolSize, cudaMemcpyDeviceToHost);
 
+    if(errorCode != cudaSuccess)
+        return errorCode;
+
+    /*
     for(int i=0;i<poolSize;i++)
         printf("%d, %d \n",node_h[i].nodeTilePointer,node_h[i].value);
+        */
 
     free(node_h);
 
     return cudaSuccess;
+}
+
+cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize)
+{
+    cudaError_t errorCode = cudaMemcpyToSymbol(constNodePool,nodePool,poolSize*sizeof(node),0,cudaMemcpyDeviceToDevice);
+
+    if(errorCode != cudaSuccess)
+    {
+        constantMemoryValid = false;
+        return errorCode;
+    }
+    else
+    {
+        constantMemoryValid = true;
+        return errorCode;
+    }
 }
