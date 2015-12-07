@@ -99,20 +99,38 @@ void App::run()
 
         // Camera transformation
         float cameraMovement = 0;
+        float cameraYaw = 0;
+        float cameraPitch = 0;
 
         // Get pressed keys
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp)))
         {
             cameraMovement += 10;
         }
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown)))
         {
             cameraMovement -= 10;
         }
-        std::cout << ImGui::GetCursorPosX() << std::endl;
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
+        {
+            cameraYaw += 10;
+        }
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
+        {
+            cameraYaw -= 10;
+        }
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
+        {
+            cameraPitch += 10;
+        }
+        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
+        {
+            cameraPitch -= 10;
+        }
+
 
         // Update scene
-        m_scene->update(cameraMovement * deltaTime, 0, 0);
+        m_scene->update(cameraMovement * deltaTime, cameraYaw * deltaTime, cameraPitch * deltaTime);
 
         // Draw scene
         m_scene->draw();
