@@ -13,14 +13,11 @@ public:
     void translate(float movement);
     void rotate(glm::vec3 axis, float amount);
 
-    glm::mat4 const * getViewMatrix() const;
+    glm::mat4 getViewMatrix() const;
 
 private:
 
-    void updateViewMatrix();
-
     // Members
-    glm::mat4 mViewMatrix;
     glm::vec3 mPosition;
     glm::vec3 mDirection;
 };

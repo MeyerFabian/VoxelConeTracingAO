@@ -83,9 +83,8 @@ void Scene::draw() const
     glm::mat4 uniformModel = glm::mat4(1.f);
     uniformModel = glm::scale(uniformModel,glm::vec3(0.05f));
 
-    mupShader->updateUniform("color", glm::vec4(1,1,1,1));
     mupShader->updateUniform("projection", uniformProjection);
-    mupShader->updateUniform("view", *(mCamera.getViewMatrix())); // Matrix gets copied here. Nonsense...
+    mupShader->updateUniform("view", mCamera.getViewMatrix());
     mupShader->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
     // Render all the buckets' content
