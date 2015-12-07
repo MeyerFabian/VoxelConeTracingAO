@@ -7,12 +7,14 @@
 
 #include "externals/GLM/glm/glm.hpp"
 
+const int MAXNODE_COUNT = 8192;
+
 struct node // 8 byte per node
 {
-    int nodeTilePointer;  // Points to the next node tile or marks as max. Furthermore dertermines the type of value
+    int nodeTilePointer[];  // Points to the next node tile or marks as max. Furthermore dertermines the type of value
     // first bit: 1 => maximum subdivision reached  0 => has children
     // second bit: 1 => interpret value as constant color   2: => interpret value as brick pointer
-    int value;    // encodes the pointer to the brick or represents a constant color. encoding works as follows:
+    int value[];    // encodes the pointer to the brick or represents a constant color. encoding works as follows:
     // in case of constant value: RGBA8 color
     // in case of pointer: first two bits not used. last 30 bits are a X,Y,Z coordinate to the assigned brick (10 bit per channel)
 };

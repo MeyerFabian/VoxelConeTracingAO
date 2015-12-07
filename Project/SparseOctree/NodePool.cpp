@@ -5,6 +5,7 @@
 #include <driver_types.h>
 #include <cuda_runtime.h>
 #include <Utilities/errorUtils.h>
+#include <iostream>
 #include "NodePool.h"
 
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
@@ -18,7 +19,7 @@ void NodePool::init(int nodeCount)
     m_poolSize = nodeCount;
 
     // just initialise the memory for the nodepool once
-    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,nodeCount*sizeof(node)));
+    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(node) + sizeof(int)*nodeCount*2));
 }
 
 void NodePool::updateConstMemory()
