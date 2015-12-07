@@ -6,7 +6,7 @@
 const int maxNodePoolSize = 8192;
 
 bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
-__constant__ int constNodePool[16384];
+__constant__ node constNodePool[maxNodePoolSize];
 
 surface<void, cudaSurfaceType3D> surfRef;
 
