@@ -3,6 +3,8 @@
 #include <fstream>
 #include "Utilities/errorUtils.h"
 
+#include <iostream>
+
 Texture::Texture(std::string filepath)
 {
     // Read image from disk
@@ -83,6 +85,8 @@ int Texture::loadImage(std::string filepath, std::vector<unsigned char> &image, 
 
     // Calculate number of channels
     unsigned int channelCount = static_cast<unsigned int>(image.size() / (width * height * sizeof(unsigned char)));
+
+    std::cout << channelCount << std::endl;
 
     // Flip vertical
     std::vector<unsigned char> copyImage(image);

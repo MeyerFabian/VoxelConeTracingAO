@@ -175,7 +175,7 @@ void App::run()
         }
 
         // Draw scene
-        m_scene->draw();
+        m_scene->draw(width, height);
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)

@@ -5,7 +5,7 @@
 
 Camera::Camera()
 {
-    mPosition = glm::vec3(0,50,50);
+    mPosition = glm::vec3(0,0,0);
     mDirection = glm::vec3(0,0,-1);
 }
 

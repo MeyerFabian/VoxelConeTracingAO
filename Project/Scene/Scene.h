@@ -25,7 +25,7 @@ public:
     virtual ~Scene();
 
     void update(float movement, float deltaCameraYaw, float deltaCameraPitch);
-    void draw() const;
+    void draw(float windowWidth,float windowHeight) const;
 
 private:
 
