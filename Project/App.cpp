@@ -95,7 +95,7 @@ App::App()
     gl3wInit();
 
     // OpenGL initialization
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1);
     glEnable(GL_TEXTURE_1D);
     glEnable(GL_TEXTURE_2D);
