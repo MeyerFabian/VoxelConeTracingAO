@@ -12,7 +12,7 @@ set(APPNAME VoxelConeTracing)
 
 # Activate C++11 in GCC
 IF(CMAKE_COMPILER_IS_GNUCC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 #make sure we dont propagate c++11 to cuda (problems with ubuntu (maybe because of old cuda version))
@@ -20,7 +20,7 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
 #fuck ubuntu
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
-	set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+        set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 endif()
 
 include_directories(.)
@@ -69,9 +69,9 @@ file(GLOB_RECURSE GL3W
     "${EXTERNAL_DIR}/gl3w/src/*")
 include_directories(${EXTERNAL_DIR}/gl3w/include)
 
-# Add picoPNG
-file(GLOB_RECURSE PICO_PNG
-    "${EXTERNAL_DIR}/picoPNG/*")
+# Add stb
+file(GLOB_RECURSE STB
+    "${EXTERNAL_DIR}/stb/*")
 
 # Add ImGui
 file(GLOB_RECURSE IM_GUI
@@ -85,7 +85,7 @@ set(ALL_CODE
 	${HEADERS}
 	${GLM}
 	${GL3W}
-	${PICO_PNG}
+	${STB}
 	${IM_GUI})
 
 # Filtering for Visual Studio
@@ -129,29 +129,24 @@ IF(WIN32)
 
   # Copy dlls
   add_custom_command(TARGET ${APPNAME} POST_BUILD
-	COMMAND ${CMAKE_COMMAND}
-       	-E copy_if_different
+        COMMAND ${CMAKE_COMMAND}
+        -E copy_if_different
         "${ASSIMP_DLL_RELEASE}/assimp.dll"
-	"${PROJECT_BINARY_DIR}/Release/assimp.dll"
-	)
+        "${PROJECT_BINARY_DIR}/Release/assimp.dll"
+        )
 
   add_custom_command(TARGET ${APPNAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
         -E copy_if_different
-       	"${ASSIMP_DLL_DEBUG}/assimpd.dll"
-       	"${PROJECT_BINARY_DIR}/Debug/assimpd.dll"
+        "${ASSIMP_DLL_DEBUG}/assimpd.dll"
+        "${PROJECT_BINARY_DIR}/Debug/assimpd.dll"
         )
-  
+
   add_custom_command(TARGET ${APPNAME} POST_BUILD
-  	COMMAND ${CMAKE_COMMAND}
+        COMMAND ${CMAKE_COMMAND}
         -E copy_if_different
         "${GLFW_DLL}/glfw3.dll"
         "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/glfw3.dll"
-  	)
-	
-ENDIF(WIN32)
+        )
 
-# Copy assets
-add_custom_command(TARGET ${APPNAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/assets assets)
+ENDIF(WIN32)

@@ -1,15 +1,37 @@
 #include "Texture.h"
 
-#include <fstream>
+#include "externals/stb/stb_image.h"
 #include "Utilities/errorUtils.h"
 
-#include <iostream>
+#include <vector>
 
 Texture::Texture(std::string filepath)
 {
-    // Read image from disk
-    std::vector<unsigned char> image;
-    int channelCount = loadImage(filepath, image, mWidth, mHeight);
+    // Future channel count
+    int channelCount;
+
+    // Tell about loading
+    ErrorHandler::log(filepath + " is loading.");
+
+    // Decode image
+    unsigned char *data = stbi_load(filepath.c_str(), &mWidth, &mHeight, &channelCount, 0);
+
+    // Flip image
+    std::vector<unsigned char> flippedImage(mWidth * mHeight * channelCount);
+
+        /* Go over lines */
+        for (int i = 0; i < mHeight; i++)
+        {
+            /* Go over columns */
+            for (int j = 0; j < mWidth; j++)
+            {
+                /* Go over channels */
+                for (int k = 0; k < channelCount; k++)
+                {
+                    flippedImage[i * mWidth * channelCount + j * channelCount + k] = data[(mHeight - 1 - i) * mWidth * channelCount + j * channelCount + k];
+                }
+            }
+        }
 
     // Create OpenGL texture
     glGenTextures(1, &mTexture);
@@ -22,16 +44,19 @@ Texture::Texture(std::string filepath)
     // Move it to GPU
     if(channelCount == 1)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, mWidth, mHeight, 0, GL_RED, GL_UNSIGNED_BYTE, &image[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, mWidth, mHeight, 0, GL_RED, GL_UNSIGNED_BYTE, &flippedImage[0]);
     }
-    else if(channelCount = 3)
+    else if(channelCount == 3)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &image[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &flippedImage[0]);
     }
     else
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &image[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &flippedImage[0]);
     }
+
+    // Free image data
+    stbi_image_free(data);
 
     // Filtering
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -51,57 +76,4 @@ void Texture::bind(GLenum slot) const
 {
     glActiveTexture(slot);
     glBindTexture(GL_TEXTURE_2D, mTexture);
-}
-
-int Texture::loadImage(std::string filepath, std::vector<unsigned char> &image, unsigned long &width, unsigned long &height)
-{
-    // Read file
-    std::ifstream in(filepath.c_str(), std::ios::in | std::ios::binary);
-
-    // Check, whether file was found
-    if(in.is_open())
-    {
-      ErrorHandler::log(filepath + " is loading.");
-    }
-    else
-    {
-        ErrorHandler::log(filepath + " was not found. Shit.");
-    }
-
-    // Get size
-    in.seekg(0, std::ios::end);
-    std::streamsize size = in.tellg();
-
-    // Read it
-    in.seekg(0, std::ios::beg);
-    std::vector<char> buffer(static_cast<unsigned int>(size));
-    in.read(&(buffer[0]), static_cast<unsigned int>(size));
-
-    // Close file
-    in.close();
-
-    // Decode image
-    decodePNG(image, width, height, reinterpret_cast<unsigned char*>(&(buffer[0])), static_cast<unsigned int>(size), false);
-
-    // Calculate number of channels
-    unsigned int channelCount = static_cast<unsigned int>(image.size() / (width * height * sizeof(unsigned char)));
-
-    std::cout << channelCount << std::endl;
-
-    // Flip vertical
-    std::vector<unsigned char> copyImage(image);
-
-    // Go over lines
-    for (unsigned int i = 0; i < height; i++)
-    {
-        // Go over columns
-        for (unsigned int j = 0; j < width; j++)
-        {
-            // Go over channels
-            for (unsigned int k = 0; k < channelCount; k++)
-            {
-                image[i * width * channelCount + j * channelCount + k] = copyImage[(height - 1 - i) * width * channelCount + j * channelCount + k];
-            }
-        }
-    }
 }
