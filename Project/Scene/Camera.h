@@ -10,8 +10,7 @@ public:
     Camera();
     virtual ~Camera();
 
-    void translate(float movement);
-    void rotate(glm::vec3 axis, float amount);
+    void update(float movement, float deltaRotationPitch, float deltaRotationYaw);
 
     glm::mat4 getViewMatrix() const;
 

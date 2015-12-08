@@ -24,7 +24,7 @@ public:
     Scene(App* pApp, std::string filepath);
     virtual ~Scene();
 
-    void update(float movement, float cameraYaw, float cameraPitch);
+    void update(float movement, float deltaCameraYaw, float deltaCameraPitch);
     void draw() const;
 
 private:

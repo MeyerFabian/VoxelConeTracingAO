@@ -5,10 +5,72 @@
 
 #include <iostream>
 
+// Ugly static variables
+int mouseX, mouseY = 0;
+int deltaCameraYaw = 0;
+int deltaCameraPitch = 0;
+float cameraMovement = 0;
+bool rotateCamera = false;
+
 // GLFW callback for errors
-void errorCallback(int error, const char* description)
+static void errorCallback(int error, const char* description)
 {
     std::cout << error << " " << description << std::endl;
+}
+
+// GLFW callback for keys
+static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    // Check whether ImGui is handling this
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureKeyboard)
+    {
+        return;
+    }
+
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+    if(key == GLFW_KEY_UP && action == GLFW_PRESS)
+    {
+        cameraMovement += 1;
+    }
+    if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+    {
+        cameraMovement -= 1;
+    }
+}
+
+// GLFW callback for cursor position
+static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    deltaCameraYaw = mouseX - xpos;
+    deltaCameraPitch = mouseY - ypos;
+    mouseX = xpos;
+    mouseY = ypos;
+
+    // Check whether ImGui is handling this
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureMouse)
+    {
+        deltaCameraYaw = 0;
+        deltaCameraPitch = 0;
+        return;
+    }
+}
+
+// GLFW callback for mouse buttons
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        rotateCamera = true;
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    {
+        rotateCamera = false;
+    }
 }
 
 App::App()
@@ -42,6 +104,11 @@ App::App()
 
     // Init ImGui
     ImGui_ImplGlfwGL3_Init(mpWindow, true);
+
+    // Set GLFW callbacks after ImGui
+    glfwSetKeyCallback(mpWindow, keyCallback);
+    glfwSetCursorPosCallback(mpWindow, cursorPositionCallback);
+    glfwSetMouseButtonCallback(mpWindow, mouseButtonCallback);
 
     // Load fonts
     ImGuiIO& io = ImGui::GetIO();
@@ -97,40 +164,15 @@ void App::run()
 
         m_svo->updateOctree();
 
-        // Camera transformation
-        float cameraMovement = 0;
-        float cameraYaw = 0;
-        float cameraPitch = 0;
-
-        // Get pressed keys
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp)))
-        {
-            cameraMovement += 10;
-        }
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown)))
-        {
-            cameraMovement -= 10;
-        }
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
-        {
-            cameraYaw += 10;
-        }
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
-        {
-            cameraYaw -= 10;
-        }
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
-        {
-            cameraPitch += 10;
-        }
-        if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
-        {
-            cameraPitch -= 10;
-        }
-
-
         // Update scene
-        m_scene->update(cameraMovement * deltaTime, cameraYaw * deltaTime, cameraPitch * deltaTime);
+        if(rotateCamera)
+        {
+            m_scene->update(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+        }
+        else
+        {
+            m_scene->update(cameraMovement * deltaTime, 0, 0);
+        }
 
         // Draw scene
         m_scene->draw();

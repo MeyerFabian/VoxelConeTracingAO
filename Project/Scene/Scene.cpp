@@ -65,12 +65,10 @@ Scene::~Scene()
     // Nothing to do
 }
 
-void Scene::update(float movement, float cameraYaw, float cameraPitch)
+void Scene::update(float movement, float deltaCameraYaw, float deltaCameraPitch)
 {
     // Update camera
-    mCamera.rotate(glm::vec3(0,1,0), cameraYaw);
-    mCamera.rotate(glm::vec3(1,0,0), cameraPitch);
-    mCamera.translate(movement);
+    mCamera.update(movement, deltaCameraYaw, deltaCameraPitch);
 }
 
 void Scene::draw() const

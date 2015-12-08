@@ -14,14 +14,11 @@ Camera::~Camera()
     // Nothing to do
 }
 
-void Camera::translate(float movement)
+void Camera::update(float movement, float deltaRotationYaw, float deltaRotationPitch)
 {
+    mDirection = glm::rotate(mDirection, deltaRotationYaw, glm::vec3(0,1,0));
+    mDirection = glm::rotate(mDirection, deltaRotationPitch, glm::cross(mDirection, glm::vec3(0,1,0)));
     mPosition += movement * mDirection;
-}
-
-void Camera::rotate(glm::vec3 axis, float amount)
-{
-    mDirection = glm::rotate(mDirection, amount, axis);
 
 }
 
