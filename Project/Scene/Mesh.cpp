@@ -14,9 +14,9 @@ Mesh::Mesh(aiMesh const * mesh)
     float *vertices = new float[mesh->mNumVertices * 3];
     for(int i = 0; i < mesh->mNumVertices; i++)
     {
-        vertices[i * 3] = mesh->mVertices[i].x;
-        vertices[i * 3 + 1] = mesh->mVertices[i].y;
-        vertices[i * 3 + 2] = mesh->mVertices[i].z;
+        vertices[i * 3] = mesh->mVertices[i].x * MESH_SCALE;
+        vertices[i * 3 + 1] = mesh->mVertices[i].y * MESH_SCALE;
+        vertices[i * 3 + 2] = mesh->mVertices[i].z * MESH_SCALE;
     }
 
     glGenBuffers(1, &mVertexBuffer);

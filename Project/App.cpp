@@ -34,11 +34,15 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     }
     if(key == GLFW_KEY_UP && action == GLFW_PRESS)
     {
-        cameraMovement += 1;
+        cameraMovement += 2;
     }
     if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
     {
-        cameraMovement -= 1;
+        cameraMovement -= 2;
+    }
+    if(key == GLFW_KEY_END && action == GLFW_PRESS)
+    {
+        cameraMovement = 0;
     }
 }
 

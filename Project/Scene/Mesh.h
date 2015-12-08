@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+const float MESH_SCALE = 0.1f;
+
 class Mesh
 {
 public:

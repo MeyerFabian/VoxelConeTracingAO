@@ -79,7 +79,6 @@ void Scene::draw(float windowWidth, float windowHeight) const
     // Create uniforms used by shader
     glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), windowWidth / windowHeight, 0.1f, 300.f);
     glm::mat4 uniformModel = glm::mat4(1.f);
-    uniformModel = glm::scale(uniformModel,glm::vec3(0.05f));
 
     // Fill uniforms to shader
     mupShader->updateUniform("projection", uniformProjection);
