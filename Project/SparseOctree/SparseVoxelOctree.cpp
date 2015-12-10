@@ -26,7 +26,7 @@ void SparseVoxelOctree::updateOctree()
     cudaArray_t voxelliste;
     m_nodePool.fillNodePool(voxelliste); // normalerweise voxelisierer.getVoxelList() oder so
 
-    if(m_nodePool.getPoolSize() < 8192)
+    if(m_nodePool.getPoolSize() <= 8192)
         m_nodePool.updateConstMemory();
 
     m_brickPool.fillBrickPool(m_nodePool);

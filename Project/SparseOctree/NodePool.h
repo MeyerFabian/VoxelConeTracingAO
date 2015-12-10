@@ -17,6 +17,27 @@ struct node // 8 byte per node
     int value;    // encodes the pointer to the brick or represents a constant color. encoding works as follows:
     // in case of constant value: RGBA8 color
     // in case of pointer: first two bits not used. last 30 bits are a X,Y,Z coordinate to the assigned brick (10 bit per channel)
+
+    int nodeTilePointer1;
+    int value1;
+
+    int nodeTilePointer2;
+    int value2;
+
+    int nodeTilePointer3;
+    int value3;
+
+    int nodeTilePointer4;
+    int value4;
+
+    int nodeTilePointer5;
+    int value5;
+
+    int nodeTilePointer6;
+    int value6;
+
+    int nodeTilePointer7;
+    int value7;
 };
 
 class NodePool
@@ -24,7 +45,7 @@ class NodePool
 public:
     NodePool(){}
     ~NodePool();
-    void init(int nodeCount = 8192); // i chose 8192 without any practical experience => maximum count that fits in constant memory
+    void init(int nodeCount = 1024);
                                          // copying global to const memory before traversal might improve the performance
     void updateConstMemory();
     void fillNodePool(cudaArray_t &voxelList);

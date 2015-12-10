@@ -3,7 +3,7 @@
 #include "fillOctree.cuh"
 
 
-const int maxNodePoolSize = 8192;
+const int maxNodePoolSize = 1024;
 
 bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
 __constant__ node constNodePool[maxNodePoolSize];
