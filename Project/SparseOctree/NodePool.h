@@ -7,9 +7,8 @@
 
 #include "externals/GLM/glm/glm.hpp"
 
-const int MAXNODE_COUNT = 8192;
 
-struct node // 8 byte per node
+struct node // 64 byte per nodestruct containes node and neighbours
 {
     int nodeTilePointer;  // Points to the next node tile or marks as max. Furthermore dertermines the type of value
     // first bit: 1 => maximum subdivision reached  0 => has children
@@ -35,9 +34,6 @@ struct node // 8 byte per node
 
     int nodeTilePointer6;
     int value6;
-
-    int nodeTilePointer7;
-    int value7;
 };
 
 class NodePool
