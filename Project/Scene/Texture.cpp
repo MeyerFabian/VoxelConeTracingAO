@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "externals/stb/stb_image.h"
 #include "Utilities/errorUtils.h"
 
@@ -13,25 +15,11 @@ Texture::Texture(std::string filepath)
     // Tell about loading
     ErrorHandler::log(filepath + " is loading.");
 
+    // Flip image at loading
+    stbi_set_flip_vertically_on_load(true);
+
     // Decode image
     unsigned char *data = stbi_load(filepath.c_str(), &mWidth, &mHeight, &channelCount, 0);
-
-    // Flip image
-    std::vector<unsigned char> flippedImage(mWidth * mHeight * channelCount);
-
-        /* Go over lines */
-        for (int i = 0; i < mHeight; i++)
-        {
-            /* Go over columns */
-            for (int j = 0; j < mWidth; j++)
-            {
-                /* Go over channels */
-                for (int k = 0; k < channelCount; k++)
-                {
-                    flippedImage[i * mWidth * channelCount + j * channelCount + k] = data[(mHeight - 1 - i) * mWidth * channelCount + j * channelCount + k];
-                }
-            }
-        }
 
     // Create OpenGL texture
     glGenTextures(1, &mTexture);
@@ -44,15 +32,15 @@ Texture::Texture(std::string filepath)
     // Move it to GPU
     if(channelCount == 1)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, mWidth, mHeight, 0, GL_RED, GL_UNSIGNED_BYTE, &flippedImage[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, mWidth, mHeight, 0, GL_RED, GL_UNSIGNED_BYTE, data);
     }
     else if(channelCount == 3)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &flippedImage[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     }
     else
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &flippedImage[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
 
     // Free image data
