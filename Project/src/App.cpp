@@ -123,10 +123,13 @@ App::App()
     mPrevWidth = 0;
     mPrevHeight = 0;
 
-    // Scene
+    // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
-    // Voxelization
+    // Voxelization (create fragment voxels)
+    m_voxelization = std::unique_ptr<Voxelization>(new Voxelization(m_scene.get(), 42)); // TODO: extent
+
+    // Sparse voxel octree (use fragment voxels and create octree for later use)
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_svo->init();
 }

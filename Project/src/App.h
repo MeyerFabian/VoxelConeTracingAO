@@ -11,10 +11,11 @@
 #include <memory>
 
 #include "SparseOctree/SparseVoxelOctree.h"
-#include "Scene/Scene.h"
-
 #include "SparseOctree/BrickPool.h"
 #include "SparseOctree/NodePool.h"
+
+#include "Scene/Scene.h"
+#include "Voxelization/Voxelization.h"
 
 class App
 {
@@ -34,6 +35,7 @@ private:
     std::vector<Controllable*> mControllables; // Could be weak pointers
     std::unique_ptr<SparseVoxelOctree> m_svo;
     std::unique_ptr<Scene> m_scene;
+    std::unique_ptr<Voxelization> m_voxelization;
 };
 
 #endif // APP_H_
