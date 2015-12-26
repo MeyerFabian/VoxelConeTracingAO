@@ -2,7 +2,7 @@
 #define MATERIAL_H_
 
 #include "Texture.h"
-#include "rendering/ShaderProgram.h"
+#include <Rendering/ShaderProgram.h>
 #include <assimp/scene.h>
 #include <memory>
 

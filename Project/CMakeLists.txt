@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
+# Module path
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake CACHE PATH "Project specific path. Set manually if it was not found.")
 
 IF(WIN32)
@@ -7,6 +8,7 @@ IF(WIN32)
 	set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX ${CMAKE_MODULE_PATH}/cxx_flag_overrides.cmake)
 ENDIF(WIN32)
 
+# Setup
 project(RealtimeRendering)
 set(APPNAME VoxelConeTracing)
 
@@ -15,24 +17,25 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
-#make sure we dont propagate c++11 to cuda (problems with ubuntu (maybe because of old cuda version))
+# Make sure we dont propagate C++11 to cuda (problems with ubuntu (maybe because of old cuda version))
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
-#fuck ubuntu
+# Fuck ubuntu
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
-        set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+    set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 endif()
 
-include_directories(.)
+include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/src")
 
 # Collect files
 file(GLOB SOURCES
-    "*.cpp"
-    "*.c")
+    "src/*.cpp"
+    "src/*.c")
 
 file(GLOB HEADERS
-    "*.h"
-    "*.hpp")
+    "src/*.h"
+    "src/*.hpp")
 
 # Used to find shaders within c++ code
 set(SHADERS_PATH ${CMAKE_SOURCE_DIR}/shaders CACHE PATH "Project specific path. Set manually if it was not found.")
@@ -46,28 +49,30 @@ add_definitions(-DMESHES_PATH="${MESHES_PATH}")
 set(TEXTURES_PATH ${CMAKE_SOURCE_DIR}/textures CACHE PATH "Project specific path. Set manually if it was not found.")
 add_definitions(-DTEXTURES_PATH="${TEXTURES_PATH}")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/rendering")
+
 add_subdirectory("${PROJECT_SOURCE_DIR}/shaders")
-add_subdirectory("${PROJECT_SOURCE_DIR}/SparseOctree")
-add_subdirectory("${PROJECT_SOURCE_DIR}/Utilities")
-add_subdirectory("${PROJECT_SOURCE_DIR}/Scene")
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/SparseOctree")
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/Utilities")
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/Scene")
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/Rendering")
 
 # Directory of external code
-set(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/externals)
+set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externals")
 
 # Cuda kernels
-set(CUDAKERNEL_PATH ${CMAKE_SOURCE_DIR}/kernels)
-add_subdirectory(${CUDAKERNEL_PATH})
+set(CUDAKERNEL_PATH "${CMAKE_SOURCE_DIR}/kernels")
+add_subdirectory("${CUDAKERNEL_PATH}")
 
 # Add GLM
 file(GLOB_RECURSE GLM
     "${EXTERNAL_DIR}/GLM/glm/*.hpp")
-include_directories(${EXTERNAL_DIR}/GLM)
+include_directories("${EXTERNAL_DIR}/GLM")
 
 # Add gl3w
 file(GLOB_RECURSE GL3W
     "${EXTERNAL_DIR}/gl3w/src/*")
-include_directories(${EXTERNAL_DIR}/gl3w/include)
+include_directories("${EXTERNAL_DIR}/gl3w/include")
 
 # Add stb
 file(GLOB_RECURSE STB
@@ -77,7 +82,7 @@ file(GLOB_RECURSE STB
 file(GLOB_RECURSE IM_GUI
     "${EXTERNAL_DIR}/ImGui/*.h"
     "${EXTERNAL_DIR}/ImGui/*.cpp")
-include_directories(${EXTERNAL_DIR}/ImGui)
+include_directories("${EXTERNAL_DIR}/ImGui")
 
 # Collect all code
 set(ALL_CODE
@@ -122,27 +127,28 @@ include_directories(${GLFW3_INCLUDE_PATH}
 
 # Creation of executeable
 cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
+
 # Linking
 target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
 IF(WIN32)
 
-  # Copy dlls
-  add_custom_command(TARGET ${APPNAME} POST_BUILD
+    # Copy dlls
+    add_custom_command(TARGET ${APPNAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
         -E copy_if_different
         "${ASSIMP_DLL_RELEASE}/assimp.dll"
         "${PROJECT_BINARY_DIR}/Release/assimp.dll"
         )
 
-  add_custom_command(TARGET ${APPNAME} POST_BUILD
+    add_custom_command(TARGET ${APPNAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
         -E copy_if_different
         "${ASSIMP_DLL_DEBUG}/assimpd.dll"
         "${PROJECT_BINARY_DIR}/Debug/assimpd.dll"
         )
 
-  add_custom_command(TARGET ${APPNAME} POST_BUILD
+    add_custom_command(TARGET ${APPNAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
         -E copy_if_different
         "${GLFW_DLL}/glfw3.dll"

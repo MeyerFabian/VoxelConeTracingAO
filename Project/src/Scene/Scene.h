@@ -4,7 +4,7 @@
 #include "Controllable.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "rendering/ShaderProgram.h"
+#include <Rendering/ShaderProgram.h>
 #include "Camera.h"
 #include <vector>
 #include <map>

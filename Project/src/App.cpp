@@ -49,8 +49,8 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 // GLFW callback for cursor position
 static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    deltaCameraYaw = mouseX - xpos;
-    deltaCameraPitch = mouseY - ypos;
+    deltaCameraYaw = 10 * (mouseX - xpos);
+    deltaCameraPitch = 10 * (mouseY - ypos);
     mouseX = xpos;
     mouseY = ypos;
 
