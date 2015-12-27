@@ -99,12 +99,10 @@ App::App()
     gl3wInit();
 
     // OpenGL initialization
-    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1);
     glEnable(GL_TEXTURE_1D);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_3D);
-    glEnable(GL_CULL_FACE);
 
     // Init ImGui
     ImGui_ImplGlfwGL3_Init(mpWindow, true);
@@ -126,12 +124,17 @@ App::App()
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
-    // Voxelization (create fragment voxels)
-    m_voxelization = std::unique_ptr<Voxelization>(new Voxelization(m_scene.get(), 42)); // TODO: extent
+    // Voxelization (create fragment voxels) (whole scene should fit in device coordiantes...)
+    m_voxelization = std::unique_ptr<Voxelization>(
+        new Voxelization(m_scene.get(), -180, 180, -10, 140, -120, 120)); // Rough coordinates
 
     // Sparse voxel octree (use fragment voxels and create octree for later use)
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_svo->init();
+
+    // Setup some OpenGL AFTER voxelization (maybe move somewhere more intelligent)
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 }
 
 App::~App()

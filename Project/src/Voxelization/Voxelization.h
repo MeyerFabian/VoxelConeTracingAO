@@ -12,13 +12,19 @@ class Voxelization
 {
 public:
 
-    Voxelization(Scene const * pScene, float volumeExtent);
+    Voxelization(
+        Scene const * pScene,
+        float volumeLeft,
+        float volumeRight,
+        float volumeBottom,
+        float volumeTop,
+        float volumeNear,
+        float volumeFar);
 
 private:
 
     // Members
     Scene const * mpScene;
-    float mVolumeExtent; // Extent in all three dimensions
 };
 
 #endif // VOXELIZATION_H_

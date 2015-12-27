@@ -27,6 +27,8 @@ public:
     void update(float movement, float deltaCameraYaw, float deltaCameraPitch);
     void draw(float windowWidth,float windowHeight) const;
 
+    void drawWithCustomShader() const;
+
 private:
 
     virtual void fillGui() override; // Implementation of Controllable

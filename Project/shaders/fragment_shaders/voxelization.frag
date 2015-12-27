@@ -13,6 +13,7 @@ in Voxel
 } In;
 
 //!< uniforms
+// layout(binding = 0) uniform atomic_uint index;
 uniform sampler2D tex;
 
 //!< out-variables
@@ -27,6 +28,8 @@ void main()
     // Do something with atomic counter
     // Write something to buffer texture
     // Color, position...
+
+    // atomicCounterIncrement(index);
 
     fragColor = color; // Get rid of that
 }

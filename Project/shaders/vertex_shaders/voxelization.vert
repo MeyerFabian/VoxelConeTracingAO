@@ -11,8 +11,8 @@ layout(location = 2) in vec4 normalAttribute;
 
 //!< uniforms
 uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 modelNormal;
+uniform mat4 projectionView;
 
 //!< out-variables
 out Vertex
@@ -23,17 +23,10 @@ out Vertex
     vec2 uv;
 } Out;
 
-out vec3 passWorldPosition;
-out vec3 passPosition;
-out vec2 passUVCoord;
-
 void main()
 {
-    // TODO
-    // Some output pos in device coordinates for later rendering
-
     Out.posWorld = (model * positionAttribute).xyz;
-    Out.posDevice = Out.posWorld; // TODO projection
-    Out.normal = normalAttribute.xyz; // TODO matrix multiplication
+    Out.posDevice = (projectionView * vec4(Out.posWorld, 1)).xyz;
+    Out.normal = (modelNormal * normalAttribute).xyz;
     Out.uv = uvCoordAttribute;
 }

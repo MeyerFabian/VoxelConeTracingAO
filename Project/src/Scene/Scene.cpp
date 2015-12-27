@@ -7,6 +7,7 @@
 #include "Utilities/errorUtils.h"
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
+#include "externals/GLM/glm/gtx/string_cast.hpp"
 
 Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
@@ -99,7 +100,21 @@ void Scene::draw(float windowWidth, float windowHeight) const
     }
 }
 
+void Scene::drawWithCustomShader() const
+{
+    // Render all the buckets' content
+    for(auto& bucket : mRenderBuckets)
+    {
+        // Draw all meshes in that bucket
+        for(Mesh const * pMesh : bucket.second)
+        {
+            pMesh->draw();
+        }
+    }
+}
+
 void Scene::fillGui()
 {
-
+    std::string output = "Camera position: " + glm::to_string(mCamera.getPosition());
+    ImGui::Text(output.c_str());
 }

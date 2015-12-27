@@ -25,32 +25,74 @@ out Voxel
 
 void main()
 {
+    // TODO
+    // Increase triangle size to fill all pixels at borders
+
     // ### Calculate direction where projection is maximized ###
 
     // Calculate normal
-    vec3 a = In[1].posDevice - In[0].posDevice;
-    vec3 b = In[2].posDevice - In[0].posDevice;
-    vec3 triNormal = cross(a,b); // not normalized
+    vec3 triNormal =
+        abs(
+            cross(
+                In[1].posDevice - In[0].posDevice,
+                In[2].posDevice - In[0].posDevice)); // not normalized
 
     // Which direction is prominent? (max component of triNormal)
     float triNormalMax = max(max(triNormal.x, triNormal.y), triNormal.z);
     triNormal /= triNormalMax;
+    triNormal = floor(triNormal);
 
-    // Do some magic, but no if :D
+    // Now, prominent direction is coded in triNormal
+    vec2 a;
+    vec2 b;
+    vec2 c;
 
-    // TODO
-    // Rotate primitive into direction where projection is maximized
-    // Move triangle in middle of scene
-    // Increase triangle size to fill all pixels at borders
-    // Emit vertices and set output values
+    // Ugly case stuff, think about better
+    // Rotate in direction of camera
+    if(triNormal.x > 0)
+    {
+        a = In[0].posDevice.zy;
+        b = In[1].posDevice.zy;
+        c = In[2].posDevice.zy;
+    }
+    else if(triNormal.y > 0)
+    {
+        a = In[0].posDevice.xz;
+        b = In[1].posDevice.xz;
+        c = In[2].posDevice.xz;
+    }
+    else
+    {
+        a = In[0].posDevice.xy;
+        b = In[1].posDevice.xy;
+        c = In[2].posDevice.xy;
+    }
 
-    gl_Position = vec4(0,0,0,1); // somewhere for rendering
+    // Move into center
+    vec2 center = (a + b + c) / 3;
+    a -= center;
+    b -= center;
+    c -= center;
+
+    // First vertex
+    Out.posWorld = In[0].posWorld;
+    Out.normal = In[0].normal;
+    Out.uv = In[0].uv;
+    gl_Position = vec4(a,0,1);
     EmitVertex();
 
-    gl_Position = vec4(0,0,0,1); // somewhere for rendering
+    // Second vertex
+    Out.posWorld = In[1].posWorld;
+    Out.normal = In[1].normal;
+    Out.uv = In[1].uv;
+    gl_Position = vec4(b,0,1);
     EmitVertex();
 
-    gl_Position = vec4(0,0,0,1); // somewhere for rendering
+    // Third vertex
+    Out.posWorld = In[2].posWorld;
+    Out.normal = In[2].normal;
+    Out.uv = In[2].uv;
+    gl_Position = vec4(c,0,1);
     EmitVertex();
 
     EndPrimitive();
