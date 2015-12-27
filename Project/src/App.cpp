@@ -124,6 +124,7 @@ App::App()
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
+    // TODO: Not quadratic....
     // Voxelization (create fragment voxels) (whole scene should fit in device coordiantes...)
     m_voxelization = std::unique_ptr<Voxelization>(
         new Voxelization(m_scene.get(), -180, 180, -10, 140, -120, 120)); // Rough coordinates

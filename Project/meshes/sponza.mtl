@@ -76,6 +76,7 @@ newmtl 16___Default
 	Kd 0.5880 0.5880 0.5880
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
+	map_Kd sponza_curtain_diff.png
 
 newmtl bricks
 	Ns 10.0000

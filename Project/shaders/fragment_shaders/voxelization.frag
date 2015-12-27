@@ -15,22 +15,19 @@ in Voxel
 //!< uniforms
 layout(binding = 0) uniform atomic_uint index;
 uniform sampler2D tex;
+uniform layout(rgba8, location = 1) imageBuffer colorOutputImage; // location = 1 is ok? no plan
 
 //!< out-variables
 layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    vec4 color = texture(tex, In.uv).rgba;
-
     // TODO
     // Clipping (when triangle size was increased)
-    // Do something with atomic counter
-    // Write something to buffer texture
-    // Color, position...
 
-    atomicCounterIncrement(index);
+    // Index in output textures
+    uint idx = atomicCounterIncrement(index);
 
-    color.rgb += In.normal; // Just to have it used
-    fragColor = color; // Get rid of that
+    // Save color of voxel fragment
+    imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
 }

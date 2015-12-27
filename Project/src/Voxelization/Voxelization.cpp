@@ -6,6 +6,9 @@
 
 #include <iostream>
 
+// Defines
+const GLuint maxVoxelFragmentCount = 2750071; // Needed for buffer creation...
+
 Voxelization::Voxelization(
         Scene const * pScene,
         float volumeLeft,
@@ -15,6 +18,8 @@ Voxelization::Voxelization(
         float volumeNear,
         float volumeFar)
 {
+    // TODO: Normals and position of voxel fragments
+
     // Saved in members, at the moment not necessary
     mpScene = pScene;
 
@@ -71,14 +76,38 @@ Voxelization::Voxelization(
 
     // ### Buffer texture ###
 
-    // TODO (world pos, normal, color)
+    // Color
+    GLuint colorOutputUniformPosition = glGetUniformLocation(shader.getShaderProgramHandle(), "colorOutputImage");
+
+    // Color buffer
+    glGenBuffers(1, &mColorOutputBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, mColorOutputBuffer);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * maxVoxelFragmentCount, 0, GL_DYNAMIC_DRAW);
+
+    // Color texture
+    glGenTextures(1, &mColorOutputTexture);
+
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // ### Execution ###
 
-    // Draw scene with voxelization shader
-    mpScene->drawWithCustomShader();
+    // Setup write texture stuff
+    glActiveTexture(GL_TEXTURE1); // 0 probably used for diffuse texture for texture mapping
+    glBindTexture(GL_TEXTURE_1D, mColorOutputTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mColorOutputBuffer);
+    glBindImageTexture(1,
+                       mColorOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_READ_WRITE,
+                       GL_RGBA8);
+    glUniform1i(colorOutputUniformPosition, 1);
 
-    glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
+    // Draw scene with voxelization shader
+    mpScene->drawWithCustomShader(); // uses texture slot 0 for diffuse texture mapping
+
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
     // ### Finish ###
 
@@ -96,4 +125,15 @@ Voxelization::Voxelization(
     // Cleaning up
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
     glDeleteBuffers(1, &atomicBuffer);
+}
+
+Voxelization::~Voxelization()
+{
+    glDeleteTextures(1, &mColorOutputTexture);
+    glDeleteBuffers(1, &mColorOutputBuffer);
+}
+
+GLuint Voxelization::getColorOutputTexture() const
+{
+    return mColorOutputTexture;
 }

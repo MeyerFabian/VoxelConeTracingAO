@@ -12,9 +12,7 @@
 
 // TODO
 /*
- * Indexed rendering of meshes works?
  * Diffuse has to be used in shader (and deactivated if necessary)
- * Camera must be implemented
  */
 
 class Scene : public Controllable

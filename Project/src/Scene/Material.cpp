@@ -32,10 +32,7 @@ void Material::bind(ShaderProgram* pShaderProgram) const
         // Bind texture
         mupDiffuse->bind(GL_TEXTURE0);
 
-        // TODO: activate diffuse in shader
-    }
-    else
-    {
-        // TODO: deactivate diffuse in shader
+        // Bind slot to correct uniform
+        glUniform1i(glGetUniformLocation(pShaderProgram->getShaderProgramHandle(), "tex"), 0);
     }
 }

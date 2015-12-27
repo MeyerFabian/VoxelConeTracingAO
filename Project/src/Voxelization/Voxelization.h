@@ -12,6 +12,8 @@ class Voxelization
 {
 public:
 
+    // TODO: one needs the size of the color ouput texture for sure...
+
     Voxelization(
         Scene const * pScene,
         float volumeLeft,
@@ -21,10 +23,17 @@ public:
         float volumeNear,
         float volumeFar);
 
+    ~Voxelization();
+
+    GLuint getColorOutputTexture() const;
+
 private:
 
     // Members
     Scene const * mpScene;
+    GLuint mColorOutputBuffer;
+    GLuint mColorOutputTexture;
+
 };
 
 #endif // VOXELIZATION_H_
