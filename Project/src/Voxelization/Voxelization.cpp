@@ -44,14 +44,30 @@ Voxelization::Voxelization(
     // ### Atomic counter #####
 
     // Generate atomic buffer
-    /*GLuint atomicsBuffer;
-    glGenBuffers(1, &atomicsBuffer);
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicsBuffer);
-    GLuint a = 0;
-    glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0 , sizeof(GLuint), &a);
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+    GLuint atomicBuffer;
+    glGenBuffers(1, &atomicBuffer);
 
-    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicsBuffer); */
+    // Bind buffer and define capacity
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicBuffer);
+    glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+
+    // Map the buffer
+    GLuint* mapping = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
+                                             0 ,
+                                             sizeof(GLuint),
+                                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT
+                                             );
+    // Set memory to new value
+    memset(mapping, 0, sizeof(GLuint));
+
+    // Unmap the buffer
+    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+
+    // Bind it to shader
+    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, atomicBuffer);
+
+    // Unbind the buffer for the moment
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
 
     // ### Buffer texture ###
 
@@ -62,15 +78,22 @@ Voxelization::Voxelization(
     // Draw scene with voxelization shader
     mpScene->drawWithCustomShader();
 
+    glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
+
     // ### Finish ###
 
     // Read atomic counter
-    /*GLuint* userCounters;
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicsBuffer);
-    glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), userCounters);
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
-    std::cout << "Fragment count = " << *userCounters << std::endl;*/
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, atomicBuffer);
+
+    mapping = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
+                                             0,
+                                             sizeof(GLuint),
+                                             GL_MAP_READ_BIT
+                                            );
+    std::cout << "Voxel fragments count: " << mapping[0] << std::endl;
+    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
 
     // Cleaning up
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+    glDeleteBuffers(1, &atomicBuffer);
 }
