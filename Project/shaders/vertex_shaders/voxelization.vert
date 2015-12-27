@@ -18,6 +18,7 @@ uniform mat4 projection;
 out Vertex
 {
     vec3 posWorld;
+    vec3 posDevice;
     vec3 normal;
     vec2 uv;
 } Out;
@@ -32,6 +33,7 @@ void main()
     // Some output pos in device coordinates for later rendering
 
     Out.posWorld = (model * positionAttribute).xyz;
+    Out.posDevice = Out.posWorld; // TODO projection
     Out.normal = normalAttribute.xyz; // TODO matrix multiplication
     Out.uv = uvCoordAttribute;
 }
