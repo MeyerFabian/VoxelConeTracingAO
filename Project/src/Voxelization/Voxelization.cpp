@@ -7,6 +7,7 @@
 Voxelization::Voxelization()
 {
     // TODO: Normals and position of voxel fragments
+
     // ### Shader program ###
     mVoxelizationShader = std::unique_ptr<ShaderProgram>(
             new ShaderProgram("/vertex_shaders/voxelization.vert","/fragment_shaders/voxelization.frag", "/geometry_shaders/voxelization.geom"));
@@ -22,6 +23,7 @@ Voxelization::Voxelization()
 
 Voxelization::~Voxelization()
 {
+    // TODO: Delete all the OpenGL stuff
     glDeleteBuffers(1, &mAtomicBuffer);
 }
 

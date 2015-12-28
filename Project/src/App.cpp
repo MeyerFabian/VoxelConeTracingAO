@@ -124,8 +124,7 @@ App::App()
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
-    // TODO: Not quadratic....
-    // Voxelization (create fragment voxels) (whole scene should fit in device coordiantes...)
+    // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
         new Voxelization());
 
@@ -187,11 +186,15 @@ void App::run()
             m_scene->update(cameraMovement * deltaTime, 0, 0);
         }
 
+        // TODO: Not quadratic....
+        // Voxelization (create fragment voxels) (whole scene should fit in device coordiantes...)
         m_voxelization->voxelize(m_scene.get(), -180, 180, -10, 140, -120, 120, mFragmentList.get());
         std::cout << mFragmentList->getVoxelCount() << std::endl;
 
+        // Testing fragment list
         mFragmentList->mapToCUDA();
         mFragmentList->unmapFromCUDA();
+
         glViewport(0, 0, mPrevWidth, mPrevHeight); // TODO: find better solution => we have to reset it for normal rendering, as the voxelization changes the viewport to a square resolution
 
         m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
