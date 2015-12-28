@@ -19,31 +19,21 @@ public:
     Voxelization();
     ~Voxelization();
 
-    GLuint getColorOutputTexture() const;
-
     void voxelize(Scene const * pScene,
                   float volumeLeft,
                   float volumeRight,
                   float volumeBottom,
                   float volumeTop,
                   float volumeNear,
-                  float volumeFar);
-
-    const FragmentList* getFragmentList() const;
+                  float volumeFar,
+                  FragmentList *fragmentList);
 
 private:
-
     // Members
-    Scene const * mpScene;
     std::unique_ptr<ShaderProgram> mVoxelizationShader;
-    GLuint mColorOutputBuffer;
-    GLuint mColorOutputTexture;
     GLuint mAtomicBuffer;
 
-    FragmentList mFragmentList;
-
     void resetAtomicCounter() const;
-
     GLuint readAtomicCounter() const;
 };
 

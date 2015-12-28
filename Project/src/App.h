@@ -36,6 +36,7 @@ private:
     std::unique_ptr<SparseVoxelOctree> m_svo;
     std::unique_ptr<Scene> m_scene;
     std::unique_ptr<Voxelization> m_voxelization;
+    std::unique_ptr<FragmentList> mFragmentList;
 };
 
 #endif // APP_H_

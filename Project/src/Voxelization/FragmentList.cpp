@@ -4,8 +4,11 @@
 
 #include "FragmentList.h"
 #include <assert.h>
+#include <cuda_runtime_api.h>
+#include <src/Utilities/errorUtils.h>
+#include <cuda_gl_interop.h>
 
-FragmentList::FragmentList(GLuint maxListSize) : mVoxelCount(0)
+FragmentList::FragmentList(GLuint maxListSize) : mVoxelCount(0), mMaxListSize(maxListSize)
 {
     init(maxListSize);
 }
@@ -17,13 +20,28 @@ FragmentList::~FragmentList()
 
 void FragmentList::init(GLuint maxListSize)
 {
+    mMaxListSize = maxListSize;
+
     // Color buffer
     glGenBuffers(1, &mColorOutputBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, mColorOutputBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * maxListSize, 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * mMaxListSize, 0, GL_DYNAMIC_DRAW);
 
     // Color texture
     glGenTextures(1, &mColorOutputTexture);
+    glBindTexture(GL_TEXTURE_1D, mColorOutputTexture);
+
+
+    // register the texture for cuda (just once)
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mFragmentListResource,mColorOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mFragmentListResource, 0));
+
+    size_t size = maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mDevPointer,
+                                         &size,
+                                         mFragmentListResource));
+
+    cudaGraphicsUnmapResources(1, &mFragmentListResource, 0);
 
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
@@ -52,4 +70,20 @@ void FragmentList::setVoxelCount(int count)
     assert(count >=0);
 
     mVoxelCount = count;
+}
+
+const uchar4 *FragmentList::mapToCUDA()
+{
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mFragmentListResource, 0));
+
+    size_t size = mMaxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mDevPointer,
+                                                        &size,
+                                                        mFragmentListResource));
+    return mDevPointer;
+}
+
+void FragmentList::unmapFromCUDA()
+{
+    cudaGraphicsUnmapResources(1, &mFragmentListResource, 0);
 }

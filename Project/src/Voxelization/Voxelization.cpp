@@ -4,9 +4,6 @@
 
 #include <iostream>
 
-// Defines
-const GLuint maxVoxelFragmentCount = 2750071; // Needed for buffer creation...
-
 Voxelization::Voxelization()
 {
     // TODO: Normals and position of voxel fragments
@@ -59,15 +56,9 @@ void Voxelization::resetAtomicCounter() const {
 
 Voxelization::~Voxelization()
 {
-    glDeleteTextures(1, &mColorOutputTexture);
-    glDeleteBuffers(1, &mColorOutputBuffer);
     glDeleteBuffers(1, &mAtomicBuffer);
 }
 
-GLuint Voxelization::getColorOutputTexture() const
-{
-    return mColorOutputTexture;
-}
 
 void Voxelization::voxelize(Scene const * pScene,
                             float volumeLeft,
@@ -75,7 +66,8 @@ void Voxelization::voxelize(Scene const * pScene,
                             float volumeBottom,
                             float volumeTop,
                             float volumeNear,
-                            float volumeFar)
+                            float volumeFar,
+                            FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
@@ -105,19 +97,15 @@ void Voxelization::voxelize(Scene const * pScene,
     GLuint colorOutputUniformPosition = glGetUniformLocation(mVoxelizationShader->getShaderProgramHandle(), "colorOutputImage");
     glUniform1i(colorOutputUniformPosition, 1); // TODO: getter for texture unit? or hard coded?
 
-    mFragmentList.bind();
+    fragmentList->bind();
 
     // Draw scene with voxelization shader
     pScene->drawWithCustomShader(); // uses texture slot 0 for diffuse texture mapping
 
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
-    mFragmentList.setVoxelCount(readAtomicCounter());
+    fragmentList->setVoxelCount(readAtomicCounter());
 
     mVoxelizationShader->disable();
 }
 
-const FragmentList *Voxelization::getFragmentList() const
-{
-    return &mFragmentList;
-}
