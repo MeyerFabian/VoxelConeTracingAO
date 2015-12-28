@@ -8,32 +8,43 @@ are save to buffer textures, collection world position, normal and color of each
 #define VOXELIZATION_H_
 
 #include "Scene/Scene.h"
+#include "FragmentList.h"
+
 class Voxelization
 {
 public:
 
     // TODO: one needs the size of the color ouput texture for sure...
 
-    Voxelization(
-        Scene const * pScene,
-        float volumeLeft,
-        float volumeRight,
-        float volumeBottom,
-        float volumeTop,
-        float volumeNear,
-        float volumeFar);
-
+    Voxelization();
     ~Voxelization();
 
     GLuint getColorOutputTexture() const;
+
+    void voxelize(Scene const * pScene,
+                  float volumeLeft,
+                  float volumeRight,
+                  float volumeBottom,
+                  float volumeTop,
+                  float volumeNear,
+                  float volumeFar);
+
+    const FragmentList* getFragmentList() const;
 
 private:
 
     // Members
     Scene const * mpScene;
+    std::unique_ptr<ShaderProgram> mVoxelizationShader;
     GLuint mColorOutputBuffer;
     GLuint mColorOutputTexture;
+    GLuint mAtomicBuffer;
 
+    FragmentList mFragmentList;
+
+    void resetAtomicCounter() const;
+
+    GLuint readAtomicCounter() const;
 };
 
 #endif // VOXELIZATION_H_

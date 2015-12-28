@@ -98,6 +98,7 @@ void Scene::draw(float windowWidth, float windowHeight) const
             pMesh->draw();
         }
     }
+    mupShader->disable();
 }
 
 void Scene::drawWithCustomShader() const

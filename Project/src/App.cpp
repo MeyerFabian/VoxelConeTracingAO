@@ -127,7 +127,9 @@ App::App()
     // TODO: Not quadratic....
     // Voxelization (create fragment voxels) (whole scene should fit in device coordiantes...)
     m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization(m_scene.get(), -180, 180, -10, 140, -120, 120)); // Rough coordinates
+        new Voxelization()); // Rough coordinates
+
+    m_voxelization->voxelize(m_scene.get(), -180, 180, -10, 140, -120, 120);
 
     // Sparse voxel octree (use fragment voxels and create octree for later use)
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
@@ -173,7 +175,6 @@ void App::run()
             mPrevHeight = height;
         }
 
-        m_svo->updateOctree();
 
         // Update scene
         if(rotateCamera)
@@ -184,6 +185,13 @@ void App::run()
         {
             m_scene->update(cameraMovement * deltaTime, 0, 0);
         }
+
+        m_voxelization->voxelize(m_scene.get(), -180, 180, -10, 140, -120, 120);
+        std::cout << m_voxelization->getFragmentList()->getVoxelCount() << std::endl;
+        glViewport(0, 0, mPrevWidth, mPrevHeight); // TODO: find better solution => we have to reset it for normal rendering, as the voxelization changes the viewport to a square resolution
+
+        m_svo->updateOctree();
+
 
         // Draw scene
         m_scene->draw(width, height);
