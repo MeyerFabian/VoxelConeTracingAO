@@ -194,7 +194,7 @@ void App::run()
         mFragmentList->unmapFromCUDA();
         glViewport(0, 0, mPrevWidth, mPrevHeight); // TODO: find better solution => we have to reset it for normal rendering, as the voxelization changes the viewport to a square resolution
 
-        m_svo->updateOctree();
+        m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
 
 
         // Draw scene

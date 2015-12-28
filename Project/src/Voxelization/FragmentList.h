@@ -28,8 +28,10 @@ public:
     void bind();
     int getVoxelCount() const;
 
-    const uchar4* mapToCUDA();
+    void mapToCUDA();
     void unmapFromCUDA();
+
+    uchar4* getColorBufferDevPointer();
 
 private:
     GLuint mColorOutputBuffer;

@@ -44,7 +44,7 @@ public:
     void init(int nodeCount = 1024);
                                          // copying global to const memory before traversal might improve the performance
     void updateConstMemory();
-    void fillNodePool(cudaArray_t &voxelList);
+    void fillNodePool(uchar4* colorBufferDevPointer);
 
     int getPoolSize();
 

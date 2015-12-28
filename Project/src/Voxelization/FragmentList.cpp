@@ -72,7 +72,7 @@ void FragmentList::setVoxelCount(int count)
     mVoxelCount = count;
 }
 
-const uchar4 *FragmentList::mapToCUDA()
+void FragmentList::mapToCUDA()
 {
     cudaErrorCheck(cudaGraphicsMapResources(1, &mFragmentListResource, 0));
 
@@ -80,10 +80,14 @@ const uchar4 *FragmentList::mapToCUDA()
     cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mDevPointer,
                                                         &size,
                                                         mFragmentListResource));
-    return mDevPointer;
 }
 
 void FragmentList::unmapFromCUDA()
 {
-    cudaGraphicsUnmapResources(1, &mFragmentListResource, 0);
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mFragmentListResource, 0));
+}
+
+uchar4 *FragmentList::getColorBufferDevPointer()
+{
+    return mDevPointer;
 }

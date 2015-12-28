@@ -42,7 +42,7 @@ void testFilling(dim3 texture_dim)
 }
 
 __global__
-void testNodeFilling(node *nodePool, int poolSize)
+void testNodeFilling(node *nodePool, int poolSize, uchar4* colorBufferDevPointer)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -50,6 +50,9 @@ void testNodeFilling(node *nodePool, int poolSize)
     {
         return;
     }
+
+    if(i == 0)
+        printf("%d ,%d, %d, %d \n",colorBufferDevPointer[0].x, colorBufferDevPointer[0].y, colorBufferDevPointer[0].z, colorBufferDevPointer[0].w);
 
     nodePool[i].nodeTilePointer = 10;
     nodePool[i].value = getBits(nodePool[i].nodeTilePointer,31,1);
@@ -77,13 +80,13 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
     return cudaSuccess;
 }
 
-cudaError_t updateNodePool(cudaArray_t &voxel, node *nodePool, int poolSize)
+cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
     int threadsPerBlock = 64;
     int blockCount = poolSize / threadsPerBlock;
 
-    testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
+    testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, colorBufferDevPointer);
 
     struct node *node_h = (struct node*)malloc(sizeof(node) * poolSize);
 

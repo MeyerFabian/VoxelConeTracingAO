@@ -21,10 +21,9 @@ void SparseVoxelOctree::fillGui()
 
 }
 
-void SparseVoxelOctree::updateOctree()
+void SparseVoxelOctree::updateOctree(uchar4* fragmentListColor)
 {
-    cudaArray_t voxelliste;
-    m_nodePool.fillNodePool(voxelliste); // normalerweise voxelisierer.getVoxelList() oder so
+    m_nodePool.fillNodePool(fragmentListColor);
 
     if(m_nodePool.getPoolSize() <= 8192)
         m_nodePool.updateConstMemory();

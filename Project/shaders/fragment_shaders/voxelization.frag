@@ -29,5 +29,6 @@ void main()
     uint idx = atomicCounterIncrement(index);
 
     // Save color of voxel fragment
-    imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
+   // imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
+   imageStore(colorOutputImage, int(idx), vec4(0,0,0,0));
 }
