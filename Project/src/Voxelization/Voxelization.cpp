@@ -20,40 +20,6 @@ Voxelization::Voxelization()
     resetAtomicCounter();
 }
 
-GLuint Voxelization::readAtomicCounter() const {// Read atomic counter
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mAtomicBuffer);
-
-    GLuint *mapping = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
-                                             0,
-                                             sizeof(GLuint),
-                                             GL_MAP_READ_BIT
-                                            );
-
-    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
-
-    return mapping[0];
-}
-
-void Voxelization::resetAtomicCounter() const {
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mAtomicBuffer);
-
-    // Map the buffer
-    GLuint* mapping = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
-                                             0 ,
-                                             sizeof(GLuint),
-                                             GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT
-                                             );
-    // Set memory to new value
-    memset(mapping, 0, sizeof(GLuint));
-
-    // Unmap the buffer
-    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, mAtomicBuffer);
-
-    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
-}
-
 Voxelization::~Voxelization()
 {
     glDeleteBuffers(1, &mAtomicBuffer);
@@ -90,7 +56,6 @@ void Voxelization::voxelize(Scene const * pScene,
     mVoxelizationShader->updateUniform("modelNormal", glm::mat4(1.0)); // same since identity
     mVoxelizationShader->updateUniform("projectionView", projection);
 
-    /* reset atomic counter */
     resetAtomicCounter();
 
     // Color
@@ -107,5 +72,39 @@ void Voxelization::voxelize(Scene const * pScene,
     fragmentList->setVoxelCount(readAtomicCounter());
 
     mVoxelizationShader->disable();
+}
+
+GLuint Voxelization::readAtomicCounter() const {// Read atomic counter
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mAtomicBuffer);
+
+    GLuint *mapping = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
+                                                0,
+                                                sizeof(GLuint),
+                                                GL_MAP_READ_BIT
+    );
+
+    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
+
+    return mapping[0];
+}
+
+void Voxelization::resetAtomicCounter() const {
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mAtomicBuffer);
+
+    // Map the buffer
+    GLuint* mapping = (GLuint*)glMapBufferRange(GL_ATOMIC_COUNTER_BUFFER,
+                                                0 ,
+                                                sizeof(GLuint),
+                                                GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT
+    );
+    // Set memory to new value
+    memset(mapping, 0, sizeof(GLuint));
+
+    // Unmap the buffer
+    glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
+    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, mAtomicBuffer);
+
+    glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
 }
 
