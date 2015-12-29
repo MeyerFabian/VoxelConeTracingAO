@@ -10,8 +10,8 @@
 
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
-    cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int poolSize);
-    cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize);
+    cudaError_t updateNodePool(uchar4* colorBufferDevPointer, nodeTile *nodePool, int poolSize);
+    cudaError_t copyNodePoolToConstantMemory(nodeTile *nodePool, int poolSize);
 }
 
 void NodePool::init(int nodeCount)
@@ -19,7 +19,7 @@ void NodePool::init(int nodeCount)
     m_poolSize = nodeCount;
 
     // just initialise the memory for the nodepool once
-    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(node)*nodeCount));
+    cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(nodeTile)*nodeCount));
 }
 
 void NodePool::updateConstMemory()

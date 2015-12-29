@@ -42,7 +42,7 @@ void testFilling(dim3 texture_dim)
 }
 
 __global__
-void testNodeFilling(node *nodePool, int poolSize, uchar4* colorBufferDevPointer)
+void testNodeFilling(nodeTile *nodePool, int poolSize, uchar4* colorBufferDevPointer)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -54,8 +54,38 @@ void testNodeFilling(node *nodePool, int poolSize, uchar4* colorBufferDevPointer
     if(i == 0)
         printf("%d ,%d, %d, %d \n",colorBufferDevPointer[0].x, colorBufferDevPointer[0].y, colorBufferDevPointer[0].z, colorBufferDevPointer[0].w);
 
-    nodePool[i].nodeTilePointer = 10;
-    nodePool[i].value = getBits(nodePool[i].nodeTilePointer,31,1);
+    nodePool[i].node1.nodeTilePointer = 10;
+    nodePool[i].node1.value = getBits(nodePool[i].node1.nodeTilePointer,31,1);
+}
+
+__global__ void markNodeForSubdivision(nodeTile *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int volumeSideLength)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+
+    uint codedPosition = positionBuffer[index].x;
+    float3 position;
+    position.x = getBits(codedPosition,2,10);
+    position.y = getBits(codedPosition,12,10);
+    position.z = getBits(codedPosition,22,10);
+    int nextIndex = 0;
+    // TODO: rethink for tommorow
+    for(int i=0;i<maxLevel;i++)
+    {
+        // calculate index
+        if(getBits(nodePool[nextIndex].node1.nodeTilePointer,1,1) == 1)
+        {
+            nextIndex = getBits(nodePool[nextIndex].node1.nodeTilePointer,2,31);
+            // visited. traverse further down
+        }
+        else
+        {
+            // not visited. mark as visited
+
+            // exit for loop and kernel
+            break;
+        }
+    }
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
@@ -80,7 +110,7 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
     return cudaSuccess;
 }
 
-cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int poolSize)
+cudaError_t updateNodePool(uchar4* colorBufferDevPointer, nodeTile *nodePool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
     int threadsPerBlock = 64;
@@ -105,7 +135,7 @@ cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int po
     return cudaSuccess;
 }
 
-cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize)
+cudaError_t copyNodePoolToConstantMemory(nodeTile *nodePool, int poolSize)
 {
     cudaError_t errorCode = cudaMemcpyToSymbol(constNodePool,nodePool,sizeof(node)*poolSize,0,cudaMemcpyDeviceToDevice);
 
@@ -119,4 +149,16 @@ cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize)
         constantMemoryValid = true;
         return errorCode;
     }
+}
+
+cudaError_t buildSVO(nodeTile *nodePool,
+                     int poolSize,
+                     cudaArray_t &brickPool,
+                     dim3 textureDim,
+                     uint1* positionDevPointer,
+                     uchar4* colorBufferDevPointer,
+                     uchar4* normalDevPointer,
+                     int fragmentListSize)
+{
+
 }
