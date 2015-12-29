@@ -79,7 +79,7 @@ __global__ void markNodeForSubdivision(nodeTile *nodePool, int poolSize, int max
         {
             // TODO: calculate index in nodepool
             // TODO: test position against 8 "nodes" -> save position from last level
-
+            // TODO: REMEMBER THAT EACH NODE REPRESENTS A 3x3x3 region!!!
             if(getBits(nodePool[nextIndex].node1.nodeTilePointer,1,1) == 1)
             {
                 nextIndex = getBits(nodePool[nextIndex].node1.nodeTilePointer,2,31);
