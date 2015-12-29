@@ -126,7 +126,7 @@ App::App()
 
     // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization());
+        new Voxelization(glm::vec3(0, 40, 0), 360.f));
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
@@ -186,9 +186,8 @@ void App::run()
             m_scene->update(cameraMovement * deltaTime, 0, 0);
         }
 
-        // TODO: Not quadratic....
-        // Voxelization (create fragment voxels) (whole scene should fit in device coordiantes...)
-        m_voxelization->voxelize(m_scene.get(), -180, 180, -10, 140, -120, 120, mFragmentList.get());
+        // Voxelization (create fragment voxels)
+        m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
         std::cout << mFragmentList->getVoxelCount() << std::endl;
 
         // Testing fragment list

@@ -10,15 +10,14 @@ layout(triangle_strip, max_vertices = 3) out;
 
 in Vertex
 {
-    vec3 posWorld;
     vec3 posDevice;
     vec3 normal;
     vec2 uv;
 } In[3];
 
-out Voxel
+out RenderVertex
 {
-    vec3 posWorld;
+    vec3 posDevice;
     vec3 normal;
     vec2 uv;
 } Out;
@@ -75,21 +74,21 @@ void main()
     c -= center;
 
     // First vertex
-    Out.posWorld = In[0].posWorld;
+    Out.posDevice = In[0].posDevice;
     Out.normal = In[0].normal;
     Out.uv = In[0].uv;
     gl_Position = vec4(a,0,1);
     EmitVertex();
 
     // Second vertex
-    Out.posWorld = In[1].posWorld;
+    Out.posDevice = In[1].posDevice;
     Out.normal = In[1].normal;
     Out.uv = In[1].uv;
     gl_Position = vec4(b,0,1);
     EmitVertex();
 
     // Third vertex
-    Out.posWorld = In[2].posWorld;
+    Out.posDevice = In[2].posDevice;
     Out.normal = In[2].normal;
     Out.uv = In[2].uv;
     gl_Position = vec4(c,0,1);

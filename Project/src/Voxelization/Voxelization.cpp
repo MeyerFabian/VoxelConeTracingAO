@@ -4,9 +4,11 @@
 
 #include <iostream>
 
-Voxelization::Voxelization()
+Voxelization::Voxelization(glm::vec3 center, float extent)
 {
-    // TODO: Normals and position of voxel fragments
+    // Fill members
+    mCenter = center;
+    mExtent = extent;
 
     // ### Shader program ###
     mVoxelizationShader = std::unique_ptr<ShaderProgram>(
@@ -28,14 +30,7 @@ Voxelization::~Voxelization()
 }
 
 
-void Voxelization::voxelize(Scene const * pScene,
-                            float volumeLeft,
-                            float volumeRight,
-                            float volumeBottom,
-                            float volumeTop,
-                            float volumeNear,
-                            float volumeFar,
-                            FragmentList *fragmentList)
+void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
@@ -47,23 +42,29 @@ void Voxelization::voxelize(Scene const * pScene,
     // ### Transformation ###
 
     // Orthographic projection
+    float halfExtent = mExtent / 2.0f;
     glm::mat4 projection = glm::ortho(
-            volumeLeft,
-            volumeRight,
-            volumeBottom,
-            volumeTop,
-            volumeNear,
-            volumeFar);
+            mCenter.x - halfExtent,
+            mCenter.x + halfExtent,
+            mCenter.y - halfExtent,
+            mCenter.y + halfExtent,
+            mCenter.z - halfExtent,
+            mCenter.z + halfExtent);
     mVoxelizationShader->updateUniform("model", glm::mat4(1.0));
     mVoxelizationShader->updateUniform("modelNormal", glm::mat4(1.0)); // same since identity
     mVoxelizationShader->updateUniform("projectionView", projection);
 
     resetAtomicCounter();
 
-    // Color
+    // Bind correct texture slots (TODO: should be done else where and cleaner)
+    GLint positionOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "positionOutputImage");
+    glUniform1i(positionOutputUniformPosition, 1);
+    GLint normalOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "normalOutputImage");
+    glUniform1i(normalOutputUniformPosition, 2);
     GLint colorOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "colorOutputImage");
-    glUniform1i(colorOutputUniformPosition, 1); // TODO: getter for texture unit? or hard coded?
+    glUniform1i(colorOutputUniformPosition, 3);
 
+    // Bind fragment list with output textures / buffers
     fragmentList->bind();
 
     // Draw scene with voxelization shader

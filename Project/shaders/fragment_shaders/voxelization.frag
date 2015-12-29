@@ -5,9 +5,9 @@
 */
 
 //!< in-variables
-in Voxel
+in RenderVertex
 {
-    vec3 posWorld;
+    vec3 posDevice;
     vec3 normal;
     vec2 uv;
 } In;
@@ -15,7 +15,9 @@ in Voxel
 //!< uniforms
 layout(binding = 0) uniform atomic_uint index;
 uniform sampler2D tex;
-uniform layout(rgba8, location = 1) imageBuffer colorOutputImage; // location = 1 is ok? no plan
+uniform layout(r32ui, location = 1) imageBuffer positionOutputImage;
+uniform layout(rgba8, location = 2) imageBuffer normalOutputImage;
+uniform layout(rgba8, location = 3) imageBuffer colorOutputImage;
 
 //!< out-variables
 layout(location = 0) out vec4 fragColor;
@@ -28,7 +30,13 @@ void main()
     // Index in output textures
     uint idx = atomicCounterIncrement(index);
 
+    // Save position of voxel fragment
+    // TODO (still from -1 to 1)
+    imageStore(positionOutputImage, int(idx), 1337);
+
+    // Save normal of voxel fragment
+    imageStore(normalOutputImage, int(idx), vec4(In.normal, 0));
+
     // Save color of voxel fragment
-   // imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
-   imageStore(colorOutputImage, int(idx), vec4(0,1,0.5,1));
+    imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
 }

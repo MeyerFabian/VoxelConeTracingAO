@@ -17,7 +17,6 @@ uniform mat4 projectionView;
 //!< out-variables
 out Vertex
 {
-    vec3 posWorld;
     vec3 posDevice;
     vec3 normal;
     vec2 uv;
@@ -25,8 +24,8 @@ out Vertex
 
 void main()
 {
-    Out.posWorld = (model * positionAttribute).xyz;
-    Out.posDevice = (projectionView * vec4(Out.posWorld, 1)).xyz;
+    vec4 posWorld = model * positionAttribute;
+    Out.posDevice = (projectionView * posWorld).xyz;
     Out.normal = (modelNormal * normalAttribute).xyz;
     Out.uv = uvCoordAttribute;
 }

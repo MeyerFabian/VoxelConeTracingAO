@@ -16,17 +16,10 @@ public:
 
     // TODO: one needs the size of the color ouput texture for sure...
 
-    Voxelization();
+    Voxelization(glm::vec3 center, float extent);
     ~Voxelization();
 
-    void voxelize(Scene const * pScene,
-                  float volumeLeft,
-                  float volumeRight,
-                  float volumeBottom,
-                  float volumeTop,
-                  float volumeNear,
-                  float volumeFar,
-                  FragmentList *fragmentList);
+    void voxelize(Scene const * pScene, FragmentList *fragmentList);
 
 private:
     // Members
@@ -35,6 +28,9 @@ private:
 
     void resetAtomicCounter() const;
     GLuint readAtomicCounter() const;
+
+    glm::vec3 mCenter;
+    float mExtent;
 };
 
 #endif // VOXELIZATION_H_

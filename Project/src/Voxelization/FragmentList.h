@@ -34,6 +34,16 @@ public:
     uchar4* getColorBufferDevPointer();
 
 private:
+
+    // 32bit, 10 per axis, 2 unused
+    GLuint mPositionOutputBuffer;
+    GLuint mPositionOutputTexture;
+
+    // RGBA 8
+    GLuint mNormalOutputBuffer;
+    GLuint mNormalOutputTexture;
+
+    // RGBA8
     GLuint mColorOutputBuffer;
     GLuint mColorOutputTexture;
 
