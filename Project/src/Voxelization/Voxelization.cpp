@@ -61,7 +61,7 @@ void Voxelization::voxelize(Scene const * pScene,
     resetAtomicCounter();
 
     // Color
-    GLuint colorOutputUniformPosition = glGetUniformLocation(mVoxelizationShader->getShaderProgramHandle(), "colorOutputImage");
+    GLint colorOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "colorOutputImage");
     glUniform1i(colorOutputUniformPosition, 1); // TODO: getter for texture unit? or hard coded?
 
     fragmentList->bind();

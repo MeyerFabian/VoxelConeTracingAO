@@ -30,5 +30,5 @@ void main()
 
     // Save color of voxel fragment
    // imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
-   imageStore(colorOutputImage, int(idx), vec4(0,0,0,0));
+   imageStore(colorOutputImage, int(idx), vec4(0,1,0.5,1));
 }

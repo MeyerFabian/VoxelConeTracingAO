@@ -26,10 +26,13 @@ void FragmentList::init(GLuint maxListSize)
     glGenBuffers(1, &mColorOutputBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, mColorOutputBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * mMaxListSize, 0, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // Color texture
     glGenTextures(1, &mColorOutputTexture);
-    glBindTexture(GL_TEXTURE_1D, mColorOutputTexture);
+    glBindTexture(GL_TEXTURE_BUFFER, mColorOutputTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mColorOutputBuffer);
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
 
 
     // register the texture for cuda (just once)
@@ -48,9 +51,6 @@ void FragmentList::init(GLuint maxListSize)
 
 void FragmentList::bind()
 {
-    glActiveTexture(GL_TEXTURE1); // 0 probably used for diffuse texture for texture mapping
-    glBindTexture(GL_TEXTURE_1D, mColorOutputTexture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mColorOutputBuffer);
     glBindImageTexture(1,
                        mColorOutputTexture,
                        0,
