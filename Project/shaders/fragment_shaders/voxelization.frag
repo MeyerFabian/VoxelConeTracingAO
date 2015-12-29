@@ -15,7 +15,7 @@ in RenderVertex
 //!< uniforms
 layout(binding = 0) uniform atomic_uint index;
 uniform sampler2D tex;
-uniform layout(r32ui, location = 1) imageBuffer positionOutputImage;
+uniform layout(r32ui, location = 1) uimageBuffer positionOutputImage;
 uniform layout(rgba8, location = 2) imageBuffer normalOutputImage;
 uniform layout(rgba8, location = 3) imageBuffer colorOutputImage;
 
@@ -32,7 +32,7 @@ void main()
 
     // Save position of voxel fragment
     // TODO (still from -1 to 1)
-    imageStore(positionOutputImage, int(idx), 1337);
+    imageStore(positionOutputImage, int(idx), uvec4(1337));
 
     // Save normal of voxel fragment
     imageStore(normalOutputImage, int(idx), vec4(In.normal, 0));
