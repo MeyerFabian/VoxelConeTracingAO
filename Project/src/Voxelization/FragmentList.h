@@ -31,7 +31,9 @@ public:
     void mapToCUDA();
     void unmapFromCUDA();
 
+    uint1* getPositionDevPointer();
     uchar4* getColorBufferDevPointer();
+    uchar4* getNormalDevPointer();
 
 private:
 
@@ -51,8 +53,14 @@ private:
     size_t  mMaxListSize;
     void setVoxelCount(int count);
 
-    cudaGraphicsResource_t  mFragmentListResource;
-    uchar4 *mDevPointer;
+    cudaGraphicsResource_t  mPositionFragmentList;
+    uint1 *mPositionDevPointer;
+
+    cudaGraphicsResource_t  mColorFragmentList;
+    uchar4 *mColorDevPointer;
+
+    cudaGraphicsResource_t  mNormalFragmentList;
+    uchar4 *mNormalDevPointer;
 };
 
 

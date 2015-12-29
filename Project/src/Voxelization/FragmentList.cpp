@@ -15,7 +15,20 @@ FragmentList::FragmentList(GLuint maxListSize) : mVoxelCount(0), mMaxListSize(ma
 
 FragmentList::~FragmentList()
 {
+    cudaGraphicsUnregisterResource(mPositionFragmentList);
+    cudaGraphicsUnregisterResource(mColorFragmentList);
+    cudaGraphicsUnregisterResource(mNormalFragmentList);
 
+    cudaGLUnregisterBufferObject(mPositionOutputBuffer);
+    cudaGLUnregisterBufferObject(mColorOutputBuffer);
+    cudaGLUnregisterBufferObject(mNormalOutputBuffer);
+
+    glDeleteTextures(1, &mPositionOutputTexture);
+    glDeleteTextures(1, &mColorOutputTexture);
+    glDeleteTextures(1, &mNormalOutputTexture);
+    glDeleteBuffers(1, &mPositionOutputBuffer);
+    glDeleteBuffers(1, &mColorOutputBuffer);
+    glDeleteBuffers(1, &mNormalOutputBuffer);
 }
 
 void FragmentList::init(GLuint maxListSize)
@@ -27,7 +40,7 @@ void FragmentList::init(GLuint maxListSize)
     // Position buffer
     glGenBuffers(1, &mPositionOutputBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, mPositionOutputBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLfloat) * mMaxListSize, 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint) * mMaxListSize, 0, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // Position texture
@@ -62,18 +75,38 @@ void FragmentList::init(GLuint maxListSize)
 
     // ### Cuda ###
 
-    // TODO for Nils
-
     // Register the texture for cuda (just once)
-    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mFragmentListResource,mColorOutputBuffer,cudaGraphicsMapFlagsReadOnly));
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mFragmentListResource, 0));
+    // ### POSITION
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mPositionFragmentList,mPositionOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mPositionFragmentList, 0));
 
-    size_t size = maxListSize * sizeof(GLubyte) * 4;
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mDevPointer,
-                                         &size,
-                                         mFragmentListResource));
+    size_t sizePosition = maxListSize * sizeof(GLuint);
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mPositionDevPointer,
+                                                        &sizePosition, mPositionFragmentList));
 
-    cudaGraphicsUnmapResources(1, &mFragmentListResource, 0);
+    cudaGraphicsUnmapResources(1, &mPositionFragmentList, 0);
+
+    // ### COLOR
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mColorFragmentList,mColorOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mColorFragmentList, 0));
+
+    size_t sizeColor = maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mColorDevPointer,
+                                         &sizeColor, mColorFragmentList));
+
+    cudaGraphicsUnmapResources(1, &mColorFragmentList, 0);
+
+    // ### NORMAL
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNormalFragmentList,mNormalOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mNormalFragmentList, 0));
+
+    size_t sizeNormal = maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mNormalDevPointer,
+                                                        &sizeNormal, mNormalFragmentList));
+
+    cudaGraphicsUnmapResources(1, &mNormalFragmentList, 0);
+
+
 
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
@@ -122,20 +155,47 @@ void FragmentList::setVoxelCount(int count)
 
 void FragmentList::mapToCUDA()
 {
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mFragmentListResource, 0));
+    // ### POSITION
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mPositionFragmentList, 0));
 
-    size_t size = mMaxListSize * sizeof(GLubyte) * 4;
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mDevPointer,
-                                                        &size,
-                                                        mFragmentListResource));
+    size_t sizePosition = mMaxListSize * sizeof(GLuint);
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mPositionDevPointer,
+                                                        &sizePosition, mPositionFragmentList));
+
+    // ### COLOR
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mColorFragmentList, 0));
+
+    size_t sizeColor = mMaxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mColorDevPointer,
+                                                        &sizeColor, mColorFragmentList));
+
+    // ### NORMAL
+    cudaErrorCheck(cudaGraphicsMapResources(1, &mNormalFragmentList, 0));
+
+    size_t sizeNormal = mMaxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mNormalDevPointer,
+                                                        &sizeNormal, mNormalFragmentList));
+
 }
 
 void FragmentList::unmapFromCUDA()
 {
-    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mFragmentListResource, 0));
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mPositionFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mColorFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mNormalFragmentList, 0));
 }
 
 uchar4 *FragmentList::getColorBufferDevPointer()
 {
-    return mDevPointer;
+    return mColorDevPointer;
+}
+
+uint1 *FragmentList::getPositionDevPointer()
+{
+    return mPositionDevPointer;
+}
+
+uchar4 *FragmentList::getNormalDevPointer()
+{
+    return mNormalDevPointer;
 }
