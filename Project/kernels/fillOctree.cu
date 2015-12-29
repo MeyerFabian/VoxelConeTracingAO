@@ -70,22 +70,35 @@ __global__ void markNodeForSubdivision(nodeTile *nodePool, int poolSize, int max
     position.z = getBits(codedPosition,22,10);
     int nextIndex = 0;
     // TODO: rethink for tommorow
-    for(int i=0;i<maxLevel;i++)
-    {
-        // calculate index
-        if(getBits(nodePool[nextIndex].node1.nodeTilePointer,1,1) == 1)
-        {
-            nextIndex = getBits(nodePool[nextIndex].node1.nodeTilePointer,2,31);
-            // visited. traverse further down
-        }
-        else
-        {
-            // not visited. mark as visited
 
-            // exit for loop and kernel
-            break;
+    // root node
+
+    if(getBits(nodePool[0].node1.nodeTilePointer,1,1) == 1)
+    {
+        for(int i=1;i<maxLevel;i++)
+        {
+            // TODO: calculate index in nodepool
+            // TODO: test position against 8 "nodes" -> save position from last level
+
+            if(getBits(nodePool[nextIndex].node1.nodeTilePointer,1,1) == 1)
+            {
+                nextIndex = getBits(nodePool[nextIndex].node1.nodeTilePointer,2,31);
+                // visited. traverse further down
+            }
+            else
+            {
+                // not visited. mark as visited
+
+                // exit for loop and kernel
+                break;
+            }
         }
     }
+    else
+    {
+        // mark root node as visited
+    }
+
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
