@@ -188,7 +188,7 @@ void App::run()
 
         // Voxelization (create fragment voxels)
         m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
-        std::cout << mFragmentList->getVoxelCount() << std::endl;
+        std::cout << "Voxel fragment count: " << mFragmentList->getVoxelCount() << std::endl;
 
         // Testing fragment list
         mFragmentList->mapToCUDA();
@@ -197,7 +197,6 @@ void App::run()
         glViewport(0, 0, mPrevWidth, mPrevHeight); // TODO: find better solution => we have to reset it for normal rendering, as the voxelization changes the viewport to a square resolution
 
         m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
-
 
         // Draw scene
         m_scene->draw(width, height);
