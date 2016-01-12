@@ -23,7 +23,7 @@ public:
     void unregisterTextureForCUDA();
 
     cudaArray_t *fillBrickPool(const NodePool &nodepool);
-
+	cudaArray_t *getBrickPoolArray();
 private:
     GLuint m_brickPoolID;
     cudaGraphicsResource_t  m_brickPoolRessource;

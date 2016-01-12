@@ -101,3 +101,8 @@ cudaArray_t *BrickPool::fillBrickPool(const NodePool &nodepool)
 
     return &m_brickPoolArray;
 }
+
+cudaArray_t *BrickPool::getBrickPoolArray()
+{
+    return &m_brickPoolArray;
+}

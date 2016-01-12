@@ -115,7 +115,7 @@ void FragmentList::bind()
 {
     glActiveTexture(GL_TEXTURE1);
     glBindImageTexture(1,
-                       mColorOutputTexture,
+                       mPositionOutputTexture,
                        0,
                        GL_TRUE,
                        0,
