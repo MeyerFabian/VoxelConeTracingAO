@@ -10,11 +10,12 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
     cudaError_t setVolumeResulution(int resolution);
 }
 
-Voxelization::Voxelization(glm::vec3 center, float extent)
+Voxelization::Voxelization(glm::vec3 center, float extent, unsigned int resolution)
 {
     // Fill members
     mCenter = center;
     mExtent = extent;
+    mResolution = resolution;
 
     // ### Shader program ###
     mVoxelizationShader = std::unique_ptr<ShaderProgram>(
@@ -43,7 +44,7 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
-    glViewport(0, 0, 384, 384);
+    glViewport(0, 0, mResolution, mResolution);
 
     mVoxelizationShader->use();
 

@@ -74,6 +74,9 @@ void Scene::update(float movement, float deltaCameraYaw, float deltaCameraPitch)
 
 void Scene::draw(float windowWidth, float windowHeight) const
 {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
     // Use the one and only shader
     mupShader->use();
 

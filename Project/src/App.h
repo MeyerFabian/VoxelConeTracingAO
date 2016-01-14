@@ -29,8 +29,6 @@ private:
 
     GLFWwindow* mpWindow;
     GLfloat mPrevTime;
-    GLint mPrevWidth = 0;
-    GLint mPrevHeight = 0;
 
     std::vector<Controllable*> mControllables; // Could be weak pointers
     std::unique_ptr<SparseVoxelOctree> m_svo;

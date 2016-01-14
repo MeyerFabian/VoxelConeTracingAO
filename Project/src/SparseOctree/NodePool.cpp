@@ -19,6 +19,11 @@ void NodePool::init(int nodeCount)
     m_poolSize = nodeCount;
 
     unsigned int* data = new unsigned int[nodeCount * 2];
+
+    // make sure the node poll starts empty
+    for(int i=0;i<nodeCount*2;i++)
+        data[i] = 0U;
+
     // just initialise the memory for the nodepool once
     // Position buffer
     glGenBuffers(1, &mNodePoolOutputBuffer);

@@ -118,8 +118,6 @@ App::App()
 
     // Variables for the loop
     mPrevTime = (GLfloat)glfwGetTime();
-    mPrevWidth = 0;
-    mPrevHeight = 0;
 
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
@@ -134,10 +132,6 @@ App::App()
     // Sparse voxel octree (use fragment voxels and create octree for later use)
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_svo->init();
-
-    // Setup some OpenGL AFTER voxelization (maybe move somewhere more intelligent)
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
 }
 
 App::~App()
@@ -163,19 +157,6 @@ void App::run()
         // ImGui new frame
         ImGui_ImplGlfwGL3_NewFrame();
 
-        // Get window resolution
-        GLint width, height;
-        glfwGetWindowSize(mpWindow, &width, &height);
-
-        // Give OpenGL the window resolution
-        if (width != mPrevWidth || height != mPrevHeight)
-        {
-            glViewport(0, 0, width, height);
-            mPrevWidth = width;
-            mPrevHeight = height;
-        }
-
-
         // Update scene
         if(rotateCamera)
         {
@@ -189,10 +170,11 @@ void App::run()
         // Voxelization (create fragment voxels)
         m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
 
-        glViewport(0, 0, mPrevWidth, mPrevHeight); // TODO: find better solution => we have to reset it for normal rendering, as the voxelization changes the viewport to a square resolution
+        std::cout << "Voxel fragment count: " << mFragmentList->getVoxelCount() << std::endl;
 
         // Testing fragment list
         mFragmentList->mapToCUDA();
+
 
         //m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
         m_svo->buildOctree(mFragmentList->getPositionDevPointer(),
@@ -201,6 +183,13 @@ void App::run()
                            mFragmentList->getVoxelCount());
 
         mFragmentList->unmapFromCUDA();
+
+        m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
+
+        // Get window resolution and set viewport for scene rendering
+        GLint width, height;
+        glfwGetWindowSize(mpWindow, &width, &height);
+        glViewport(0, 0, width, height);
 
         // Draw scene
         m_scene->draw(width, height);

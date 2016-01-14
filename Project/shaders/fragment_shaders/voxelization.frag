@@ -4,6 +4,14 @@
 * Voxelization fragment shader.
 */
 
+// kopier aus dem github von den unileuten
+uint vec3ToUintXYZ10(uvec3 val)
+{
+    return (uint(val.z) & 0x000003FF)   << 20U
+            |(uint(val.y) & 0x000003FF) << 10U
+            |(uint(val.x) & 0x000003FF);
+}
+
 //!< in-variables
 in RenderVertex
 {
@@ -30,9 +38,12 @@ void main()
     // Index in output textures
     uint idx = atomicCounterIncrement(index);
 
+    // Position from 0 to 1023 in volume
+    uvec3 pos = uvec3(((In.posDevice + 1) / 2.0) * 1024);
+    //uint codedPos = (pos.x << 20) | (pos.y << 10) | (pos.z);
+
     // Save position of voxel fragment
-    // TODO (still from -1 to 1)
-    imageStore(positionOutputImage, int(idx), uvec4(1337));
+    imageStore(positionOutputImage, int(idx), uvec4(vec3ToUintXYZ10(pos)));
 
     // Save normal of voxel fragment
     imageStore(normalOutputImage, int(idx), vec4(In.normal, 0));
