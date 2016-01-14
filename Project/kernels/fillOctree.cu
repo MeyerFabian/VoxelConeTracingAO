@@ -66,12 +66,15 @@ void clearNodePoolKernel(node *nodePool, int poolSize)
     nodePool[i].value = 0;
 }
 
+__global__
+void clearCounter()
+{
+    globalNodePoolCounter = 0;
+}
+
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int volumeSideLength)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if(maxLevel == 0 && index == 0)
-        globalNodePoolCounter = 0;
 
     // mask to get 10 bit position coords
     const unsigned int mask_bits = 0x000003FF;
@@ -182,6 +185,9 @@ __global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
         position.z = 2*position.z - nextOctant.z;
     }
 
+    if(level == 6 && index == 0)
+        printf("counter: %d\n",globalNodePoolCounter);
+
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
@@ -263,6 +269,9 @@ cudaError_t buildSVO(node *nodePool,
     int threadsPerBlock = 64;
     int blockCount = fragmentListSize / threadsPerBlock;
 
+    clearCounter<<<1,1>>>();
+    cudaDeviceSynchronize();
+
     for(int i=0;i<maxLevel;i++)
     {
         markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, 1);
@@ -280,9 +289,9 @@ cudaError_t buildSVO(node *nodePool,
         cudaDeviceSynchronize();
     }
 
-    int *reservedNodePools = (int*)malloc(sizeof(int) * poolSize);
+    int *reservedNodePools = (int*)malloc(sizeof(int));
 
-    errorCode = cudaMemcpy(reservedNodePools, &globalNodePoolCounter, sizeof(int), cudaMemcpyDeviceToHost);
+    errorCode = cudaMemcpy(reservedNodePools, &globalNodePoolCounter, sizeof(int), cudaMemcpyDeviceToHost); // for some reason this is crap ;D
 
     printf("reserved nodes: %d\n",*reservedNodePools);
 
