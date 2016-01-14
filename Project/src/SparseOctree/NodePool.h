@@ -31,6 +31,7 @@ public:
                                          // copying global to const memory before traversal might improve the performance
     void updateConstMemory();
     void fillNodePool(uchar4* colorBufferDevPointer);
+    void clearNodePool();
 
     void mapToCUDA();
     void unmapFromCUDA();

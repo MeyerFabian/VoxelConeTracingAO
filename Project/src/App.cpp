@@ -170,8 +170,6 @@ void App::run()
         // Voxelization (create fragment voxels)
         m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
 
-        std::cout << "Voxel fragment count: " << mFragmentList->getVoxelCount() << std::endl;
-
         // Testing fragment list
         mFragmentList->mapToCUDA();
 
@@ -184,7 +182,7 @@ void App::run()
 
         mFragmentList->unmapFromCUDA();
 
-        m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
+        m_svo->clearOctree();
 
         // Get window resolution and set viewport for scene rendering
         GLint width, height;

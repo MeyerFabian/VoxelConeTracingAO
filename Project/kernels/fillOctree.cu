@@ -64,20 +64,15 @@ void testFilling(dim3 texture_dim)
 }
 
 __global__
-void testNodeFilling(node *nodePool, int poolSize, uchar4* colorBufferDevPointer)
+void clearNodePoolKernel(node *nodePool, int poolSize)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(i >= poolSize)
-    {
         return;
-    }
 
-    if(i == 0)
-        printf("%d ,%d, %d, %d \n",colorBufferDevPointer[0].x, colorBufferDevPointer[0].y, colorBufferDevPointer[0].z, colorBufferDevPointer[0].w);
-
-    nodePool[i].nodeTilePointer = 10;
-    nodePool[i].value = getBits(nodePool[i].nodeTilePointer,31,1);
+    nodePool[i].nodeTilePointer = 0;
+    nodePool[i].value = 0;
 }
 
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int volumeSideLength)
@@ -222,7 +217,6 @@ cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int po
     int threadsPerBlock = 64;
     int blockCount = poolSize / threadsPerBlock;
 
-    testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, colorBufferDevPointer);
 
     struct node *node_h = (struct node*)malloc(sizeof(node) * poolSize);
 
@@ -231,10 +225,6 @@ cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int po
     if(errorCode != cudaSuccess)
         return errorCode;
 
-/*
-    for(int i=0;i<poolSize;i++)
-        printf("%d, %d \n",node_h[i].nodeTilePointer,node_h[i].value);
-*/
 
     free(node_h);
 
@@ -293,5 +283,15 @@ cudaError_t buildSVO(node *nodePool,
         printf("memory reserved\n");
         cudaDeviceSynchronize();
     }
+}
 
+cudaError_t clearNodePoolCuda(node *nodePool, int poolSize)
+{
+    cudaError_t errorCode = cudaSuccess;
+    int threadsPerBlock = 64;
+    int blockCount = poolSize / threadsPerBlock;
+
+    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
+
+    return errorCode;
 }

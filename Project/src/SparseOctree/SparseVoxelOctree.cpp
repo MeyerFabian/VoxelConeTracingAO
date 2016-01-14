@@ -57,3 +57,10 @@ void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFra
              fragmentListSize);
     m_nodePool.unmapFromCUDA();
 }
+
+void SparseVoxelOctree::clearOctree()
+{
+    m_nodePool.mapToCUDA();
+    m_nodePool.clearNodePool();
+    m_nodePool.unmapFromCUDA();
+}

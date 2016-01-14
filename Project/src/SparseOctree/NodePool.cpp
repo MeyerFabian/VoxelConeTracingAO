@@ -11,6 +11,7 @@
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
     cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int poolSize);
+    cudaError_t clearNodePoolCuda(node *nodePool, int poolSize);
     cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize);
 }
 
@@ -94,4 +95,9 @@ void NodePool::bind()
                        0,
                        GL_READ_WRITE,
                        GL_R32UI);
+}
+
+void NodePool::clearNodePool()
+{
+    cudaErrorCheck(clearNodePoolCuda(m_dNodePool, m_poolSize));
 }
