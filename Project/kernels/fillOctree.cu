@@ -107,7 +107,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
         if(maxDivide == 0)
         {
             // as the node has no children we set the second bit to 1 which indicates that memory should be allocated
-            setBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31);
+            setBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31); // possible race condition but it is not importatnt in our case
             break;
         }
         else
@@ -152,7 +152,7 @@ __global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
         nodeOffset = nextOctant.x + 2*nextOctant.y + 4*nextOctant.z;
 
         unsigned int reserve = getBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31);
-        __syncthreads();
+        __syncthreads();    // make sure all threads get a valid reserve bit
         if(reserve == 1)
         {
             // increment the global nodecount and allocate the memory in our
@@ -160,22 +160,24 @@ __global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
             //printf("counter %d\n", adress);
 
             unsigned int pointer = nodePool[nodeOffset+childPointer*8].nodeTilePointer;
+            __syncthreads();    //make sure all threads have a valid nodeTilePointer
 
             //printf("pointer: %d\n", (pointer & 0xC0000000) >> 30);
             pointer = (adress & 0x3fffffff) | (pointer & 0xC0000000);
 
-            nodePool[nodeOffset+childPointer*8].nodeTilePointer = pointer;
-           // printf("nodepool pointer: %d\n", pointer);
-            setBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,32);
+            // printf("nodepool pointer: %d\n", pointer);
+            setBit(pointer,32);
+            // make sure we don't reserve the same nodeTile next time :)
+            unSetBit(pointer,31);
 
-            // make sure we dont reserve the same bit next time :)
-            unSetBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31);
+            nodePool[nodeOffset+childPointer*8].nodeTilePointer = pointer;
 
             break;
         }
         else
         {
             // traverse further
+            __syncthreads();
             childPointer = nodePool[nodeOffset + childPointer*8].nodeTilePointer & 0x3fffffff;
             //printf("child: %d\n", childPointer);
         }
@@ -187,7 +189,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
 
     if(level == 6 && index == 0)
         printf("counter: %d\n",globalNodePoolCounter);
-
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
@@ -278,7 +279,7 @@ cudaError_t buildSVO(node *nodePool,
         cudaDeviceSynchronize();
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
-        const int threadPerBlockReserve = 64;
+        const int threadPerBlockReserve = 32;
         int blockCountReserve = maxNodes;
 
         if(maxNodes >= threadPerBlockReserve)
