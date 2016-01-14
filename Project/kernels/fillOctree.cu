@@ -21,21 +21,6 @@ cudaError_t setVolumeResulution(int resolution)
 }
 
 __device__
-unsigned int getBits(unsigned int value, int start, int quantity)
-{
-    const unsigned int mask_bits = 0xffffffff;
-
-    assert(start <= 31);
-    if (start > 31)
-        return 0;
-
-    if(quantity > 32-start)
-        quantity = 32-start;
-
-    return (value >> start) & (mask_bits >> (32 - quantity));
-}
-
-__device__
 unsigned int getBit(unsigned int value, int position)
 {
     return (value >> position-1) & 1;
