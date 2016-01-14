@@ -290,14 +290,6 @@ cudaError_t buildSVO(node *nodePool,
         cudaDeviceSynchronize();
     }
 
-    int *reservedNodePools = (int*)malloc(sizeof(int));
-
-    errorCode = cudaMemcpy(reservedNodePools, &globalNodePoolCounter, sizeof(int), cudaMemcpyDeviceToHost); // for some reason this is crap ;D
-
-    printf("reserved nodes: %d\n",*reservedNodePools);
-
-    free(reservedNodePools);
-
     return errorCode;
 }
 
