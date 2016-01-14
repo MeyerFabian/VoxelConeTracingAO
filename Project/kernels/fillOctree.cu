@@ -32,6 +32,12 @@ void setBit(unsigned int &value, int position)
     value |= (1u << (position-1));
 }
 
+__device__
+void unSetBit(unsigned int &value, int position)
+{
+    value &= (0u << (position-1));
+}
+
 __global__
 void testFilling(dim3 texture_dim)
 {
@@ -94,7 +100,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
 
         // the maxdivide bit indicates wheather the node has children 1 means has children 0 means does not have children
         unsigned int maxDivide = getBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,32);
-
+        __syncthreads();
         if(maxDivide == 0)
         {
             // as the node has no children we set the second bit to 1 which indicates that memory should be allocated
@@ -139,11 +145,11 @@ __global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
         nextOctant.y = static_cast<unsigned int>(2 * position.y);
         nextOctant.z = static_cast<unsigned int>(2 * position.z);
 
-
         // make the octant position 1D for the linear memory
         nodeOffset = nextOctant.x + 2*nextOctant.y + 4*nextOctant.z;
 
         unsigned int reserve = getBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31);
+        __syncthreads();
         if(reserve == 1)
         {
             // increment the global nodecount and allocate the memory in our
@@ -158,6 +164,10 @@ __global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
             nodePool[nodeOffset+childPointer*8].nodeTilePointer = pointer;
            // printf("nodepool pointer: %d\n", pointer);
             setBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,32);
+
+            // make sure we dont reserve the same bit next time :)
+            unSetBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31);
+
             break;
         }
         else
@@ -241,6 +251,7 @@ cudaError_t buildSVO(node *nodePool,
                      uchar4* normalDevPointer,
                      int fragmentListSize)
 {
+    cudaError_t errorCode = cudaSuccess;
     // calculate maxlevel
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution)/27)/log(8));
 
@@ -265,9 +276,19 @@ cudaError_t buildSVO(node *nodePool,
             blockCountReserve = maxNodes / threadPerBlockReserve;
 
         reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, poolSize, i);
-        printf("memory reserved\n");
+        printf("memory reserved level %d\n", i);
         cudaDeviceSynchronize();
     }
+
+    int *reservedNodePools = (int*)malloc(sizeof(int) * poolSize);
+
+    errorCode = cudaMemcpy(reservedNodePools, &globalNodePoolCounter, sizeof(int), cudaMemcpyDeviceToHost);
+
+    printf("reserved nodes: %d\n",*reservedNodePools);
+
+    free(reservedNodePools);
+
+    return errorCode;
 }
 
 cudaError_t clearNodePoolCuda(node *nodePool, int poolSize)
@@ -277,6 +298,7 @@ cudaError_t clearNodePoolCuda(node *nodePool, int poolSize)
     int blockCount = poolSize / threadsPerBlock;
 
     clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
+    printf("memory cleared\n");
 
     return errorCode;
 }
