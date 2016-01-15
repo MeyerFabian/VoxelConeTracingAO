@@ -15,7 +15,9 @@ public:
     SparseVoxelOctree(App* pApp): Controllable(pApp, "SparseVoxelOctree") {};
     ~SparseVoxelOctree();
     void init();
+    void clearOctree();
     void updateOctree(uchar4* fragmentListColor);
+    void buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize);
 
 private:
     virtual void fillGui() override; // Implementation of Controllable

@@ -3,6 +3,12 @@
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 
 #include <iostream>
+#include "Utilities/errorUtils.h"
+
+extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
+{
+    cudaError_t setVolumeResulution(int resolution);
+}
 
 Voxelization::Voxelization(glm::vec3 center, float extent, unsigned int resolution)
 {
@@ -20,6 +26,8 @@ Voxelization::Voxelization(glm::vec3 center, float extent, unsigned int resoluti
     glGenBuffers(1, &mAtomicBuffer);
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mAtomicBuffer);
     glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+
+    cudaErrorCheck(setVolumeResulution(384));
 
     resetAtomicCounter();
 }

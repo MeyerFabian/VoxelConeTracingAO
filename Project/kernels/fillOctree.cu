@@ -4,25 +4,38 @@
 
 
 const int maxNodePoolSize = 1024;
+int volumeResolution = 384;
 
 bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
 __constant__ node constNodePool[maxNodePoolSize];
+__constant__ int constVolumeResolution[1];
+__device__ int globalNodePoolCounter = 0;
 
 surface<void, cudaSurfaceType3D> surfRef;
 
-__device__
-int getBits(int value, int start, int quantity)
+cudaError_t setVolumeResulution(int resolution)
 {
-    const unsigned int mask_bits = 0xffffffff;
+    volumeResolution = resolution;
+    cudaError_t errorCode = cudaMemcpyToSymbol(constVolumeResolution, &resolution, sizeof(int));
+    return errorCode;
+}
 
-    assert(start <= 31);
-    if (start > 31)
-        return 0;
+__device__
+unsigned int getBit(unsigned int value, int position)
+{
+    return (value >> position-1) & 1;
+}
 
-    if(quantity > 32-start)
-        quantity = 32-start;
+__device__
+void setBit(unsigned int &value, int position)
+{
+    value |= (1u << (position-1));
+}
 
-    return (value >> start) & (mask_bits >> (32 - quantity));
+__device__
+void unSetBit(unsigned int &value, int position)
+{
+    value &= (0u << (position-1));
 }
 
 __global__
@@ -42,63 +55,140 @@ void testFilling(dim3 texture_dim)
 }
 
 __global__
-void testNodeFilling(nodeTile *nodePool, int poolSize, uchar4* colorBufferDevPointer)
+void clearNodePoolKernel(node *nodePool, int poolSize)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(i >= poolSize)
-    {
         return;
-    }
 
-    if(i == 0)
-        printf("%d ,%d, %d, %d \n",colorBufferDevPointer[0].x, colorBufferDevPointer[0].y, colorBufferDevPointer[0].z, colorBufferDevPointer[0].w);
-
-    nodePool[i].node1.nodeTilePointer = 10;
-    nodePool[i].node1.value = getBits(nodePool[i].node1.nodeTilePointer,31,1);
+    nodePool[i].nodeTilePointer = 0;
+    nodePool[i].value = 0;
 }
 
-__global__ void markNodeForSubdivision(nodeTile *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int volumeSideLength)
+__global__
+void clearCounter()
+{
+    globalNodePoolCounter = 0;
+}
+
+__global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int volumeSideLength)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
+    // mask to get 10 bit position coords
+    const unsigned int mask_bits = 0x000003FF;
+    unsigned int codedPosition = positionBuffer[index].x;
 
-    uint codedPosition = positionBuffer[index].x;
     float3 position;
-    position.x = getBits(codedPosition,2,10);
-    position.y = getBits(codedPosition,12,10);
-    position.z = getBits(codedPosition,22,10);
-    int nextIndex = 0;
-    // TODO: rethink for tommorow
+    // dont forget the .f for casting reasons :P
+    position.x = ((codedPosition) & (mask_bits)) / 1024.f;
+    position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
+    position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
 
-    // root node
+    unsigned int nodeOffset = 0;
+    unsigned int childPointer = 0;
 
-    if(getBits(nodePool[0].node1.nodeTilePointer,1,1) == 1)
+    for(int i=0;i<=maxLevel;i++)
     {
-        for(int i=1;i<maxLevel;i++)
+        uint3 nextOctant = make_uint3(0, 0, 0);
+        // determine octant for the given voxel
+        nextOctant.x = static_cast<unsigned int>(2 * position.x);
+        nextOctant.y = static_cast<unsigned int>(2 * position.y);
+        nextOctant.z = static_cast<unsigned int>(2 * position.z);
+
+
+        // make the octant position 1D for the linear memory
+        nodeOffset = nextOctant.x + 2*nextOctant.y + 4*nextOctant.z;
+
+        // the maxdivide bit indicates wheather the node has children 1 means has children 0 means does not have children
+        unsigned int maxDivide = getBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,32);
+        __syncthreads();
+        if(maxDivide == 0)
         {
-            // TODO: calculate index in nodepool
-            // TODO: test position against 8 "nodes" -> save position from last level
-            // TODO: REMEMBER THAT EACH NODE REPRESENTS A 3x3x3 region!!!
-            if(getBits(nodePool[nextIndex].node1.nodeTilePointer,1,1) == 1)
-            {
-                nextIndex = getBits(nodePool[nextIndex].node1.nodeTilePointer,2,31);
-                // visited. traverse further down
-            }
-            else
-            {
-                // not visited. mark as visited
-
-                // exit for loop and kernel
-                break;
-            }
+            // as the node has no children we set the second bit to 1 which indicates that memory should be allocated
+            setBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31); // possible race condition but it is not importatnt in our case
+            break;
         }
+        else
+        {
+            //printf("juhu\n");
+            // if the node has children we read the pointer to the next nodetile
+            childPointer = nodePool[nodeOffset + childPointer*8].nodeTilePointer & 0x3fffffff;
+        }
+
+        position.x = 2*position.x - nextOctant.x;
+        position.y = 2*position.y - nextOctant.y;
+        position.z = 2*position.z - nextOctant.z;
     }
-    else
+}
+
+__global__ void reserveMemoryForNodes(node *nodePool, int poolSize, int level)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(index > poolSize)
+        return;
+
+    float3 position;
+    // make sure we traverse all nodes => the position is between 0 and 1
+    unsigned int sideLength = static_cast<unsigned int>(cbrtf(powf(8,level)));
+    position.x = (index / sideLength*sideLength)/sideLength;
+    position.y = ((index / sideLength) % sideLength)/sideLength;
+    position.z = (index % sideLength) / sideLength;
+
+    unsigned int nodeOffset = 0;
+    unsigned int childPointer = 0;
+
+    for(int i=0;i<=level;i++)
     {
-        // mark root node as visited
+        uint3 nextOctant = make_uint3(0, 0, 0);
+        // determine octant for the given voxel
+        nextOctant.x = static_cast<unsigned int>(2 * position.x);
+        nextOctant.y = static_cast<unsigned int>(2 * position.y);
+        nextOctant.z = static_cast<unsigned int>(2 * position.z);
+
+        // make the octant position 1D for the linear memory
+        nodeOffset = nextOctant.x + 2*nextOctant.y + 4*nextOctant.z;
+
+        unsigned int reserve = getBit(nodePool[nodeOffset+childPointer*8].nodeTilePointer,31);
+        __syncthreads();    // make sure all threads get a valid reserve bit
+        if(reserve == 1)
+        {
+            // increment the global nodecount and allocate the memory in our
+            unsigned int adress = atomicAdd(&globalNodePoolCounter,1)+1;
+            //printf("counter %d\n", adress);
+
+            unsigned int pointer = nodePool[nodeOffset+childPointer*8].nodeTilePointer;
+            __syncthreads();    //make sure all threads have a valid nodeTilePointer
+
+            //printf("pointer: %d\n", (pointer & 0xC0000000) >> 30);
+            pointer = (adress & 0x3fffffff) | (pointer & 0xC0000000);
+
+            // printf("nodepool pointer: %d\n", pointer);
+            setBit(pointer,32);
+            // make sure we don't reserve the same nodeTile next time :)
+            unSetBit(pointer,31);
+
+            nodePool[nodeOffset+childPointer*8].nodeTilePointer = pointer;
+
+            break;
+        }
+        else
+        {
+            // traverse further
+            __syncthreads();
+            childPointer = nodePool[nodeOffset + childPointer*8].nodeTilePointer & 0x3fffffff;
+            //printf("child: %d\n", childPointer);
+        }
+
+        position.x = 2*position.x - nextOctant.x;
+        position.y = 2*position.y - nextOctant.y;
+        position.z = 2*position.z - nextOctant.z;
     }
 
+    if(level == 6 && index == 0)
+        printf("counter: %d\n",globalNodePoolCounter);
 }
 
 cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
@@ -123,13 +213,12 @@ cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
     return cudaSuccess;
 }
 
-cudaError_t updateNodePool(uchar4* colorBufferDevPointer, nodeTile *nodePool, int poolSize)
+cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
     int threadsPerBlock = 64;
     int blockCount = poolSize / threadsPerBlock;
 
-    testNodeFilling<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, colorBufferDevPointer);
 
     struct node *node_h = (struct node*)malloc(sizeof(node) * poolSize);
 
@@ -138,17 +227,13 @@ cudaError_t updateNodePool(uchar4* colorBufferDevPointer, nodeTile *nodePool, in
     if(errorCode != cudaSuccess)
         return errorCode;
 
-/*
-    for(int i=0;i<poolSize;i++)
-        printf("%d, %d \n",node_h[i].nodeTilePointer,node_h[i].value);
-*/
 
     free(node_h);
 
     return cudaSuccess;
 }
 
-cudaError_t copyNodePoolToConstantMemory(nodeTile *nodePool, int poolSize)
+cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize)
 {
     cudaError_t errorCode = cudaMemcpyToSymbol(constNodePool,nodePool,sizeof(node)*poolSize,0,cudaMemcpyDeviceToDevice);
 
@@ -164,14 +249,58 @@ cudaError_t copyNodePoolToConstantMemory(nodeTile *nodePool, int poolSize)
     }
 }
 
-cudaError_t buildSVO(nodeTile *nodePool,
+cudaError_t buildSVO(node *nodePool,
                      int poolSize,
-                     cudaArray_t &brickPool,
+                     cudaArray_t *brickPool,
                      dim3 textureDim,
                      uint1* positionDevPointer,
                      uchar4* colorBufferDevPointer,
                      uchar4* normalDevPointer,
                      int fragmentListSize)
 {
+    cudaError_t errorCode = cudaSuccess;
+    // calculate maxlevel
+    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution)/27)/log(8));
 
+    printf("max level: %d \n", maxLevel);
+
+    dim3 block_dim(32, 0, 0);
+    dim3 grid_dim(fragmentListSize/block_dim.x, 0, 0);
+
+    int threadsPerBlock = 64;
+    int blockCount = fragmentListSize / threadsPerBlock;
+
+    clearCounter<<<1,1>>>();
+    cudaDeviceSynchronize();
+
+    for(int i=0;i<maxLevel;i++)
+    {
+        markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, 1);
+        cudaDeviceSynchronize();
+        unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
+
+        const int threadPerBlockReserve = 32;
+        int blockCountReserve = maxNodes;
+
+        if(maxNodes >= threadPerBlockReserve)
+            blockCountReserve = maxNodes / threadPerBlockReserve;
+
+        reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, poolSize, i);
+        printf("memory reserved level %d\n", i);
+        cudaDeviceSynchronize();
+    }
+
+    return errorCode;
+}
+
+cudaError_t clearNodePoolCuda(node *nodePool, int poolSize)
+{
+    cudaError_t errorCode = cudaSuccess;
+    int threadsPerBlock = 64;
+    int blockCount = poolSize / threadsPerBlock;
+
+    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
+    printf("memory cleared\n");
+
+    return errorCode;
 }
