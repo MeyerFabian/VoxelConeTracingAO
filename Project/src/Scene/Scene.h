@@ -6,7 +6,6 @@
 #include "Material.h"
 #include <Rendering/ShaderProgram.h>
 #include "Camera.h"
-#include "VoxelRepresentation.h"
 #include <vector>
 #include <map>
 #include <memory>
@@ -25,7 +24,6 @@ public:
 
     void update(float movement, float deltaCameraYaw, float deltaCameraPitch);
     void draw(float windowWidth,float windowHeight) const;
-    void drawVoxelRepresenation(float windowWidth, float windowHeight) const;
 
     void drawWithCustomShader() const;
 
@@ -39,7 +37,6 @@ private:
     std::vector<std::unique_ptr<Material> > mMaterials;
     std::vector<std::unique_ptr<Mesh> > mMeshes;
     std::map<Material const *, std::vector<Mesh const *> > mRenderBuckets;
-    std::unique_ptr<VoxelRepresentation> mupVoxelRepresentation;
 };
 
 #endif // SCENE_H_

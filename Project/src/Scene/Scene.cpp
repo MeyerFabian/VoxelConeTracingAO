@@ -123,6 +123,3 @@ void Scene::fillGui()
     ImGui::Text(output.c_str());
 }
 
-void Scene::drawVoxelRepresenation(float windowWidth, float windowHeight) const {
-    mVoxelRepresentation->draw(windowWidth, windowHeight);
-}
