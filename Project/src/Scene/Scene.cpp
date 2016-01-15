@@ -122,3 +122,7 @@ void Scene::fillGui()
     std::string output = "Camera position: " + glm::to_string(mCamera.getPosition());
     ImGui::Text(output.c_str());
 }
+
+void Scene::drawVoxelRepresenation(float windowWidth, float windowHeight) const {
+    mVoxelRepresentation->draw(windowWidth, windowHeight);
+}

@@ -184,6 +184,7 @@ void App::run()
 
         // Draw scene
         m_scene->draw(width, height);
+        //m_scene->drawVoxelRepresenation(width, height);
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
