@@ -285,7 +285,7 @@ cudaError_t buildSVO(node *nodePool,
     for(int i=0;i<maxLevel;i++)
     {
         markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, 1);
-        //cudaDeviceSynchronize();
+        cudaDeviceSynchronize();
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
         const int threadPerBlockReserve = 32;

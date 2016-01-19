@@ -16,6 +16,7 @@
 
 #include "Scene/Scene.h"
 #include "Voxelization/Voxelization.h"
+#include "Rendering/Minecraft.h"
 
 class App
 {
@@ -35,6 +36,7 @@ private:
     std::unique_ptr<Scene> m_scene;
     std::unique_ptr<Voxelization> m_voxelization;
     std::unique_ptr<FragmentList> mFragmentList;
+    std::unique_ptr<Minecraft> mMinecraft;
 };
 
 #endif // APP_H_

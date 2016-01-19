@@ -132,6 +132,8 @@ App::App()
     // Sparse voxel octree (use fragment voxels and create octree for later use)
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_svo->init();
+
+    mMinecraft = std::unique_ptr<Minecraft>(new Minecraft());
 }
 
 App::~App()
@@ -189,9 +191,12 @@ void App::run()
         glfwGetWindowSize(mpWindow, &width, &height);
         glViewport(0, 0, width, height);
 
+
         // Draw scene
         m_scene->draw(width, height);
-        //m_scene->drawVoxelRepresenation(width, height);
+
+        mMinecraft->draw(m_scene->getCamPos(), 1);
+
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)

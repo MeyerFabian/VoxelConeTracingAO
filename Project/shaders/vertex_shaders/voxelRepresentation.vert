@@ -1,15 +1,12 @@
-#version 330
+#version 430
 
-layout(location = 0) in vec3 vertPos;
+layout(location = 0) in vec2 vertPos;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-out fragPos;
+out vec3 fragPos;
 
 void main()
 {
-    // passthrough screen filling quad in front of camera
-    fragPos = proj * view * model * vertPos;
+    // pass-through screen filling quad
+    fragPos = vec3(vertPos, 1);
+    gl_Position = vec4(vertPos, 0, 1);
 }
