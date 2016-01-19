@@ -22,21 +22,21 @@ cudaError_t setVolumeResulution(int resolution)
 }
 
 __device__
-unsigned int getBit(unsigned int value, int position)
+unsigned int getBit(unsigned int value, unsigned int position)
 {
-    return (value >> position-1) & 1;
+    return (value >> (position-1)) & 1u;
 }
 
 __device__
-void setBit(unsigned int &value, int position)
+void setBit(unsigned int &value, unsigned int position)
 {
     value |= (1u << (position-1));
 }
 
 __device__
-void unSetBit(unsigned int &value, int position)
+void unSetBit(unsigned int &value, unsigned int position)
 {
-    value &= (0u << (position-1));
+    value &= ~(1u << (position-1));
 }
 
 __global__
@@ -98,7 +98,6 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
         nextOctant.y = static_cast<unsigned int>(2 * position.y);
         nextOctant.z = static_cast<unsigned int>(2 * position.z);
 
-
         // make the octant position 1D for the linear memory
         nodeOffset = nextOctant.x + 2*nextOctant.y + 4*nextOctant.z;
 
@@ -106,6 +105,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
         unsigned int nodeTile = nodePool[nodeOffset+childPointer*8].nodeTilePointer;
         __syncthreads();
         unsigned int maxDivide = getBit(nodeTile,32);
+
         if(maxDivide == 0)
         {
             // as the node has no children we set the second bit to 1 which indicates that memory should be allocated
@@ -116,7 +116,6 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
         }
         else
         {
-            //printf("juhu\n");
             // if the node has children we read the pointer to the next nodetile
             childPointer = nodeTile & 0x3fffffff;
         }
@@ -134,24 +133,33 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
     if(index >= maxNodes)
         return;
 
+    /*
     double3 position;
     // make sure we traverse all nodes => the position is between 0 and 1
     unsigned int sideLength = static_cast<unsigned int>(cbrtf(powf(8,level)));
 
+
     position.x = (index / sideLength*sideLength)/sideLength;
     position.y = ((index / sideLength) % sideLength)/sideLength;
     position.z = (index % sideLength) / sideLength;
+     */
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
 
+    uint3 octants[8];
+    octants[0] = make_uint3(0,0,0);
+    octants[1] = make_uint3(0,0,1);
+    octants[2] = make_uint3(0,1,0);
+    octants[3] = make_uint3(0,1,1);
+    octants[4] = make_uint3(1,0,0);
+    octants[5] = make_uint3(1,0,1);
+    octants[6] = make_uint3(1,1,0);
+    octants[7] = make_uint3(1,1,1);
+
     for(int i=0;i<=level;i++)
     {
-        uint3 nextOctant = make_uint3(0, 0, 0);
-        // determine octant for the given voxel
-        nextOctant.x = static_cast<unsigned int>(2 * position.x);
-        nextOctant.y = static_cast<unsigned int>(2 * position.y);
-        nextOctant.z = static_cast<unsigned int>(2 * position.z);
+        uint3 nextOctant = octants[index/static_cast<unsigned int>(pow(8.f, static_cast<float>(i))) % 8];
 
         // make the octant position 1D for the linear memory
         nodeOffset = nextOctant.x + 2*nextOctant.y + 4*nextOctant.z;
@@ -159,18 +167,17 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
         unsigned int pointer = nodePool[nodeOffset+childPointer*8].nodeTilePointer;
         __syncthreads();    //make sure all threads have a valid nodeTilePointer
         unsigned int reserve = getBit(pointer,31);
+
         if(reserve == 1)
         {
             // increment the global nodecount and allocate the memory in our
             unsigned int adress = atomicAdd(counter,1)+1;
-            unsigned int adress1 = atomicAdd(&globalNodePoolCounter,1)+1;
-            //printf("counter %d\n", adress);
 
-            //printf("pointer: %d\n", (pointer & 0xC0000000) >> 30);
             pointer = (adress & 0x3fffffff) | pointer;
 
-            // printf("nodepool pointer: %d\n", pointer);
+            // set the divide flag to 1. this indicates that the child pointer is valid
             setBit(pointer,32);
+
             // make sure we don't reserve the same nodeTile next time :)
             unSetBit(pointer,31);
 
@@ -183,10 +190,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
             // traverse further
             childPointer = pointer & 0x3fffffff;
         }
-
-        position.x = 2*position.x - nextOctant.x;
-        position.y = 2*position.y - nextOctant.y;
-        position.z = 2*position.z - nextOctant.z;
     }
 }
 
@@ -300,13 +303,8 @@ cudaError_t buildSVO(node *nodePool,
 
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-        printf("counter: %d\n", *h_counter);
+        printf("reserved node tiles: %d\n", *h_counter);
     }
-
-    cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-
-    if(*h_counter != 553)
-    printf("counter: ===============================================================> %d\n", *h_counter);
 
     cudaFree(d_counter);
     delete h_counter;
