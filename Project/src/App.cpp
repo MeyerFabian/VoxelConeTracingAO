@@ -133,7 +133,7 @@ App::App()
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_svo->init();
 
-    mMinecraft = std::unique_ptr<Minecraft>(new Minecraft());
+    mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
 }
 
 App::~App()
@@ -195,7 +195,7 @@ void App::run()
         // Draw scene
         m_scene->draw(width, height);
 
-        mMinecraft->draw(m_scene->getCamPos(), 1);
+        //mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
 
 
         // Update all controllables
