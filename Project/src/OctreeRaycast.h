@@ -5,7 +5,7 @@
 #ifndef REALTIMERENDERING_MINECRAFT_H
 #define REALTIMERENDERING_MINECRAFT_H
 
-#include <bits/unique_ptr.h>
+#include <memory>
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "src/Rendering/ShaderProgram.h"
 
