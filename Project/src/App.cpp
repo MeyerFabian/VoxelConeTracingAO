@@ -134,6 +134,8 @@ App::App()
     m_svo->init();
 
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
+
+	m_VoxelConeTracing = std::make_unique<VoxelConeTracing>();
 }
 
 App::~App()
@@ -196,6 +198,10 @@ void App::run()
         m_scene->draw(width, height);
 
         //mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
+
+		m_VoxelConeTracing->geometryPass();
+
+		m_VoxelConeTracing->deferredShadingPass(m_scene->getCamPos(), m_svo->getNodePool(), 5);
 
 
         // Update all controllables
