@@ -23,7 +23,7 @@ public:
 	void init(int width, int height);
 	void bindForWriting();
 	void bindForReading();
-
+	void setReadBuffer(GBUFFER_TEXTURE_TYPE tt);
 	GLuint m_fbo;
 	GLuint m_textures[GBUFFER_NUM_TEXTURES];
 	GLuint m_depthTexture;

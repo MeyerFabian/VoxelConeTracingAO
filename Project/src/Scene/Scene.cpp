@@ -19,6 +19,7 @@ Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 
     // Import
     const aiScene* scene = importer.ReadFile(filepath,
+		aiProcess_GenNormals			 |
         aiProcess_CalcTangentSpace       |
         aiProcess_Triangulate            |
         aiProcess_JoinIdenticalVertices  |

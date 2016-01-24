@@ -4,17 +4,29 @@
 
 GBuffer::GBuffer()
 {
-
+	m_fbo = 0;
+	m_depthTexture = 0;
 }
 
 
 GBuffer::~GBuffer()
 {
+	if (m_fbo != 0) {
+		glDeleteFramebuffers(1, &m_fbo);
+	}
+
+	if (m_textures[0] != 0) {
+		glDeleteTextures(ARRAY_SIZE_IN_ELEMENTS(m_textures), m_textures);
+	}
+
+	if (m_depthTexture != 0) {
+		glDeleteTextures(1, &m_depthTexture);
+	}
 }
 
 void GBuffer::init(int width, int height)
 {
-	/*
+	
 	//GL_COLOR_ATTACHMENT0 pos
 	//GL_COLOR_ATTACHMENT1 dif
 	//GL_COLOR_ATTACHMENT2 nor
@@ -52,15 +64,20 @@ void GBuffer::init(int width, int height)
 		printf("GBuffer successfully initialized.\n");
 	}
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	*/
+	
 
 }
 void GBuffer::bindForReading()
 {
-	
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
 }
 
 void GBuffer::bindForWriting()
 {
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+}
 
+void GBuffer::setReadBuffer(GBUFFER_TEXTURE_TYPE tt)
+{
+	glReadBuffer(GL_COLOR_ATTACHMENT0 + tt);
 }
