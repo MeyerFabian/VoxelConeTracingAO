@@ -140,7 +140,7 @@ App::~App()
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }
-
+bool testVoxel = true;
 void App::run()
 {
     // Loop
@@ -167,8 +167,11 @@ void App::run()
             m_scene->update(cameraMovement * deltaTime, 0, 0);
         }
 
-        // Voxelization (create fragment voxels)
-        m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
+        if(testVoxel) {
+            // Voxelization (create fragment voxels)
+            m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
+            testVoxel = false;
+        }
 
         // Testing fragment list
         mFragmentList->mapToCUDA();

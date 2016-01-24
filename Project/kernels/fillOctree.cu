@@ -100,9 +100,62 @@ __device__ void fillBrick(uint3 brickCoords, float3 voxelPosition)
     // TODO: calculate the responding voxel within the brickpool. update the shared atomic counter for duplicate voxels
 }
 
-__global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, bool lastLevel)
+__global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(index >= fragmentListSize)
+        return;
+
+    const unsigned int mask_bits = 0x000003FF;
+    unsigned int codedPosition = positionBuffer[index].x;
+
+    float3 position;
+    // dont forget the .f for casting reasons :P
+    position.x = ((codedPosition) & (mask_bits)) / 1024.f;
+    position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
+    position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
+
+
+    unsigned int nodeOffset = 0;
+    unsigned int childPointer = 0;
+    unsigned int offset=0;
+    unsigned int nodeTile = 0;
+    unsigned int value = 0;
+
+    for (int i = 0; i < maxLevel; i++)
+    {
+        uint3 nextOctant = make_uint3(0, 0, 0);
+        // determine octant for the given voxel
+        nextOctant.x = static_cast<unsigned int>(2 * position.x);
+        nextOctant.y = static_cast<unsigned int>(2 * position.y);
+        nextOctant.z = static_cast<unsigned int>(2 * position.z);
+
+        // make the octant position 1D for the linear memory
+        nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
+        offset = nodeOffset + childPointer * 8;
+
+        nodeTile = nodePool[offset].nodeTilePointer;
+
+        childPointer = nodeTile & 0x3fffffff;
+
+        position.x = 2 * position.x - nextOctant.x;
+        position.y = 2 * position.y - nextOctant.y;
+        position.z = 2 * position.z - nextOctant.z;
+    }
+    if(getBit(nodeTile,32) != 0)
+        printf("bla!\n");
+
+     value = nodePool[offset].value;
+
+}
+
+__global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int fragmentListSize)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(index >= fragmentListSize)
+        return;
 
     // mask to get 10 bit position coords
     const unsigned int mask_bits = 0x000003FF;
@@ -113,6 +166,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
     position.x = ((codedPosition) & (mask_bits)) / 1024.f;
     position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
     position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
+
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
@@ -144,16 +198,8 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
         }
         else
         {
-            if(lastLevel && i==maxLevel)
-            {
-                // TODO: we are at the end => fill the brickpool
-                break; // exit the for loop.
-            }
-            else
-            {
-                // if the node has children we read the pointer to the next nodetile
-                childPointer = nodeTile & 0x3fffffff;
-            }
+            // if the node has children we read the pointer to the next nodetile
+            childPointer = nodeTile & 0x3fffffff;
         }
 
         position.x = 2*position.x - nextOctant.x;
@@ -162,9 +208,12 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
     }
 }
 
-__global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, unsigned int* counter, unsigned int brickPoolResolution, unsigned int brickResolution)
+__global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, unsigned int* counter, unsigned int brickPoolResolution, unsigned int brickResolution, int lastLevel)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(lastLevel !=0)
+        printf("BLASDJISOADJO\n");
 
     if(index >= maxNodes)
         return;
@@ -181,6 +230,8 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
     octants[5] = make_uint3(1,0,1);
     octants[6] = make_uint3(1,1,0);
     octants[7] = make_uint3(1,1,1);
+
+
 
     for (int i = 0; i <=level; i++)
     {
@@ -208,11 +259,20 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
             // set the first bit to 1. this indicates, that we use the texture brick instead of a constant value as color.
             setBit(value, 32);
 
-            // set the divide flag to 1. this indicates that the child pointer is valid
             setBit(pointer, 32);
 
             // make sure we don't reserve the same nodeTile next time :)
             unSetBit(pointer, 31);
+
+            if(lastLevel)
+                printf("BLASDJISOADJO\n");
+
+            if(lastLevel && i == level)
+            {
+                // set the divide flag to 1. this indicates that the child pointer is valid
+                //unSetBit(pointer, 32);
+                //unSetBit(pointer, 32);
+            }
 
             nodePool[offset].nodeTilePointer = pointer;
             nodePool[offset].value = value;
@@ -220,7 +280,8 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
             __syncthreads();
             break;
         }
-        else {
+        else
+        {
             // traverse further
             childPointer = pointer & 0x3fffffff;
         }
@@ -319,13 +380,13 @@ cudaError_t buildSVO(node *nodePool,
     cudaDeviceSynchronize();
 
     printf("counter: %d\n", *h_counter);
-    bool lastLevel = false;
+    int lastLevel = 0;
 
     for(int i=0;i<maxLevel;i++)
     {
-        markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, lastLevel);
+        markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, fragmentListSize);
         cudaDeviceSynchronize();
-        unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
+        unsigned int maxNodes = static_cast<unsigned int>(pow(8,i+1));
 
         const int threadPerBlockReserve = 32;
         int blockCountReserve = maxNodes;
@@ -334,9 +395,13 @@ cudaError_t buildSVO(node *nodePool,
             blockCountReserve = maxNodes / threadPerBlockReserve;
 
         if(i==maxLevel-1)
-            lastLevel = true;
-
-        reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3);
+        {
+            printf("YAY\n");
+            lastLevel = 1;
+        }
+        printf("lastlevel %d\n", lastLevel);
+        cudaDeviceSynchronize();
+        reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         printf("memory reserved level %d\n", i);
         cudaDeviceSynchronize();
 
@@ -344,6 +409,9 @@ cudaError_t buildSVO(node *nodePool,
 
         printf("reserved node tiles: %d\n", *h_counter);
     }
+    //insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel)
+    cudaDeviceSynchronize();
+    insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 
     cudaFree(d_counter);
     delete h_counter;
