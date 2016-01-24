@@ -42,6 +42,7 @@ public:
 	int addUniform(const std::string &uniformName);
 
 	virtual void use();
+
 	void disable();
 
 	inline std::map<std::string,int>* getUniformMap()	{return &m_uniformMap;}
