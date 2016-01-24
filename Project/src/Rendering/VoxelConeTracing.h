@@ -11,9 +11,9 @@ class VoxelConeTracing
 public:
 	VoxelConeTracing();
 	~VoxelConeTracing();
-	void init(float width, float height);
-	void geometryPass(const std::unique_ptr<Scene>& scene, const float stepSize) const;
-	void deferredShadingPass(const NodePool& nodePool) const;
+	void init(float width,float height);
+	void geometryPass(const std::unique_ptr<Scene>& scene) const;
+	void deferredShadingPass(const NodePool& nodePool, const float stepSize) const;
 
 private:
 

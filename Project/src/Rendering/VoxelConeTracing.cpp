@@ -9,6 +9,8 @@
 
 VoxelConeTracing::VoxelConeTracing()
 {
+	m_width = 0.0f;
+	m_height = 0.0f;
 	m_gbuffer = std::make_unique<GBuffer>();
 }
 
@@ -16,7 +18,7 @@ VoxelConeTracing::VoxelConeTracing()
 VoxelConeTracing::~VoxelConeTracing()
 {
 }
-void VoxelConeTracing::init(float width, float height) {
+void VoxelConeTracing::init(float width,float height) {
 	// Prepare the one and only shader
 	m_geomPass = std::make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
 	m_width = width;
@@ -25,12 +27,14 @@ void VoxelConeTracing::init(float width, float height) {
 	m_gbuffer->init(m_width, m_height);
 }
 
-void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene, const float stepSize) const{
+void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	//Bind the GBuffer before enabling (and texture stuff) else it will fail
 	m_gbuffer->bindForWriting();
+
 	// Use the one and only shader
 	m_geomPass->use();
 
@@ -61,12 +65,16 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene, const f
 	}
 	m_geomPass->disable();
 }
-void VoxelConeTracing::deferredShadingPass(const NodePool& nodePool) const{
+void VoxelConeTracing::deferredShadingPass(const NodePool& nodePool, const float stepSize) const{
+	//Bind window framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(1.0, 1.0, 1.0, 1.0f);
+
+	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
 	m_gbuffer->bindForReading();
 
+	//Render little viewports into the main framebuffer that will be displayed onto the screen
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
 	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 0, 0, 150, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
