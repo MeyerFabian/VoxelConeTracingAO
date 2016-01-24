@@ -27,6 +27,8 @@ public:
 
     void drawWithCustomShader() const;
 
+    glm::vec3 getCamPos() { return mCamera.getPosition(); }
+
 private:
 
     virtual void fillGui() override; // Implementation of Controllable

@@ -132,6 +132,8 @@ App::App()
     // Sparse voxel octree (use fragment voxels and create octree for later use)
     m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_svo->init();
+
+    mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
 }
 
 App::~App()
@@ -192,8 +194,12 @@ void App::run()
         glfwGetWindowSize(mpWindow, &width, &height);
         glViewport(0, 0, width, height);
 
+
         // Draw scene
         m_scene->draw(width, height);
+
+        //mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
+
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
