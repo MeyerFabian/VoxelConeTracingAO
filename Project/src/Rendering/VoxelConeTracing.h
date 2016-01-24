@@ -4,16 +4,23 @@
 #include "GBuffer.h"
 #include <glm\vec3.hpp>
 #include "SparseOctree\NodePool.h"
+#include "ShaderProgram.h"
+#include "Scene/Scene.h"
 class VoxelConeTracing
 {
 public:
 	VoxelConeTracing();
 	~VoxelConeTracing();
-	void geometryPass() const;
-	void deferredShadingPass(const glm::vec3 camPos, const NodePool& nodePool, const float stepSize) const;
+	void init(float width, float height);
+	void geometryPass(const std::unique_ptr<Scene>& scene, const float stepSize) const;
+	void deferredShadingPass(const NodePool& nodePool) const;
 
 private:
-	std::unique_ptr<GBuffer> gbuffer;
+
+	std::unique_ptr<ShaderProgram> m_geomPass;
+	std::unique_ptr<GBuffer> m_gbuffer;
+	float m_width;
+	float m_height;
 };
 
 #endif //VOXELCONETRACING_H
