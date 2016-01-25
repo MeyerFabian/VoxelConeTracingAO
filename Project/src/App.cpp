@@ -5,6 +5,15 @@
 
 #include <iostream>
 
+using namespace std;
+
+#ifdef __unix__
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+#endif
+
 // Ugly static variables
 int mouseX, mouseY = 0;
 int deltaCameraYaw = 0;
@@ -134,6 +143,10 @@ App::App()
     m_svo->init();
 
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
+
+	m_VoxelConeTracing = make_unique<VoxelConeTracing>();
+
+	m_VoxelConeTracing->init(width, height);
 }
 
 App::~App()
@@ -142,7 +155,7 @@ App::~App()
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }
-
+bool testVoxel = true;
 void App::run()
 {
     // Loop
@@ -169,8 +182,11 @@ void App::run()
             m_scene->update(cameraMovement * deltaTime, 0, 0);
         }
 
-        // Voxelization (create fragment voxels)
-        m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
+        if(testVoxel) {
+            // Voxelization (create fragment voxels)
+            m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
+            testVoxel = false;
+        }
 
         // Testing fragment list
         mFragmentList->mapToCUDA();
@@ -193,9 +209,13 @@ void App::run()
 
 
         // Draw scene
-        m_scene->draw(width, height);
+        //m_scene->draw(width, height);
 
         mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
+
+		m_VoxelConeTracing->geometryPass(m_scene);
+
+		m_VoxelConeTracing->deferredShadingPass(m_svo->getNodePool(), 5);
 
 
         // Update all controllables

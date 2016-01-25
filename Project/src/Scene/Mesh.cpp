@@ -40,7 +40,7 @@ Mesh::Mesh(aiMesh const * mesh)
     glBindBuffer(GL_ARRAY_BUFFER, mUVBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 2 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
     delete[] texCoords;
@@ -58,7 +58,7 @@ Mesh::Mesh(aiMesh const * mesh)
     glBindBuffer(GL_ARRAY_BUFFER, mNormalBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
     delete[] normals;
