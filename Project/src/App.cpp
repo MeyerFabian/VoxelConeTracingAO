@@ -195,7 +195,7 @@ void App::run()
         // Draw scene
         m_scene->draw(width, height);
 
-        //mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
+        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
 
 
         // Update all controllables
