@@ -211,6 +211,7 @@ void App::run()
         // Draw scene
         //m_scene->draw(width, height);
 
+        // raycast Octree
         //mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
 
 		m_VoxelConeTracing->geometryPass(m_scene);

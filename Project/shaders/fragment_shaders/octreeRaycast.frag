@@ -18,10 +18,10 @@ uint getBit(uint value, uint position)
 
 void main()
 {
-    vec4 voxelColor;
+    vec4 voxelColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
     vec3 curPos = fragPos;
     vec3 dir = fragPos - camPos;
-    normalize(dir);
+    dir = normalize(dir);
 
     uint nodeOffset = 0;
     uint childPointer = 0;
@@ -29,6 +29,7 @@ void main()
 
     for(int i = 0; i < maxSteps; i++)
     {
+        // propagate curPos along the ray direction
         curPos += (dir * stepSize);
         for(int j = 0; j < maxLevel; j++)
         {
@@ -44,13 +45,12 @@ void main()
             // the maxdivide bit indicates wheather the node has children:
             // 1 means has children
             // 0 means does not have children
-            uint nodeTile = texelFetch(octree, int(nodeOffset + childPointer * 16U)).r;
-            //uint nodeTile = nodePool[nodeOffset+childPointer*8].nodeTilePointer;
-            uint maxDivide = getBit(nodeTile, 32);
+            uvec4 nodeTile = texelFetch(octree, int(nodeOffset + childPointer * 16U));
+            uint maxDivide = getBit(nodeTile.r, 32);
 
             if(maxDivide == 0)
             {
-                float greyValue = i / maxSteps;
+                float greyValue = float(i)/maxSteps;
                 voxelColor = vec4(greyValue, greyValue, greyValue, 1.0f);
                 finished = true;
                 break;
@@ -58,7 +58,7 @@ void main()
             else
             {
                 // if the node has children we read the pointer to the next nodetile
-                childPointer = nodeTile & uint(0x3fffffff);
+                childPointer = nodeTile.r & uint(0x3fffffff);
             }
         }
         if(finished)
