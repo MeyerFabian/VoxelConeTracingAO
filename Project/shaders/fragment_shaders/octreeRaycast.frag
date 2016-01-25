@@ -46,12 +46,11 @@ void main()
             // 1 means has children
             // 0 means does not have children
             uvec4 nodeTile = texelFetch(octree, int(nodeOffset + childPointer * 16U));
-            //uint nodeTile = nodePool[nodeOffset+childPointer*8].nodeTilePointer;
             uint maxDivide = getBit(nodeTile.r, 32);
 
             if(maxDivide == 0)
             {
-                float greyValue = 0.5f;
+                float greyValue = float(i)/maxSteps;
                 voxelColor = vec4(greyValue, greyValue, greyValue, 1.0f);
                 finished = true;
                 break;
