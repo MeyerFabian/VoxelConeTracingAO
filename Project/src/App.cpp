@@ -215,7 +215,7 @@ void App::run()
 
 		m_VoxelConeTracing->geometryPass(m_scene);
 
-		m_VoxelConeTracing->deferredShadingPass(m_svo->getNodePool(), 5);
+		m_VoxelConeTracing->deferredShadingPass(m_scene, m_svo->getNodePool(), 5);
 
 
         // Update all controllables
