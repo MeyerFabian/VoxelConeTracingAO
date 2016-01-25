@@ -5,6 +5,15 @@
 
 #include <iostream>
 
+using namespace std;
+
+#ifdef __unix__
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+#endif
+
 // Ugly static variables
 int mouseX, mouseY = 0;
 int deltaCameraYaw = 0;
@@ -135,7 +144,7 @@ App::App()
 
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
 
-	m_VoxelConeTracing = std::make_unique<VoxelConeTracing>();
+	m_VoxelConeTracing = make_unique<VoxelConeTracing>();
 
 	m_VoxelConeTracing->init(width, height);
 }

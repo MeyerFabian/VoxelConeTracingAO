@@ -2,8 +2,8 @@
 #define VOXELCONETRACING_H
 #include <memory>
 #include "GBuffer.h"
-#include <glm\vec3.hpp>
-#include "SparseOctree\NodePool.h"
+#include <glm/vec3.hpp>
+#include "SparseOctree/NodePool.h"
 #include "ShaderProgram.h"
 #include "Scene/Scene.h"
 class VoxelConeTracing

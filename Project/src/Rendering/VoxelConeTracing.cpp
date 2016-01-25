@@ -2,16 +2,25 @@
 
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
-
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
+
+using namespace std;
+
+#ifdef __unix__
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+#endif
+
 
 VoxelConeTracing::VoxelConeTracing()
 {
 	m_width = 0.0f;
 	m_height = 0.0f;
-	m_gbuffer = std::make_unique<GBuffer>();
+	m_gbuffer = make_unique<GBuffer>();
 }
 
 
@@ -20,7 +29,7 @@ VoxelConeTracing::~VoxelConeTracing()
 }
 void VoxelConeTracing::init(float width,float height) {
 	// Prepare the one and only shader
-	m_geomPass = std::make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
+	m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
 	m_width = width;
 	m_height = height;
 
