@@ -47,7 +47,7 @@ void main()
 
     // Save normal of voxel fragment
     imageStore(normalOutputImage, int(idx), vec4(In.normal, 0));
-
+    //texture(tex, In.uv).rgba
     // Save color of voxel fragment
     imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
 }

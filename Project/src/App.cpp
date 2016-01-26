@@ -200,8 +200,6 @@ void App::run()
 
         mFragmentList->unmapFromCUDA();
 
-        m_svo->clearOctree();
-
         // Get window resolution and set viewport for scene rendering
         GLint width, height;
         glfwGetWindowSize(mpWindow, &width, &height);
@@ -212,7 +210,7 @@ void App::run()
         //m_scene->draw(width, height);
 
         // raycast Octree
-        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 1);
+        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
 
 		//m_VoxelConeTracing->geometryPass(m_scene);
 
@@ -234,6 +232,8 @@ void App::run()
         // Prepare next frame
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
+
+        m_svo->clearOctree();
     }
 }
 

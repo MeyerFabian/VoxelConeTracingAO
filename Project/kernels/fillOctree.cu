@@ -103,9 +103,38 @@ __device__ uint3 decodeBrickCoords(unsigned int coded)
     return coords;
 }
 
-__device__ void fillBrick(uint3 brickCoords, float3 voxelPosition)
+__device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPosition, const uchar4 &color)
 {
-    // TODO: calculate the responding voxel within the brickpool. update the shared atomic counter for duplicate voxels
+    uint3 nextOctant;
+    nextOctant.x = static_cast<unsigned int>(2 * voxelPosition.x);
+    nextOctant.y = static_cast<unsigned int>(2 * voxelPosition.y);
+    nextOctant.z = static_cast<unsigned int>(2 * voxelPosition.z);
+
+    unsigned int offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
+
+    // here we have our possible brick corners // TODO: fill them in const memory maybe?
+    uint3 insertPositions[8];
+    // front corners
+    insertPositions[0] = make_uint3(0,0,0);
+    insertPositions[1] = make_uint3(2,0,0);
+    insertPositions[2] = make_uint3(2,2,0);
+    insertPositions[3] = make_uint3(0,2,0);
+
+    //back corners
+    insertPositions[4] = make_uint3(0,0,2);
+    insertPositions[5] = make_uint3(2,0,2);
+    insertPositions[6] = make_uint3(2,2,2);
+    insertPositions[7] = make_uint3(0,2,2);
+
+    if(brickCoords.x == 0 && brickCoords.y == 609 && brickCoords.z == 840) {
+        printf("offset : %d\n", offset);
+        printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
+    }
+
+    uint3 pos = insertPositions[offset];
+
+    // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
+    surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
 }
 
 __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
@@ -175,6 +204,8 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
         uint3 brickCoords = decodeBrickCoords(value);
         if(index == 0)
             printf("X: %d, Y: %d, Z: %d\n",brickCoords.x, brickCoords.y, brickCoords.z);
+
+        fillBrickCorners(brickCoords,position, colorBufferDevPointer[index]);
         // we have a valid brick
     }
 
@@ -429,7 +460,7 @@ cudaError_t buildSVO(node *nodePool,
         cudaDeviceSynchronize();
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
-        const unsigned int threadPerBlockReserve = 64;
+        const unsigned int threadPerBlockReserve = 512;
         const unsigned int blocksPerGridDim = 64000;
 
         dim3 gridSizeReserve(1,0,0);
