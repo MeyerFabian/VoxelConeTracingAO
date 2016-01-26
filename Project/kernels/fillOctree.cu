@@ -126,10 +126,11 @@ __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPo
     insertPositions[6] = make_uint3(2,2,2);
     insertPositions[7] = make_uint3(0,2,2);
 
+    /*
     if(brickCoords.x == 0 && brickCoords.y == 609 && brickCoords.z == 840) {
         printf("offset : %d\n", offset);
         printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
-    }
+    }*/
 
     uint3 pos = insertPositions[offset];
 
@@ -159,8 +160,6 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     unsigned int offset=0;
     unsigned int nodeTile = 0;
     unsigned int value = 0;
-    if(index == 0)
-        printf("follow fragment 1 during octree processing: \n");
 
     for (int i = 0; i < maxLevel; i++)
     {
@@ -181,13 +180,6 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
         childPointer = nodeTile & 0x3fffffff;
 
-        if(index == 0)
-        {
-            printf("level: %d\n", i);
-            printf("childPointer: %d\n", childPointer);
-            printf("maxDivide bit: %d\n", getBit(nodeTile, 32));
-        }
-
         if(i != 0)
         {
             position.x = 2 * position.x - nextOctant.x;
@@ -201,20 +193,10 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
     if(getBit(value,32) == 1)
     {
+        // we have a valid brick => fill it
         uint3 brickCoords = decodeBrickCoords(value);
-        if(index == 0)
-            printf("X: %d, Y: %d, Z: %d\n",brickCoords.x, brickCoords.y, brickCoords.z);
-
         fillBrickCorners(brickCoords,position, colorBufferDevPointer[index]);
-        // we have a valid brick
     }
-
-    if(index == 0)
-    {
-        printf("######################################## \n");
-    }
-
-
 }
 
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int fragmentListSize)
@@ -354,8 +336,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
         {
             // traverse further
             childPointer = pointer & 0x3fffffff;
-           // if(level==3)
-            //    printf("getChild %d\n", childPointer);
         }
     }
 
@@ -432,7 +412,6 @@ cudaError_t buildSVO(node *nodePool,
     // calculate maxlevel
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
     // note that we dont calculate +1 as we store 8 voxels per brick
-    printf("max level: %d \n", maxLevel);
 
     dim3 block_dim(32, 0, 0);
     dim3 grid_dim(fragmentListSize/block_dim.x, 0, 0);
@@ -451,7 +430,6 @@ cudaError_t buildSVO(node *nodePool,
     clearCounter<<<1,1>>>();
     cudaDeviceSynchronize();
 
-    printf("counter: %d\n", *h_counter);
     int lastLevel = 0;
 
     for(int i=0;i<maxLevel;i++)
@@ -463,33 +441,20 @@ cudaError_t buildSVO(node *nodePool,
         const unsigned int threadPerBlockReserve = 512;
         const unsigned int blocksPerGridDim = 64000;
 
-        dim3 gridSizeReserve(1,0,0);
-        dim3 blockSizeReserve(threadPerBlockReserve,0,0);
-
-
         int blockCountReserve = maxNodes;
 
         if(maxNodes >= threadPerBlockReserve)
             blockCountReserve = maxNodes / threadPerBlockReserve;
 
-        gridSizeReserve.x = static_cast<unsigned int>(blockCountReserve);
-
-        if(blockCountReserve >= blocksPerGridDim)
-        {
-            gridSizeReserve.x = 64000;
-            gridSizeReserve.y = 1;
-        }
 
         if(i == maxLevel-1)
             lastLevel = 1;
 
         reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
-        printf("memory reserved level %d\n", i);
         cudaDeviceSynchronize();
 
-        cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-        printf("reserved node tiles: %d\n", *h_counter);
     }
     //insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel)
     cudaDeviceSynchronize();
@@ -508,7 +473,6 @@ cudaError_t clearNodePoolCuda(node *nodePool, int poolSize)
     int blockCount = poolSize / threadsPerBlock;
 
     clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
-    printf("memory cleared\n");
 
     return errorCode;
 }

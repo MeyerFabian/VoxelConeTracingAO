@@ -69,6 +69,6 @@ void main()
             break;
     }
 
-    voxelColor = uvec4(getBit(nodeTile, 32),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
+    voxelColor = uvec4(getBit(nodeTile, 31),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
     fragColor = voxelColor;
 }
