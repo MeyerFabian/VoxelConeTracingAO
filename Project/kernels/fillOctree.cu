@@ -412,6 +412,7 @@ cudaError_t buildSVO(node *nodePool,
     // calculate maxlevel
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
     // note that we dont calculate +1 as we store 8 voxels per brick
+    printf("max level: %d \n", maxLevel);
 
     dim3 block_dim(32, 0, 0);
     dim3 grid_dim(fragmentListSize/block_dim.x, 0, 0);
@@ -453,10 +454,11 @@ cudaError_t buildSVO(node *nodePool,
         reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         cudaDeviceSynchronize();
 
-        //cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-
+        /*
+        cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        printf("reserved node tiles: %d\n", *h_counter);*/
     }
-    //insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel)
+
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 

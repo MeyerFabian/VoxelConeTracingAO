@@ -27,7 +27,7 @@ class NodePool
 public:
     NodePool(){}
     ~NodePool();
-    void init(int nodeCount = 4000000);
+    void init(int nodeCount = 300000);
                                          // copying global to const memory before traversal might improve the performance
     void updateConstMemory();
     void fillNodePool(uchar4* colorBufferDevPointer);
