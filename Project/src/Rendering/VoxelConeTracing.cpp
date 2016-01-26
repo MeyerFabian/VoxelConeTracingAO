@@ -68,7 +68,7 @@ void supplyFullScreenQuad(){
 
 void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 
-	glDepthMask(TRUE);
+	glDepthMask(true);
 	//Bind the GBuffer before enabling (and texture stuff) else it will fail
 	m_gbuffer->bindForWriting();
 

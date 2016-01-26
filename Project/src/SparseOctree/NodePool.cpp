@@ -101,3 +101,13 @@ void NodePool::clearNodePool()
 {
     cudaErrorCheck(clearNodePoolCuda(m_dNodePool, m_poolSize));
 }
+
+int NodePool::getNodePoolTextureID()
+{
+    return mNodePoolOutputTexture;
+}
+
+int NodePool::getNodePoolBufferID()
+{
+    return mNodePoolOutputBuffer;
+}

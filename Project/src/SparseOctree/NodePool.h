@@ -38,6 +38,9 @@ public:
     void bind();
 
     int getPoolSize();
+    int getNodePoolTextureID();
+    int getNodePoolBufferID();
+
     node *getNodePoolDevicePointer();
 
 private:
