@@ -53,7 +53,7 @@ void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, float stepSize) c
     mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
     mupOctreeRaycastShader->addTexture("octree", nodePool.getNodePoolTextureID());
-    
+
     // draw voxel
     glBindVertexArray(vaoID);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

@@ -48,7 +48,7 @@ void main()
             uvec4 nodeTile = texelFetch(octree, int(nodeOffset + childPointer * 16U));
             uint maxDivide = getBit(nodeTile.r, 32);
 
-            if(maxDivide == 0)
+            if(maxDivide == 1)
             {
                 float greyValue = float(i)/maxSteps;
                 voxelColor = vec4(greyValue, greyValue, greyValue, 1.0f);
@@ -64,7 +64,6 @@ void main()
         if(finished)
             break;
     }
-
     fragColor = voxelColor;
 }
 
