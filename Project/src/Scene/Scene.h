@@ -25,8 +25,6 @@ public:
     void update(float movement, float deltaCameraYaw, float deltaCameraPitch);
     void draw(float windowWidth,float windowHeight) const;
 
-    void drawWithCustomShader() const;
-
     glm::vec3 getCamPos() { return mCamera.getPosition(); }
 	
 	const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return mRenderBuckets;}

@@ -5,7 +5,7 @@
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
-
+#include <iostream>
 using namespace std;
 
 #ifdef __unix__
@@ -35,11 +35,18 @@ void VoxelConeTracing::init(float width,float height) {
 	m_height = height;
 
 	m_gbuffer->init(m_width, m_height);
+
+
+	supplyFullScreenQuad();
 }
 
-void supplyFullScreenQuad(){
+void VoxelConeTracing::supplyFullScreenQuad(){
 	//HERE FILL IN THINGS
 
+	glGenVertexArrays(1, &vaoID);
+	glBindVertexArray(vaoID);
+
+	//m_lightPass->use();
 	//*/
 	const GLfloat plane_vert_data[] = {
 		-1.0f, -1.0f,
@@ -64,6 +71,7 @@ void supplyFullScreenQuad(){
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
 	glBindVertexArray(0);
+	//m_lightPass->disable();
 }
 
 void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
@@ -112,30 +120,33 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,const NodePool& nodePool, const float stepSize) const{
 	//Bind window framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
 
-	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
 	m_gbuffer->bindForReading();
 
-
+	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
 	glClear(GL_COLOR_BUFFER_BIT);
 
 
-	glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 300.f);
-	glm::mat4 uniformModel = glm::mat4(1.f);
+	glm::mat4 WVP = glm::mat4(1.f);
 
-	m_lightPass->updateUniform("projection", uniformProjection);
-	m_lightPass->updateUniform("view", scene->getCamera().getViewMatrix());
-	m_lightPass->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
+	m_lightPass->use();
 
-	supplyFullScreenQuad();
 
-	//HERE FILL IN THINGS
+	m_lightPass->updateUniform("identity", WVP);
+	m_lightPass->updateUniform("screenSize", glm::vec2(m_width, m_height));
+	m_lightPass->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+	m_lightPass->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
+	m_lightPass->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
+	m_lightPass->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
+	glBindVertexArray(vaoID);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
 
 	m_lightPass->disable();
+
 
 	//Render little viewports into the main framebuffer that will be displayed onto the screen
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);

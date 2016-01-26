@@ -16,12 +16,12 @@ public:
 	void deferredShadingPass(const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const;
 
 private:
-	
+	void supplyFullScreenQuad();
 	std::unique_ptr<ShaderProgram> m_geomPass;
 	std::unique_ptr<ShaderProgram> m_lightPass;
 	std::unique_ptr<GBuffer> m_gbuffer;
 	float m_width;
 	float m_height;
+	GLuint vaoID;
 };
-void supplyFullScreenQuad();
 #endif //VOXELCONETRACING_H
