@@ -12,7 +12,7 @@
 Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
     // Prepare the one and only shader
-    mupShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/sponza.vert","/fragment_shaders/sponza.frag"));
+   // mupShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/sponza.vert","/fragment_shaders/sponza.frag"));
 
     // Create instance of assimp
     Assimp::Importer importer;
@@ -103,19 +103,6 @@ void Scene::draw(float windowWidth, float windowHeight) const
         }
     }
     mupShader->disable();
-}
-
-void Scene::drawWithCustomShader() const
-{
-    // Render all the buckets' content
-    for(auto& bucket : mRenderBuckets)
-    {
-        // Draw all meshes in that bucket
-        for(Mesh const * pMesh : bucket.second)
-        {
-            pMesh->draw();
-        }
-    }
 }
 
 void Scene::fillGui()

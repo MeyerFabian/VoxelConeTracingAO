@@ -423,6 +423,7 @@ void ShaderProgram::use()
 	glActiveTexture(GL_TEXTURE0);
 }
 
+
 void ShaderProgram::disable()
 {
 	glUseProgram(0);

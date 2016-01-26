@@ -1,3 +1,4 @@
+
 #version 330
 
 /*
@@ -5,32 +6,34 @@
 */
 
 //!< in-variables
-in vec3 passWorldPosition;
-in vec2 passUVCoord;
-in vec3 passNormal;
 
 //!< uniforms
-uniform vec4 color;
-uniform float blendColor;
-uniform sampler2D tex;
+uniform sampler2D positionTex;
+uniform sampler2D colorTex;
+uniform sampler2D normalTex;
+uniform sampler2D uvTex;
+uniform vec2 screenSize;
 
 //!< out-
-layout(location = 0) out vec4 fragPosition;
-layout(location = 1) out vec4 fragColor;
-layout(location = 2) out vec4 fragNormal;
-layout(location = 3) out vec4 fragUVCoord;
+layout(location = 0) out vec4 fragColor;
+
+
+// gl_FragCoord is built in for input Fragment Coordinate (in Pixels),
+// divide it by Screensize to get a value between 0..1 to sample our Framebuffer textures 
+
+vec2 calcTexCoord(){
+	return gl_FragCoord.xy / screenSize;
+}
 
 void main()
 {
-    vec4 color = texture(tex,passUVCoord).rgba;
+    vec2 UVCoord = calcTexCoord();
+	vec4 color = texture(colorTex,UVCoord).rgba;
+	vec4 normal = texture(normalTex,UVCoord).rgba;
+	vec4 position = texture(positionTex,UVCoord).rgba;
+	vec4 uv = texture(uvTex,UVCoord).rgba;
 
-    if(color.a < 0.1)
-    {
-        discard;
-    }
+    
 
     fragColor = vec4(color.rgb, 1);
-    fragPosition = vec4(passWorldPosition,1);
-    fragUVCoord = vec4(passUVCoord,0,0);
-    fragNormal = vec4(passNormal,0);
 }
