@@ -43,17 +43,19 @@ OctreeRaycast::OctreeRaycast()
 
 void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, float stepSize) const
 {
-    // use shader
-    mupOctreeRaycastShader->use();
-
+    GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
+    glUniform1i(octreeUniform, 1);
     // bind octree texture
     nodePool.bind();
 
     // update uniforms
     mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
-    mupOctreeRaycastShader->addTexture("octree", nodePool.getNodePoolTextureID());
-    
+    //mupOctreeRaycastShader->addTexture("octree", nodePool.getNodePoolTextureID());
+
+    // use shader AFTER texture is added
+    mupOctreeRaycastShader->use();
+
     // draw voxel
     glBindVertexArray(vaoID);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

@@ -82,10 +82,9 @@ __device__ uint3 getBrickCoords(unsigned int brickAdress, unsigned int brickPool
     coords.y = (brickAdress / brickPoolSideLength) % brickPoolSideLength;
     coords.z = brickAdress % brickPoolSideLength;
 
-    //TODO: consider brickSideLength for variable brick size
-    coords.x = coords.x*2+1;
-    coords.y = coords.y*2+1;
-    coords.z = coords.z*2+1;
+    coords.x = coords.x*brickSideLength;
+    coords.y = coords.y*brickSideLength;
+    coords.z = coords.z*brickSideLength;
 
     return coords;
 }
@@ -95,9 +94,47 @@ __device__ unsigned int encodeBrickCoords(uint3 coords)
     return (0x000003FF & coords.x) << 20U | (0x000003FF & coords.y) << 10U | (0x000003FF & coords.z);
 }
 
-__device__ void fillBrick(uint3 brickCoords, float3 voxelPosition)
+__device__ uint3 decodeBrickCoords(unsigned int coded)
 {
-    // TODO: calculate the responding voxel within the brickpool. update the shared atomic counter for duplicate voxels
+    uint3 coords;
+    coords.z = coded & 0x000003FF;
+    coords.y = (coded >> 10) & 0x000003FF;
+    coords.x = (coded >> 20) & 0x000003FF;
+    return coords;
+}
+
+__device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPosition, const uchar4 &color)
+{
+    uint3 nextOctant;
+    nextOctant.x = static_cast<unsigned int>(2 * voxelPosition.x);
+    nextOctant.y = static_cast<unsigned int>(2 * voxelPosition.y);
+    nextOctant.z = static_cast<unsigned int>(2 * voxelPosition.z);
+
+    unsigned int offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
+
+    // here we have our possible brick corners // TODO: fill them in const memory maybe?
+    uint3 insertPositions[8];
+    // front corners
+    insertPositions[0] = make_uint3(0,0,0);
+    insertPositions[1] = make_uint3(2,0,0);
+    insertPositions[2] = make_uint3(2,2,0);
+    insertPositions[3] = make_uint3(0,2,0);
+
+    //back corners
+    insertPositions[4] = make_uint3(0,0,2);
+    insertPositions[5] = make_uint3(2,0,2);
+    insertPositions[6] = make_uint3(2,2,2);
+    insertPositions[7] = make_uint3(0,2,2);
+
+    if(brickCoords.x == 0 && brickCoords.y == 609 && brickCoords.z == 840) {
+        printf("offset : %d\n", offset);
+        printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
+    }
+
+    uint3 pos = insertPositions[offset];
+
+    // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
+    surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
 }
 
 __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
@@ -158,12 +195,26 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
             position.z = 2 * position.z - nextOctant.z;
         }
     }
+
+    // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
+    value = nodePool[offset].value;
+
+    if(getBit(value,32) == 1)
+    {
+        uint3 brickCoords = decodeBrickCoords(value);
+        if(index == 0)
+            printf("X: %d, Y: %d, Z: %d\n",brickCoords.x, brickCoords.y, brickCoords.z);
+
+        fillBrickCorners(brickCoords,position, colorBufferDevPointer[index]);
+        // we have a valid brick
+    }
+
     if(index == 0)
     {
         printf("######################################## \n");
     }
 
-     value = nodePool[offset].value;
+
 }
 
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int fragmentListSize)
@@ -263,9 +314,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 
         nextOctant = octants[octantIdx];
 
-       // if(level == 3)
-          //  printf("octant %d => index: %d i: %d\n", octantIdx, index, i);
-
         // make the octant position 1D for the linear memory
         nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
 
@@ -279,8 +327,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
         unsigned int maxDivided = getBit(pointer, 32);
         if (reserve == 1)
         {
-            //if(level==3)
-              //  printf("reserve\n");
             // increment the global nodecount and allocate the memory in our
             unsigned int adress = atomicAdd(counter, 1) + 1;
             unsigned int brickAdress = atomicAdd(&globalBrickPoolCounter, 1);
@@ -384,8 +430,8 @@ cudaError_t buildSVO(node *nodePool,
 {
     cudaError_t errorCode = cudaSuccess;
     // calculate maxlevel
-    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution)/27)/log(8));
-
+    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
+    // note that we dont calculate +1 as we store 8 voxels per brick
     printf("max level: %d \n", maxLevel);
 
     dim3 block_dim(32, 0, 0);
@@ -414,11 +460,25 @@ cudaError_t buildSVO(node *nodePool,
         cudaDeviceSynchronize();
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
-        const int threadPerBlockReserve = 32;
+        const unsigned int threadPerBlockReserve = 512;
+        const unsigned int blocksPerGridDim = 64000;
+
+        dim3 gridSizeReserve(1,0,0);
+        dim3 blockSizeReserve(threadPerBlockReserve,0,0);
+
+
         int blockCountReserve = maxNodes;
 
         if(maxNodes >= threadPerBlockReserve)
             blockCountReserve = maxNodes / threadPerBlockReserve;
+
+        gridSizeReserve.x = static_cast<unsigned int>(blockCountReserve);
+
+        if(blockCountReserve >= blocksPerGridDim)
+        {
+            gridSizeReserve.x = 64000;
+            gridSizeReserve.y = 1;
+        }
 
         if(i == maxLevel-1)
             lastLevel = 1;

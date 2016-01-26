@@ -32,6 +32,12 @@ void NodePool::init(int nodeCount)
     glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint) * nodeCount * 2, data, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
+    // nodepool texture
+    glGenTextures(1, &mNodePoolOutputTexture);
+    glBindTexture(GL_TEXTURE_BUFFER, mNodePoolOutputTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, mNodePoolOutputBuffer);
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+
     cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNodePoolFragmentList,mNodePoolOutputBuffer,cudaGraphicsMapFlagsReadOnly));
     cudaErrorCheck(cudaGraphicsMapResources(1, &mNodePoolFragmentList, 0));
 

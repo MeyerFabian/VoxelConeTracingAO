@@ -4,12 +4,12 @@ in vec3 fragPos;
 
 uniform vec3 camPos;
 uniform float stepSize;
-uniform usamplerBuffer octree;
+layout(r32ui) uniform readonly uimageBuffer octree;
 
 layout(location = 0) out vec4 fragColor;
 
 int maxSteps = 100;
-int maxLevel = 7;
+int maxLevel = 8;
 
 uint getBit(uint value, uint position)
 {
@@ -26,6 +26,8 @@ void main()
     uint nodeOffset = 0;
     uint childPointer = 0;
     bool finished = false;
+
+    uint nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
 
     for(int i = 0; i < maxSteps; i++)
     {
@@ -45,26 +47,28 @@ void main()
             // the maxdivide bit indicates wheather the node has children:
             // 1 means has children
             // 0 means does not have children
-            uvec4 nodeTile = texelFetch(octree, int(nodeOffset + childPointer * 16U));
-            uint maxDivide = getBit(nodeTile.r, 32);
+            //uint nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
+            uint maxDivide = getBit(nodeTile, 32);
+
+            //voxelColor = uvec4(nodeTile,nodeTile,nodeTile,1);
 
             if(maxDivide == 0)
             {
                 float greyValue = float(i)/maxSteps;
-                voxelColor = vec4(greyValue, greyValue, greyValue, 1.0f);
+                //voxelColor = vec4(greyValue, greyValue, greyValue, 1.0f);
                 finished = true;
                 break;
             }
             else
             {
                 // if the node has children we read the pointer to the next nodetile
-                childPointer = nodeTile.r & uint(0x3fffffff);
+                childPointer = nodeTile & uint(0x3fffffff);
             }
         }
         if(finished)
             break;
     }
 
+    voxelColor = uvec4(getBit(nodeTile, 32),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
     fragColor = voxelColor;
 }
-
