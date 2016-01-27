@@ -27,6 +27,7 @@ void clearNodePoolKernel(node *nodePool, int poolSize)
     nodePool[i].value = 0;
 }
 
+// resets the global counters
 __global__
 void clearCounter()
 {
@@ -34,7 +35,7 @@ void clearCounter()
     globalBrickPoolCounter = 0;
 }
 
-
+// traverses to the bottom level and filters all bricks by applying a inverse gaussian mask to the corner voxels
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -63,7 +64,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
     {
         if(i==0)
             octantIdx = 0;
-        else
+        else // here we make sure that we are able to reach every node within the tree
             octantIdx = (index / static_cast<unsigned int>(pow(8.f, static_cast<float>(i-1)))) % 8;
 
         nextOctant = octants[octantIdx];
@@ -80,7 +81,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
         else if(i == maxLevel-1)
         {
             unsigned int value = nodePool[offset].value;
-            if (getBit(value, 32) == 1)
+            if (getBit(value, 32) == 1)// only filter if the brick is used
             {
                 filterBrick(decodeBrickCoords(value & 0x3fffffff));
             }
@@ -88,46 +89,8 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
     }
 }
 
-__device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPosition, const uchar4 &color)
-{
-    uint3 nextOctant;
-    nextOctant.x = static_cast<unsigned int>(2 * voxelPosition.x);
-    nextOctant.y = static_cast<unsigned int>(2 * voxelPosition.y);
-    nextOctant.z = static_cast<unsigned int>(2 * voxelPosition.z);
-
-    unsigned int offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
-
-    // here we have our possible brick corners // TODO: fill them in const memory maybe?
-    uint3 insertPositions[8];
-    // front corners
-    insertPositions[0] = make_uint3(0,0,0);
-    insertPositions[1] = make_uint3(2,0,0);
-    insertPositions[2] = make_uint3(2,2,0);
-    insertPositions[3] = make_uint3(0,2,0);
-
-    //back corners
-    insertPositions[4] = make_uint3(0,0,2);
-    insertPositions[5] = make_uint3(2,0,2);
-    insertPositions[6] = make_uint3(2,2,2);
-    insertPositions[7] = make_uint3(0,2,2);
-
-    uint3 pos = insertPositions[offset];
-    pos.x += brickCoords.x;
-    pos.y += brickCoords.y;
-    pos.z += brickCoords.z;
-
-/*
-if(pos.z<10) {
-    printf("offset : %d\n", offset);
-    printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
-    printf("posX: %d, posY: %d, posZ: %d\n", pos.x, pos.y, pos.z);
-}
-*/
-    __syncthreads();
-    // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
-    surf3Dwrite(color, colorBrickPool, pos.x*sizeof(uchar4), pos.y, pos.z);
-}
-
+// traverses to the bottom level and fills the 8 corners of each brick
+// note that the bricks at the bottom level represent an octree level by themselves
 __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -189,6 +152,8 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     }
 }
 
+// traverses the octree with one thread for each entry in the fragmentlist. Marks every node on its way as dividable
+// this kernel gets executed successively for each level of the tree
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int fragmentListSize)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -254,6 +219,8 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
     }
 }
 
+// the kernel is launched with a threadCount corresponding to the maximum possible nodecount for the current level
+// this kernel gets executed successively for each level of the tree
 __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, unsigned int* counter, unsigned int brickPoolResolution, unsigned int brickResolution, int lastLevel)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
