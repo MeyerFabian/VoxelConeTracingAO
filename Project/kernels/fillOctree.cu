@@ -3,11 +3,11 @@
 #include "fillOctree.cuh"
 
 
-const int maxNodePoolSize = 1024;
+const int maxNodePoolSizeForConstMemory = 1024;
 int volumeResolution = 384;
 
 bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
-__constant__ node constNodePool[maxNodePoolSize];
+__constant__ node constNodePool[maxNodePoolSizeForConstMemory];
 __constant__ int constVolumeResolution[1];
 __device__ unsigned int globalNodePoolCounter = 0;
 __device__ unsigned int globalBrickPoolCounter = 0;
@@ -127,8 +127,459 @@ __device__ void filterBrick(const uint3 &brickCoords)
     surf3Dread(&colors[6], surfRef, (insertPositions[6].x + brickCoords.x) * sizeof(uchar4), insertPositions[6].y + brickCoords.y, insertPositions[6].z + brickCoords.z);
     surf3Dread(&colors[7], surfRef, (insertPositions[7].x + brickCoords.x) * sizeof(uchar4), insertPositions[7].y + brickCoords.y, insertPositions[7].z + brickCoords.z);
 
-    // center:
-    //surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
+    // ################ center: #######################
+    float4 tmp = make_float4(0,0,0,0);
+
+    tmp.x += static_cast<unsigned int>(colors[0].x);
+    tmp.y += static_cast<unsigned int>(colors[0].y);
+    tmp.z += static_cast<unsigned int>(colors[0].z);
+    tmp.w += static_cast<unsigned int>(colors[0].w);
+
+    tmp.x += static_cast<unsigned int>(colors[1].x);
+    tmp.y += static_cast<unsigned int>(colors[1].y);
+    tmp.z += static_cast<unsigned int>(colors[1].z);
+    tmp.w += static_cast<unsigned int>(colors[1].w);
+
+    tmp.x += static_cast<unsigned int>(colors[2].x);
+    tmp.y += static_cast<unsigned int>(colors[2].y);
+    tmp.z += static_cast<unsigned int>(colors[2].z);
+    tmp.w += static_cast<unsigned int>(colors[2].w);
+
+    tmp.x += static_cast<unsigned int>(colors[3].x);
+    tmp.y += static_cast<unsigned int>(colors[3].y);
+    tmp.z += static_cast<unsigned int>(colors[3].z);
+    tmp.w += static_cast<unsigned int>(colors[3].w);
+
+    tmp.x += static_cast<unsigned int>(colors[4].x);
+    tmp.y += static_cast<unsigned int>(colors[4].y);
+    tmp.z += static_cast<unsigned int>(colors[4].z);
+    tmp.w += static_cast<unsigned int>(colors[4].w);
+
+    tmp.x += static_cast<unsigned int>(colors[5].x);
+    tmp.y += static_cast<unsigned int>(colors[5].y);
+    tmp.z += static_cast<unsigned int>(colors[5].z);
+    tmp.w += static_cast<unsigned int>(colors[5].w);
+
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
+
+    tmp.x += static_cast<unsigned int>(colors[7].x);
+    tmp.y += static_cast<unsigned int>(colors[7].y);
+    tmp.z += static_cast<unsigned int>(colors[7].z);
+    tmp.w += static_cast<unsigned int>(colors[7].w);
+
+    tmp.x *= 0.125f;
+    tmp.y *= 0.125f;
+    tmp.z *= 0.125f;
+    tmp.w *= 0.125f;
+
+    uint3 newCoords = make_uint3(1,1,1);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // ################### FACES ##########################
+    // right side: 1, 2, 5, 6
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[1].x);
+    tmp.y += static_cast<unsigned int>(colors[1].y);
+    tmp.z += static_cast<unsigned int>(colors[1].z);
+    tmp.w += static_cast<unsigned int>(colors[1].w);
+
+    tmp.x += static_cast<unsigned int>(colors[2].x);
+    tmp.y += static_cast<unsigned int>(colors[2].y);
+    tmp.z += static_cast<unsigned int>(colors[2].z);
+    tmp.w += static_cast<unsigned int>(colors[2].w);
+
+    tmp.x += static_cast<unsigned int>(colors[5].x);
+    tmp.y += static_cast<unsigned int>(colors[5].y);
+    tmp.z += static_cast<unsigned int>(colors[5].z);
+    tmp.w += static_cast<unsigned int>(colors[5].w);
+
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
+
+    tmp.x *= 0.25f;
+    tmp.y *= 0.25f;
+    tmp.z *= 0.25f;
+    tmp.w *= 0.25f;
+
+    newCoords = make_uint3(2,1,1);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // left side: 0, 3, 4, 7
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[0].x);
+    tmp.y += static_cast<unsigned int>(colors[0].y);
+    tmp.z += static_cast<unsigned int>(colors[0].z);
+    tmp.w += static_cast<unsigned int>(colors[0].w);
+
+    tmp.x += static_cast<unsigned int>(colors[3].x);
+    tmp.y += static_cast<unsigned int>(colors[3].y);
+    tmp.z += static_cast<unsigned int>(colors[3].z);
+    tmp.w += static_cast<unsigned int>(colors[3].w);
+
+    tmp.x += static_cast<unsigned int>(colors[4].x);
+    tmp.y += static_cast<unsigned int>(colors[4].y);
+    tmp.z += static_cast<unsigned int>(colors[4].z);
+    tmp.w += static_cast<unsigned int>(colors[4].w);
+
+    tmp.x += static_cast<unsigned int>(colors[7].x);
+    tmp.y += static_cast<unsigned int>(colors[7].y);
+    tmp.z += static_cast<unsigned int>(colors[7].z);
+    tmp.w += static_cast<unsigned int>(colors[7].w);
+
+    tmp.x *= 0.25f;
+    tmp.y *= 0.25f;
+    tmp.z *= 0.25f;
+    tmp.w *= 0.25f;
+
+    newCoords = make_uint3(0,1,1);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // bottom side: 2, 3, 6, 7
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[2].x);
+    tmp.y += static_cast<unsigned int>(colors[2].y);
+    tmp.z += static_cast<unsigned int>(colors[2].z);
+    tmp.w += static_cast<unsigned int>(colors[2].w);
+
+    tmp.x += static_cast<unsigned int>(colors[3].x);
+    tmp.y += static_cast<unsigned int>(colors[3].y);
+    tmp.z += static_cast<unsigned int>(colors[3].z);
+    tmp.w += static_cast<unsigned int>(colors[3].w);
+
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
+
+    tmp.x += static_cast<unsigned int>(colors[7].x);
+    tmp.y += static_cast<unsigned int>(colors[7].y);
+    tmp.z += static_cast<unsigned int>(colors[7].z);
+    tmp.w += static_cast<unsigned int>(colors[7].w);
+
+    tmp.x *= 0.25f;
+    tmp.y *= 0.25f;
+    tmp.z *= 0.25f;
+    tmp.w *= 0.25f;
+
+    newCoords = make_uint3(1,2,1);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // top side: 0, 1, 4, 5
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[0].x);
+    tmp.y += static_cast<unsigned int>(colors[0].y);
+    tmp.z += static_cast<unsigned int>(colors[0].z);
+    tmp.w += static_cast<unsigned int>(colors[0].w);
+
+    tmp.x += static_cast<unsigned int>(colors[1].x);
+    tmp.y += static_cast<unsigned int>(colors[1].y);
+    tmp.z += static_cast<unsigned int>(colors[1].z);
+    tmp.w += static_cast<unsigned int>(colors[1].w);
+
+    tmp.x += static_cast<unsigned int>(colors[4].x);
+    tmp.y += static_cast<unsigned int>(colors[4].y);
+    tmp.z += static_cast<unsigned int>(colors[4].z);
+    tmp.w += static_cast<unsigned int>(colors[4].w);
+
+    tmp.x += static_cast<unsigned int>(colors[5].x);
+    tmp.y += static_cast<unsigned int>(colors[5].y);
+    tmp.z += static_cast<unsigned int>(colors[5].z);
+    tmp.w += static_cast<unsigned int>(colors[5].w);
+
+    tmp.x *= 0.25f;
+    tmp.y *= 0.25f;
+    tmp.z *= 0.25f;
+    tmp.w *= 0.25f;
+
+    newCoords = make_uint3(1,0,1);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // near side: 0, 1, 2, 3
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[0].x);
+    tmp.y += static_cast<unsigned int>(colors[0].y);
+    tmp.z += static_cast<unsigned int>(colors[0].z);
+    tmp.w += static_cast<unsigned int>(colors[0].w);
+
+    tmp.x += static_cast<unsigned int>(colors[1].x);
+    tmp.y += static_cast<unsigned int>(colors[1].y);
+    tmp.z += static_cast<unsigned int>(colors[1].z);
+    tmp.w += static_cast<unsigned int>(colors[1].w);
+
+    tmp.x += static_cast<unsigned int>(colors[2].x);
+    tmp.y += static_cast<unsigned int>(colors[2].y);
+    tmp.z += static_cast<unsigned int>(colors[2].z);
+    tmp.w += static_cast<unsigned int>(colors[2].w);
+
+    tmp.x += static_cast<unsigned int>(colors[3].x);
+    tmp.y += static_cast<unsigned int>(colors[3].y);
+    tmp.z += static_cast<unsigned int>(colors[3].z);
+    tmp.w += static_cast<unsigned int>(colors[3].w);
+
+    tmp.x *= 0.25f;
+    tmp.y *= 0.25f;
+    tmp.z *= 0.25f;
+    tmp.w *= 0.25f;
+
+    newCoords = make_uint3(1,1,0);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // far side: 4, 5, 6, 7
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[4].x);
+    tmp.y += static_cast<unsigned int>(colors[4].y);
+    tmp.z += static_cast<unsigned int>(colors[4].z);
+    tmp.w += static_cast<unsigned int>(colors[4].w);
+
+    tmp.x += static_cast<unsigned int>(colors[5].x);
+    tmp.y += static_cast<unsigned int>(colors[5].y);
+    tmp.z += static_cast<unsigned int>(colors[5].z);
+    tmp.w += static_cast<unsigned int>(colors[5].w);
+
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
+
+    tmp.x += static_cast<unsigned int>(colors[7].x);
+    tmp.y += static_cast<unsigned int>(colors[7].y);
+    tmp.z += static_cast<unsigned int>(colors[7].z);
+    tmp.w += static_cast<unsigned int>(colors[7].w);
+
+    tmp.x *= 0.25f;
+    tmp.y *= 0.25f;
+    tmp.z *= 0.25f;
+    tmp.w *= 0.25f;
+
+    newCoords = make_uint3(1,1,2);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // ####################### EDGES (FRONT) #####################
+    // top edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[0].x);
+    tmp.y += static_cast<unsigned int>(colors[0].y);
+    tmp.z += static_cast<unsigned int>(colors[0].z);
+    tmp.w += static_cast<unsigned int>(colors[0].w);
+
+    tmp.x += static_cast<unsigned int>(colors[1].x);
+    tmp.y += static_cast<unsigned int>(colors[1].y);
+    tmp.z += static_cast<unsigned int>(colors[1].z);
+    tmp.w += static_cast<unsigned int>(colors[1].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(1,0,0);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // bottom edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[2].x);
+    tmp.y += static_cast<unsigned int>(colors[2].y);
+    tmp.z += static_cast<unsigned int>(colors[2].z);
+    tmp.w += static_cast<unsigned int>(colors[2].w);
+
+    tmp.x += static_cast<unsigned int>(colors[3].x);
+    tmp.y += static_cast<unsigned int>(colors[3].y);
+    tmp.z += static_cast<unsigned int>(colors[3].z);
+    tmp.w += static_cast<unsigned int>(colors[3].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(1,2,0);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // left edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[0].x);
+    tmp.y += static_cast<unsigned int>(colors[0].y);
+    tmp.z += static_cast<unsigned int>(colors[0].z);
+    tmp.w += static_cast<unsigned int>(colors[0].w);
+
+    tmp.x += static_cast<unsigned int>(colors[3].x);
+    tmp.y += static_cast<unsigned int>(colors[3].y);
+    tmp.z += static_cast<unsigned int>(colors[3].z);
+    tmp.w += static_cast<unsigned int>(colors[3].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(0,1,0);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // right edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[1].x);
+    tmp.y += static_cast<unsigned int>(colors[1].y);
+    tmp.z += static_cast<unsigned int>(colors[1].z);
+    tmp.w += static_cast<unsigned int>(colors[1].w);
+
+    tmp.x += static_cast<unsigned int>(colors[2].x);
+    tmp.y += static_cast<unsigned int>(colors[2].y);
+    tmp.z += static_cast<unsigned int>(colors[2].z);
+    tmp.w += static_cast<unsigned int>(colors[2].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(2,1,0);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // ####################### EDGES (BACK) #####################
+    // top edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[4].x);
+    tmp.y += static_cast<unsigned int>(colors[4].y);
+    tmp.z += static_cast<unsigned int>(colors[4].z);
+    tmp.w += static_cast<unsigned int>(colors[4].w);
+
+    tmp.x += static_cast<unsigned int>(colors[5].x);
+    tmp.y += static_cast<unsigned int>(colors[5].y);
+    tmp.z += static_cast<unsigned int>(colors[5].z);
+    tmp.w += static_cast<unsigned int>(colors[5].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(1,0,2);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // bottom edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
+
+    tmp.x += static_cast<unsigned int>(colors[7].x);
+    tmp.y += static_cast<unsigned int>(colors[7].y);
+    tmp.z += static_cast<unsigned int>(colors[7].z);
+    tmp.w += static_cast<unsigned int>(colors[7].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(1,2,2);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // left edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[4].x);
+    tmp.y += static_cast<unsigned int>(colors[4].y);
+    tmp.z += static_cast<unsigned int>(colors[4].z);
+    tmp.w += static_cast<unsigned int>(colors[4].w);
+
+    tmp.x += static_cast<unsigned int>(colors[7].x);
+    tmp.y += static_cast<unsigned int>(colors[7].y);
+    tmp.z += static_cast<unsigned int>(colors[7].z);
+    tmp.w += static_cast<unsigned int>(colors[7].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(0,1,2);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+    // right edge
+    tmp = make_float4(0,0,0,0);
+    tmp.x += static_cast<unsigned int>(colors[5].x);
+    tmp.y += static_cast<unsigned int>(colors[5].y);
+    tmp.z += static_cast<unsigned int>(colors[5].z);
+    tmp.w += static_cast<unsigned int>(colors[5].w);
+
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
+
+    tmp.x *= 0.5f;
+    tmp.y *= 0.5f;
+    tmp.z *= 0.5f;
+    tmp.w *= 0.5f;
+
+    newCoords = make_uint3(2,1,2);
+    newCoords.x+=brickCoords.x;
+    newCoords.y+=brickCoords.x;
+    newCoords.z+=brickCoords.x;
+
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), surfRef, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 }
 
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
