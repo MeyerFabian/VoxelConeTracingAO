@@ -141,6 +141,7 @@ void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,c
 	m_lightPass->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
 	m_lightPass->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
 	m_lightPass->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
+	m_lightPass->addTexture("CamDepthTex", m_gbuffer->getDepthTextureID());
 	glBindVertexArray(vaoID);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);

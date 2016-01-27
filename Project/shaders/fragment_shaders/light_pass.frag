@@ -12,6 +12,8 @@ uniform sampler2D positionTex;
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;
 uniform sampler2D uvTex;
+uniform sampler2D CamDepthTex;
+
 uniform vec2 screenSize;
 
 //!< out-
@@ -32,8 +34,9 @@ void main()
 	vec4 normal = texture(normalTex,UVCoord).rgba;
 	vec4 position = texture(positionTex,UVCoord).rgba;
 	vec4 uv = texture(uvTex,UVCoord).rgba;
-
+	
+	float DepthFromCamera = 1.0 - (1.0 - texture(CamDepthTex,UVCoord).x);
     
 
-    fragColor = vec4(color.rgb, 1);
+    fragColor = vec4(DepthFromCamera);
 }

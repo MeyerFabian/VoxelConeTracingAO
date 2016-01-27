@@ -24,7 +24,8 @@ public:
 	void bindForWriting();
 	void bindForReading();
 	void setReadBuffer(GBUFFER_TEXTURE_TYPE tt);
-	GLuint getTextureID(GBUFFER_TEXTURE_TYPE tt);
+	GLuint getTextureID(GBUFFER_TEXTURE_TYPE tt); 
+	GLuint getDepthTextureID();
 	GLuint m_fbo;
 	GLuint m_textures[GBUFFER_NUM_TEXTURES];
 	GLuint m_depthTexture;
