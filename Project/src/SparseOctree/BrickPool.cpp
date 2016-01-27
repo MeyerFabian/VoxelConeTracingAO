@@ -8,12 +8,6 @@
 #include <iostream>
 #include "Utilities/errorUtils.h"
 
-extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
-{
-    cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim);
-}
-
-
 BrickPool::BrickPool()
 {
 
@@ -91,15 +85,6 @@ void BrickPool::registerTextureForCUDAReading()
 void BrickPool::unregisterTextureForCUDA()
 {
     cudaErrorCheck(cudaGraphicsUnregisterResource(m_brickPoolRessource));
-}
-
-
-cudaArray_t *BrickPool::fillBrickPool(const NodePool &nodepool)
-{
-
-    cudaErrorCheck(updateBrickPool(m_brickPoolArray, m_poolSize));
-
-    return &m_brickPoolArray;
 }
 
 cudaArray_t *BrickPool::getBrickPoolArray()

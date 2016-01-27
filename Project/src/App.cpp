@@ -1,6 +1,5 @@
 #include "App.h"
 
-#include "externals/ImGui/imgui.h"
 #include "externals/ImGui/imgui_impl_glfw_gl3.h"
 
 #include <iostream>

@@ -32,18 +32,6 @@ void SparseVoxelOctree::fillGui()
 
 }
 
-void SparseVoxelOctree::updateOctree(uchar4* fragmentListColor)
-{
-    m_nodePool.fillNodePool(fragmentListColor);
-
-    if(m_nodePool.getPoolSize() <= 8192)
-        m_nodePool.updateConstMemory();
-
-    m_brickPool.fillBrickPool(m_nodePool);
-
-    //
-}
-
 void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize)
 {
     m_nodePool.mapToCUDA();

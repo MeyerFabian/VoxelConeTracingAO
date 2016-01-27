@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
-#include <src/Utilities/errorUtils.h>
 #include "fillOctree.cuh"
 
 
@@ -38,22 +37,6 @@ __device__
 void unSetBit(unsigned int &value, unsigned int position)
 {
     value &= ~(1u << (position-1));
-}
-
-__global__
-void testFilling(dim3 texture_dim)
-{
-    int x = blockIdx.x*blockDim.x + threadIdx.x;
-    int y = blockIdx.y*blockDim.y + threadIdx.y;
-    int z = blockIdx.z*blockDim.z + threadIdx.z;
-
-    if(x >= texture_dim.x || y >= texture_dim.y || z >= texture_dim.z)
-    {
-        return;
-    }
-
-    uchar4 element = make_uchar4(255, 255, 255, 255);
-    surf3Dwrite(element, surfRef, x*sizeof(uchar4), y, z);
 }
 
 __global__
@@ -101,6 +84,62 @@ __device__ uint3 decodeBrickCoords(unsigned int coded)
     coords.y = (coded >> 10) & 0x000003FF;
     coords.x = (coded >> 20) & 0x000003FF;
     return coords;
+}
+
+__device__ void filterBrick(const uint3 &brickCoords)
+{
+    // TODO: filter brick
+}
+
+__global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(index >= maxNodes)
+        return;
+
+    unsigned int nodeOffset = 0;
+    unsigned int childPointer = 0;
+    unsigned int offset = 0;
+
+    uint3 octants[8];
+    octants[0] = make_uint3(0,0,0);
+    octants[1] = make_uint3(0,0,1);
+    octants[2] = make_uint3(0,1,0);
+    octants[3] = make_uint3(0,1,1);
+    octants[4] = make_uint3(1,0,0);
+    octants[5] = make_uint3(1,0,1);
+    octants[6] = make_uint3(1,1,0);
+    octants[7] = make_uint3(1,1,1);
+
+    uint3 nextOctant;
+    unsigned int octantIdx = 0;
+
+    for (int i = 0; i <=maxLevel; i++)
+    {
+        if(i==0)
+            octantIdx = 0;
+        else
+            octantIdx = (index / static_cast<unsigned int>(pow(8.f, static_cast<float>(i-1)))) % 8;
+
+        nextOctant = octants[octantIdx];
+
+        // make the octant position 1D for the linear memory
+        nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
+        offset = nodeOffset + childPointer * 8;
+
+        unsigned int pointer = nodePool[offset].nodeTilePointer;
+
+        // traverse further until we reach a non valid point. as we wish to iterate to the bottom, we return if there is an inalid connectioon (should not happen)
+        if(getBit(pointer, 32) == 1)
+            childPointer = pointer & 0x3fffffff;
+        else if(i == maxLevel)
+        {
+            unsigned int value = nodePool[offset].value;
+            if (getBit(value, 32) == 1)
+                filterBrick(decodeBrickCoords(value & 0x3fffffff));
+        }
+    }
 }
 
 __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPosition, const uchar4 &color)
@@ -154,7 +193,6 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
     position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
 
-
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
     unsigned int offset=0;
@@ -194,8 +232,7 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     if(getBit(value,32) == 1)
     {
         // we have a valid brick => fill it
-        uint3 brickCoords = decodeBrickCoords(value);
-        fillBrickCorners(brickCoords,position, colorBufferDevPointer[index]);
+        fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
     }
 }
 
@@ -341,64 +378,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 
 }
 
-cudaError_t updateBrickPool(cudaArray_t &brickPool, dim3 textureDim)
-{
-    cudaError_t errorCode;
-
-    cudaChannelFormatDesc channelDesc;
-    errorCode = cudaGetChannelDesc(&channelDesc, brickPool);
-
-    if(errorCode != cudaSuccess)
-        return errorCode;
-
-    errorCode = cudaBindSurfaceToArray(&surfRef, brickPool, &channelDesc);
-
-    if(errorCode != cudaSuccess)
-        return errorCode;
-
-    dim3 block_dim(4, 4, 4);
-    dim3 grid_dim(textureDim.x/block_dim.x, textureDim.y/block_dim.y, textureDim.z/block_dim.z);
-    testFilling<<<grid_dim, block_dim>>>(textureDim);
-
-    return cudaSuccess;
-}
-
-cudaError_t updateNodePool(uchar4* colorBufferDevPointer, node *nodePool, int poolSize)
-{
-    cudaError_t errorCode = cudaSuccess;
-    int threadsPerBlock = 64;
-    int blockCount = poolSize / threadsPerBlock;
-
-
-    struct node *node_h = (struct node*)malloc(sizeof(node) * poolSize);
-
-    errorCode = cudaMemcpy(node_h, nodePool, sizeof(node) * poolSize, cudaMemcpyDeviceToHost);
-
-    if(errorCode != cudaSuccess)
-        return errorCode;
-
-
-    free(node_h);
-
-    return cudaSuccess;
-}
-
-cudaError_t copyNodePoolToConstantMemory(node *nodePool, int poolSize)
-{
-    cudaError_t errorCode = cudaMemcpyToSymbol(constNodePool,nodePool,sizeof(node)*poolSize,0,cudaMemcpyDeviceToDevice);
-
-    if(errorCode != cudaSuccess)
-    {
-        constantMemoryValid = false;
-        return errorCode;
-    }
-    else
-    {
-        constantMemoryValid = true;
-        return errorCode;
-    }
-}
-
 cudaError_t buildSVO(node *nodePool,
                      int poolSize,
                      cudaArray_t *brickPool,
@@ -412,7 +391,6 @@ cudaError_t buildSVO(node *nodePool,
     // calculate maxlevel
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
     // note that we dont calculate +1 as we store 8 voxels per brick
-    printf("max level: %d \n", maxLevel);
 
     dim3 block_dim(32, 0, 0);
     dim3 grid_dim(fragmentListSize/block_dim.x, 0, 0);
@@ -440,13 +418,10 @@ cudaError_t buildSVO(node *nodePool,
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
         const unsigned int threadPerBlockReserve = 512;
-        const unsigned int blocksPerGridDim = 64000;
-
         int blockCountReserve = maxNodes;
 
         if(maxNodes >= threadPerBlockReserve)
             blockCountReserve = maxNodes / threadPerBlockReserve;
-
 
         if(i == maxLevel-1)
             lastLevel = 1;
@@ -461,6 +436,18 @@ cudaError_t buildSVO(node *nodePool,
 
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
+
+    const unsigned int threadPerBlockSpread = 512;
+    unsigned int blockCountSpread;
+    unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
+
+    blockCountSpread = nodeCount;
+
+    if(nodeCount >= threadPerBlockSpread)
+        blockCountSpread = nodeCount / threadPerBlockSpread;
+
+    cudaDeviceSynchronize();
+    filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
     cudaFree(d_counter);
     delete h_counter;
