@@ -20,6 +20,8 @@ void main()
 {
     vec4 voxelColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
     vec3 curPos = fragPos;
+
+    // TODO: Kamera rotation nicht beachtet
     vec3 dir = fragPos - camPos;
     dir = normalize(dir);
 
@@ -37,6 +39,7 @@ void main()
         {
             uvec3 nextOctant = uvec3(0, 0, 0);
             // determine octant for the given voxel
+            // TODO: du initialisiert das quad mit -0.5..0.5. Sprich hier kommt teilweise ein negative Oktant
             nextOctant.x = uint(2 * curPos.x);
             nextOctant.y = uint(2 * curPos.y);
             nextOctant.z = uint(2 * curPos.z);
@@ -70,5 +73,5 @@ void main()
     }
 
     voxelColor = uvec4(getBit(nodeTile, 31),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
-    fragColor = voxelColor;
+    fragColor = vec4(fragPos,0) + 0.01 * voxelColor;
 }
