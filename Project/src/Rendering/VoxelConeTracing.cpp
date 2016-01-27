@@ -20,7 +20,7 @@ VoxelConeTracing::VoxelConeTracing()
 {
 	m_width = 0.0f;
 	m_height = 0.0f;
-	m_gbuffer = make_unique<GBuffer>();
+	m_gbuffer = std::make_unique<GBuffer>();
 }
 
 
@@ -29,8 +29,8 @@ VoxelConeTracing::~VoxelConeTracing()
 }
 void VoxelConeTracing::init(float width,float height) {
 	// Prepare the one and only shader
-	m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
-	m_lightPass = make_unique<ShaderProgram>("/vertex_shaders/light_pass.vert", "/fragment_shaders/light_pass.frag");
+	m_geomPass = std::make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
+	m_voxelConeTracing = std::make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
 	m_width = width;
 	m_height = height;
 
@@ -117,7 +117,7 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 }
-void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,const NodePool& nodePool, const float stepSize) const{
+void VoxelConeTracing::draw(const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const{
 	//Bind window framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_BLEND);
@@ -132,21 +132,21 @@ void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,c
 
 	glm::mat4 WVP = glm::mat4(1.f);
 
-	m_lightPass->use();
+	m_voxelConeTracing->use();
 
-	m_lightPass->updateUniform("identity", WVP);
-	m_lightPass->updateUniform("screenSize", glm::vec2(m_width, m_height));
-	m_lightPass->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
-	m_lightPass->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
-	m_lightPass->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
-	m_lightPass->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
-	m_lightPass->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
-
+	m_voxelConeTracing->updateUniform("identity", WVP);
+	m_voxelConeTracing->updateUniform("screenSize", glm::vec2(m_width, m_height));
+	m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+	m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
+	m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
+	m_voxelConeTracing->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
+	m_voxelConeTracing->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
+	m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
 	glBindVertexArray(vaoID);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 
-	m_lightPass->disable();
+	m_voxelConeTracing->disable();
 
 	//Render little viewports into the main framebuffer that will be displayed onto the screen
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
@@ -161,8 +161,5 @@ void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,c
 
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
 	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-	m_gbuffer->setDepthReadBuffer();
-	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_LINEAR);
 
 }

@@ -143,9 +143,14 @@ App::App()
 
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
 
+	m_LightViewMap = make_unique<LightViewMap>();
+
+	m_LightViewMap->init(width, height);
 	m_VoxelConeTracing = make_unique<VoxelConeTracing>();
 
 	m_VoxelConeTracing->init(width, height);
+
+
 }
 
 App::~App()
@@ -209,11 +214,14 @@ void App::run()
         //m_scene->draw(width, height);
 
         // raycast Octree
-        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
+       // mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
 
 		m_VoxelConeTracing->geometryPass(m_scene);
 
-		m_VoxelConeTracing->deferredShadingPass(m_scene, m_svo->getNodePool(), 5);
+		m_LightViewMap->shadowMapPass(m_scene);
+
+		
+		m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
 
 
         // Update all controllables

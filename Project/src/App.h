@@ -18,7 +18,7 @@
 #include "Voxelization/Voxelization.h"
 #include "OctreeRaycast.h"
 #include "Rendering/VoxelConeTracing.h"
-
+#include "Rendering/LightViewMap.h"
 class App
 {
 public:
@@ -39,6 +39,7 @@ private:
     std::unique_ptr<FragmentList> mFragmentList;
     std::unique_ptr<OctreeRaycast> mupOctreeRaycast;
 	std::unique_ptr<VoxelConeTracing> m_VoxelConeTracing;
+	std::unique_ptr<LightViewMap> m_LightViewMap;
 };
 
 #endif // APP_H_

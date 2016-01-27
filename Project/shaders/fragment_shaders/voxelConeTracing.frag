@@ -13,6 +13,7 @@ uniform sampler2D positionTex;
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;
 uniform sampler2D uvTex;
+uniform sampler2D LightViewMapTex;
 
 uniform vec2 screenSize;
 
@@ -34,13 +35,14 @@ void main()
 	vec4 normal = texture(normalTex,UVCoord).rgba;
 	vec4 position = texture(positionTex,UVCoord).rgba;
 	vec4 uv = texture(uvTex,UVCoord).rgba;
-	
+
+	float DepthFromLight = texture(LightViewMapTex,UVCoord).r;
 	float DepthFromCamera =  texture(camDepthTex,UVCoord).r;
     
-	Everything_else= uv*color*normal*position;
+	Everything_else= uv*color*normal*position*DepthFromCamera;
 
     //Show depthmap from the camera
-	float VisualDepth = 1.0 - (1.0 - DepthFromCamera)*255.0f;
+	float VisualDepth = 1.0 - (1.0 - DepthFromLight)*255.0f;
 	FragColor = vec4(VisualDepth) ;
 
 
