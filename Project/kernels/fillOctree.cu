@@ -125,7 +125,7 @@ if(pos.z<10) {
 */
     __syncthreads();
     // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
-    surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
+    surf3Dwrite(color, colorBrickPool, pos.x*sizeof(uchar4), pos.y, pos.z);
 }
 
 __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
@@ -392,7 +392,7 @@ cudaError_t buildSVO(node *nodePool,
 
     cudaChannelFormatDesc channelDesc;
     errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
-    errorCode = cudaBindSurfaceToArray(&surfRef, *brickPool, &channelDesc);
+    errorCode = cudaBindSurfaceToArray(&colorBrickPool, *brickPool, &channelDesc);
 
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);

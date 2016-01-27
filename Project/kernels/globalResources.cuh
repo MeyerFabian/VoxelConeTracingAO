@@ -12,6 +12,7 @@ __constant__ int constVolumeResolution[1];
 __device__ unsigned int globalNodePoolCounter = 0;
 __device__ unsigned int globalBrickPoolCounter = 0;
 
-surface<void, cudaSurfaceType3D> surfRef;
+surface<void, cudaSurfaceType3D> colorBrickPool;
+surface<void, cudaSurfaceType3D> normalBrickPool;
 
 #endif
