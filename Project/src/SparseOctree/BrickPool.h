@@ -21,6 +21,8 @@ public:
     void registerTextureForCUDAWriting();
     void registerTextureForCUDAReading();
     void unregisterTextureForCUDA();
+	void mapToCUDA();
+	void unmapFromCUDA();
 
 	cudaArray_t *getBrickPoolArray();
 private:

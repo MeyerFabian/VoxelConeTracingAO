@@ -35,6 +35,8 @@ void SparseVoxelOctree::fillGui()
 void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize)
 {
     m_nodePool.mapToCUDA();
+    m_brickPool.mapToCUDA();
+
     buildSVO(m_nodePool.getNodePoolDevicePointer(),
              m_nodePool.getPoolSize(),
              m_brickPool.getBrickPoolArray(),
@@ -43,6 +45,8 @@ void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFra
              colorFragmentList,
              normalFragmentList,
              fragmentListSize);
+
+    m_brickPool.unmapFromCUDA();
     m_nodePool.unmapFromCUDA();
 }
 
