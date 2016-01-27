@@ -134,19 +134,19 @@ void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,c
 
 	m_lightPass->use();
 
-
 	m_lightPass->updateUniform("identity", WVP);
 	m_lightPass->updateUniform("screenSize", glm::vec2(m_width, m_height));
 	m_lightPass->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
 	m_lightPass->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
 	m_lightPass->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
 	m_lightPass->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
+	m_lightPass->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
+
 	glBindVertexArray(vaoID);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 
 	m_lightPass->disable();
-
 
 	//Render little viewports into the main framebuffer that will be displayed onto the screen
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
@@ -161,4 +161,8 @@ void VoxelConeTracing::deferredShadingPass(const std::unique_ptr<Scene>& scene,c
 
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
 	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	m_gbuffer->setDepthReadBuffer();
+	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+
 }
