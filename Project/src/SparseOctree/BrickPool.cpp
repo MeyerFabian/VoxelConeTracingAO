@@ -91,3 +91,13 @@ cudaArray_t *BrickPool::getBrickPoolArray()
 {
     return &m_brickPoolArray;
 }
+
+void BrickPool::mapToCUDA()
+{
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_brickPoolRessource, 0));
+}
+
+void BrickPool::unmapFromCUDA()
+{
+    cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
+}

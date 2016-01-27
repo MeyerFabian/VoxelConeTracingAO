@@ -61,6 +61,7 @@ void clearCounter()
 __device__ uint3 getBrickCoords(unsigned int brickAdress, unsigned int brickPoolSideLength, unsigned int brickSideLength = 3)
 {
     uint3 coords;
+    brickPoolSideLength /=3;
     coords.x = brickAdress / (brickPoolSideLength*brickPoolSideLength);
     coords.y = (brickAdress / brickPoolSideLength) % brickPoolSideLength;
     coords.z = brickAdress % brickPoolSideLength;
@@ -74,21 +75,60 @@ __device__ uint3 getBrickCoords(unsigned int brickAdress, unsigned int brickPool
 
 __device__ unsigned int encodeBrickCoords(uint3 coords)
 {
-    return (0x000003FF & coords.x) << 20U | (0x000003FF & coords.y) << 10U | (0x000003FF & coords.z);
+    unsigned int codeX = ((0x000003FF & coords.x) << 20U);
+    unsigned int codeY = ((0x000003FF & coords.y) << 10U);
+    unsigned int codeZ = ((0x000003FF & coords.z));
+    unsigned int code = codeX | codeY | codeZ;
+
+    return code;
 }
 
 __device__ uint3 decodeBrickCoords(unsigned int coded)
 {
     uint3 coords;
     coords.z = coded & 0x000003FF;
-    coords.y = (coded >> 10) & 0x000003FF;
-    coords.x = (coded >> 20) & 0x000003FF;
+    coords.y = (coded & 0x000FFC00) >> 10U;
+    coords.x = (coded & 0x3FF00000) >> 20U;
     return coords;
 }
 
 __device__ void filterBrick(const uint3 &brickCoords)
 {
     // TODO: filter brick
+    uint3 insertPositions[8];
+    // front corners
+    insertPositions[0] = make_uint3(0,0,0);
+    insertPositions[1] = make_uint3(2,0,0);
+    insertPositions[2] = make_uint3(2,2,0);
+    insertPositions[3] = make_uint3(0,2,0);
+
+    //back corners
+    insertPositions[4] = make_uint3(0,0,2);
+    insertPositions[5] = make_uint3(2,0,2);
+    insertPositions[6] = make_uint3(2,2,2);
+    insertPositions[7] = make_uint3(0,2,2);
+
+    uchar4 colors[8];
+    colors[0] = make_uchar4(0,0,0,0);
+    colors[1] = make_uchar4(0,0,0,0);
+    colors[2] = make_uchar4(0,0,0,0);
+    colors[3] = make_uchar4(0,0,0,0);
+    colors[4] = make_uchar4(0,0,0,0);
+    colors[5] = make_uchar4(0,0,0,0);
+    colors[6] = make_uchar4(0,0,0,0);
+    colors[7] = make_uchar4(0,0,0,0);
+
+    surf3Dread(&colors[0], surfRef, (insertPositions[0].x + brickCoords.x) * sizeof(uchar4), insertPositions[0].y + brickCoords.y, insertPositions[0].z + brickCoords.z);
+    surf3Dread(&colors[1], surfRef, (insertPositions[1].x + brickCoords.x) * sizeof(uchar4), insertPositions[1].y + brickCoords.y, insertPositions[1].z + brickCoords.z);
+    surf3Dread(&colors[2], surfRef, (insertPositions[2].x + brickCoords.x) * sizeof(uchar4), insertPositions[2].y + brickCoords.y, insertPositions[2].z + brickCoords.z);
+    surf3Dread(&colors[3], surfRef, (insertPositions[3].x + brickCoords.x) * sizeof(uchar4), insertPositions[3].y + brickCoords.y, insertPositions[3].z + brickCoords.z);
+    surf3Dread(&colors[4], surfRef, (insertPositions[4].x + brickCoords.x) * sizeof(uchar4), insertPositions[4].y + brickCoords.y, insertPositions[4].z + brickCoords.z);
+    surf3Dread(&colors[5], surfRef, (insertPositions[5].x + brickCoords.x) * sizeof(uchar4), insertPositions[5].y + brickCoords.y, insertPositions[5].z + brickCoords.z);
+    surf3Dread(&colors[6], surfRef, (insertPositions[6].x + brickCoords.x) * sizeof(uchar4), insertPositions[6].y + brickCoords.y, insertPositions[6].z + brickCoords.z);
+    surf3Dread(&colors[7], surfRef, (insertPositions[7].x + brickCoords.x) * sizeof(uchar4), insertPositions[7].y + brickCoords.y, insertPositions[7].z + brickCoords.z);
+
+    // center:
+    //surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
 }
 
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
@@ -115,7 +155,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
     uint3 nextOctant;
     unsigned int octantIdx = 0;
 
-    for (int i = 0; i <=maxLevel; i++)
+    for (int i = 0; i < maxLevel; i++)
     {
         if(i==0)
             octantIdx = 0;
@@ -133,11 +173,12 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
         // traverse further until we reach a non valid point. as we wish to iterate to the bottom, we return if there is an inalid connectioon (should not happen)
         if(getBit(pointer, 32) == 1)
             childPointer = pointer & 0x3fffffff;
-        else if(i == maxLevel)
+        else if(i == maxLevel-1)
         {
             unsigned int value = nodePool[offset].value;
-            if (getBit(value, 32) == 1)
+            if (getBit(value, 32) == 1) {
                 filterBrick(decodeBrickCoords(value & 0x3fffffff));
+            }
         }
     }
 }
@@ -165,14 +206,19 @@ __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPo
     insertPositions[6] = make_uint3(2,2,2);
     insertPositions[7] = make_uint3(0,2,2);
 
-    /*
-    if(brickCoords.x == 0 && brickCoords.y == 609 && brickCoords.z == 840) {
-        printf("offset : %d\n", offset);
-        printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
-    }*/
-
     uint3 pos = insertPositions[offset];
+    pos.x += brickCoords.x;
+    pos.y += brickCoords.y;
+    pos.z += brickCoords.z;
 
+/*
+if(pos.z<10) {
+    printf("offset : %d\n", offset);
+    printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
+    printf("posX: %d, posY: %d, posZ: %d\n", pos.x, pos.y, pos.z);
+}
+*/
+    __syncthreads();
     // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
     surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
 }
@@ -199,7 +245,7 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     unsigned int nodeTile = 0;
     unsigned int value = 0;
 
-    for (int i = 0; i < maxLevel; i++)
+    for (int i = 0; i <= maxLevel; i++)
     {
         uint3 nextOctant = make_uint3(0, 0, 0);
         // determine octant for the given voxel
@@ -215,8 +261,10 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
         offset = nodeOffset + childPointer * 8;
 
         nodeTile = nodePool[offset].nodeTilePointer;
-
-        childPointer = nodeTile & 0x3fffffff;
+        __syncthreads();
+        if(getBit(nodeTile,32) == 1) {
+            childPointer = nodeTile & 0x3fffffff;
+        }
 
         if(i != 0)
         {
@@ -352,6 +400,8 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 
             pointer = (adress & 0x3fffffff) | pointer;
             value = encodeBrickCoords(getBrickCoords(brickAdress, brickPoolResolution, brickResolution));
+            uint3 test = decodeBrickCoords(value);
+            //printf("decode: x:%d, y:%d, z:%d\n" ,test.x, test.y, test.z);
 
             // set the first bit to 1. this indicates, that we use the texture brick instead of a constant value as color.
             setBit(value, 32);
@@ -433,6 +483,11 @@ cudaError_t buildSVO(node *nodePool,
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         printf("reserved node tiles: %d\n", *h_counter);*/
     }
+
+
+    cudaChannelFormatDesc channelDesc;
+    errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
+    errorCode = cudaBindSurfaceToArray(&surfRef, *brickPool, &channelDesc);
 
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
