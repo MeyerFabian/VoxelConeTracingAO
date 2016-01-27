@@ -1,42 +1,18 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
+
+#include "globalResources.cuh"
 #include "fillOctree.cuh"
+#include "bitUtilities.cuh"
+#include "octreeMipMapping.cuh"
+#include "brickUtilities.cuh"
 
-
-const int maxNodePoolSize = 1024;
-int volumeResolution = 384;
-
-bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
-__constant__ node constNodePool[maxNodePoolSize];
-__constant__ int constVolumeResolution[1];
-__device__ unsigned int globalNodePoolCounter = 0;
-__device__ unsigned int globalBrickPoolCounter = 0;
-
-surface<void, cudaSurfaceType3D> surfRef;
 
 cudaError_t setVolumeResulution(int resolution)
 {
     volumeResolution = resolution;
     cudaError_t errorCode = cudaMemcpyToSymbol(constVolumeResolution, &resolution, sizeof(int));
     return errorCode;
-}
-
-__device__
-unsigned int getBit(unsigned int value, unsigned int position)
-{
-    return (value >> (position-1)) & 1u;
-}
-
-__device__
-void setBit(unsigned int &value, unsigned int position)
-{
-    value |= (1u << (position-1));
-}
-
-__device__
-void unSetBit(unsigned int &value, unsigned int position)
-{
-    value &= ~(1u << (position-1));
 }
 
 __global__
@@ -51,6 +27,7 @@ void clearNodePoolKernel(node *nodePool, int poolSize)
     nodePool[i].value = 0;
 }
 
+// resets the global counters
 __global__
 void clearCounter()
 {
@@ -58,79 +35,7 @@ void clearCounter()
     globalBrickPoolCounter = 0;
 }
 
-__device__ uint3 getBrickCoords(unsigned int brickAdress, unsigned int brickPoolSideLength, unsigned int brickSideLength = 3)
-{
-    uint3 coords;
-    brickPoolSideLength /=3;
-    coords.x = brickAdress / (brickPoolSideLength*brickPoolSideLength);
-    coords.y = (brickAdress / brickPoolSideLength) % brickPoolSideLength;
-    coords.z = brickAdress % brickPoolSideLength;
-
-    coords.x = coords.x*brickSideLength;
-    coords.y = coords.y*brickSideLength;
-    coords.z = coords.z*brickSideLength;
-
-    return coords;
-}
-
-__device__ unsigned int encodeBrickCoords(uint3 coords)
-{
-    unsigned int codeX = ((0x000003FF & coords.x) << 20U);
-    unsigned int codeY = ((0x000003FF & coords.y) << 10U);
-    unsigned int codeZ = ((0x000003FF & coords.z));
-    unsigned int code = codeX | codeY | codeZ;
-
-    return code;
-}
-
-__device__ uint3 decodeBrickCoords(unsigned int coded)
-{
-    uint3 coords;
-    coords.z = coded & 0x000003FF;
-    coords.y = (coded & 0x000FFC00) >> 10U;
-    coords.x = (coded & 0x3FF00000) >> 20U;
-    return coords;
-}
-
-__device__ void filterBrick(const uint3 &brickCoords)
-{
-    // TODO: filter brick
-    uint3 insertPositions[8];
-    // front corners
-    insertPositions[0] = make_uint3(0,0,0);
-    insertPositions[1] = make_uint3(2,0,0);
-    insertPositions[2] = make_uint3(2,2,0);
-    insertPositions[3] = make_uint3(0,2,0);
-
-    //back corners
-    insertPositions[4] = make_uint3(0,0,2);
-    insertPositions[5] = make_uint3(2,0,2);
-    insertPositions[6] = make_uint3(2,2,2);
-    insertPositions[7] = make_uint3(0,2,2);
-
-    uchar4 colors[8];
-    colors[0] = make_uchar4(0,0,0,0);
-    colors[1] = make_uchar4(0,0,0,0);
-    colors[2] = make_uchar4(0,0,0,0);
-    colors[3] = make_uchar4(0,0,0,0);
-    colors[4] = make_uchar4(0,0,0,0);
-    colors[5] = make_uchar4(0,0,0,0);
-    colors[6] = make_uchar4(0,0,0,0);
-    colors[7] = make_uchar4(0,0,0,0);
-
-    surf3Dread(&colors[0], surfRef, (insertPositions[0].x + brickCoords.x) * sizeof(uchar4), insertPositions[0].y + brickCoords.y, insertPositions[0].z + brickCoords.z);
-    surf3Dread(&colors[1], surfRef, (insertPositions[1].x + brickCoords.x) * sizeof(uchar4), insertPositions[1].y + brickCoords.y, insertPositions[1].z + brickCoords.z);
-    surf3Dread(&colors[2], surfRef, (insertPositions[2].x + brickCoords.x) * sizeof(uchar4), insertPositions[2].y + brickCoords.y, insertPositions[2].z + brickCoords.z);
-    surf3Dread(&colors[3], surfRef, (insertPositions[3].x + brickCoords.x) * sizeof(uchar4), insertPositions[3].y + brickCoords.y, insertPositions[3].z + brickCoords.z);
-    surf3Dread(&colors[4], surfRef, (insertPositions[4].x + brickCoords.x) * sizeof(uchar4), insertPositions[4].y + brickCoords.y, insertPositions[4].z + brickCoords.z);
-    surf3Dread(&colors[5], surfRef, (insertPositions[5].x + brickCoords.x) * sizeof(uchar4), insertPositions[5].y + brickCoords.y, insertPositions[5].z + brickCoords.z);
-    surf3Dread(&colors[6], surfRef, (insertPositions[6].x + brickCoords.x) * sizeof(uchar4), insertPositions[6].y + brickCoords.y, insertPositions[6].z + brickCoords.z);
-    surf3Dread(&colors[7], surfRef, (insertPositions[7].x + brickCoords.x) * sizeof(uchar4), insertPositions[7].y + brickCoords.y, insertPositions[7].z + brickCoords.z);
-
-    // center:
-    //surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
-}
-
+// traverses to the bottom level and filters all bricks by applying a inverse gaussian mask to the corner voxels
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -159,7 +64,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
     {
         if(i==0)
             octantIdx = 0;
-        else
+        else // here we make sure that we are able to reach every node within the tree
             octantIdx = (index / static_cast<unsigned int>(pow(8.f, static_cast<float>(i-1)))) % 8;
 
         nextOctant = octants[octantIdx];
@@ -176,53 +81,16 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
         else if(i == maxLevel-1)
         {
             unsigned int value = nodePool[offset].value;
-            if (getBit(value, 32) == 1) {
+            if (getBit(value, 32) == 1)// only filter if the brick is used
+            {
                 filterBrick(decodeBrickCoords(value & 0x3fffffff));
             }
         }
     }
 }
 
-__device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPosition, const uchar4 &color)
-{
-    uint3 nextOctant;
-    nextOctant.x = static_cast<unsigned int>(2 * voxelPosition.x);
-    nextOctant.y = static_cast<unsigned int>(2 * voxelPosition.y);
-    nextOctant.z = static_cast<unsigned int>(2 * voxelPosition.z);
-
-    unsigned int offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
-
-    // here we have our possible brick corners // TODO: fill them in const memory maybe?
-    uint3 insertPositions[8];
-    // front corners
-    insertPositions[0] = make_uint3(0,0,0);
-    insertPositions[1] = make_uint3(2,0,0);
-    insertPositions[2] = make_uint3(2,2,0);
-    insertPositions[3] = make_uint3(0,2,0);
-
-    //back corners
-    insertPositions[4] = make_uint3(0,0,2);
-    insertPositions[5] = make_uint3(2,0,2);
-    insertPositions[6] = make_uint3(2,2,2);
-    insertPositions[7] = make_uint3(0,2,2);
-
-    uint3 pos = insertPositions[offset];
-    pos.x += brickCoords.x;
-    pos.y += brickCoords.y;
-    pos.z += brickCoords.z;
-
-/*
-if(pos.z<10) {
-    printf("offset : %d\n", offset);
-    printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
-    printf("posX: %d, posY: %d, posZ: %d\n", pos.x, pos.y, pos.z);
-}
-*/
-    __syncthreads();
-    // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
-    surf3Dwrite(color, surfRef, pos.x*sizeof(uchar4), pos.y, pos.z);
-}
-
+// traverses to the bottom level and fills the 8 corners of each brick
+// note that the bricks at the bottom level represent an octree level by themselves
 __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -284,6 +152,8 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     }
 }
 
+// traverses the octree with one thread for each entry in the fragmentlist. Marks every node on its way as dividable
+// this kernel gets executed successively for each level of the tree
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int fragmentListSize)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -349,6 +219,8 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
     }
 }
 
+// the kernel is launched with a threadCount corresponding to the maximum possible nodecount for the current level
+// this kernel gets executed successively for each level of the tree
 __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, unsigned int* counter, unsigned int brickPoolResolution, unsigned int brickResolution, int lastLevel)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -487,7 +359,7 @@ cudaError_t buildSVO(node *nodePool,
 
     cudaChannelFormatDesc channelDesc;
     errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
-    errorCode = cudaBindSurfaceToArray(&surfRef, *brickPool, &channelDesc);
+    errorCode = cudaBindSurfaceToArray(&colorBrickPool, *brickPool, &channelDesc);
 
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
