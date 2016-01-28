@@ -13,6 +13,36 @@ cudaError_t setVolumeResulution(int resolution)
 {
     volumeResolution = resolution;
     cudaError_t errorCode = cudaMemcpyToSymbol(constVolumeResolution, &resolution, sizeof(int));
+
+    uint3 *octants = new uint3[8];
+    octants[0] = make_uint3(0,0,0);
+    octants[1] = make_uint3(0,0,1);
+    octants[2] = make_uint3(0,1,0);
+    octants[3] = make_uint3(0,1,1);
+    octants[4] = make_uint3(1,0,0);
+    octants[5] = make_uint3(1,0,1);
+    octants[6] = make_uint3(1,1,0);
+    octants[7] = make_uint3(1,1,1);
+
+    uint3 *insertpos = new uint3[8];
+    // front corners
+    insertpos[0] = make_uint3(0,0,0);
+    insertpos[1] = make_uint3(2,0,0);
+    insertpos[2] = make_uint3(2,2,0);
+    insertpos[3] = make_uint3(0,2,0);
+
+    //back corners
+    insertpos[4] = make_uint3(0,0,2);
+    insertpos[5] = make_uint3(2,0,2);
+    insertpos[6] = make_uint3(2,2,2);
+    insertpos[7] = make_uint3(0,2,2);
+
+    errorCode = cudaMemcpyToSymbol(lookup_octants, octants, sizeof(uint3)*8);
+    errorCode = cudaMemcpyToSymbol(insertPositions, insertpos, sizeof(uint3)*8);
+
+    delete[] octants;
+    delete[] insertpos;
+
     return errorCode;
 }
 
@@ -57,16 +87,6 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
     unsigned int childPointer = 0;
     unsigned int offset = 0;
 
-    uint3 octants[8];
-    octants[0] = make_uint3(0,0,0);
-    octants[1] = make_uint3(0,0,1);
-    octants[2] = make_uint3(0,1,0);
-    octants[3] = make_uint3(0,1,1);
-    octants[4] = make_uint3(1,0,0);
-    octants[5] = make_uint3(1,0,1);
-    octants[6] = make_uint3(1,1,0);
-    octants[7] = make_uint3(1,1,1);
-
     uint3 nextOctant;
     unsigned int octantIdx = 0;
 
@@ -77,7 +97,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
         else // here we make sure that we are able to reach every node within the tree
             octantIdx = (index / static_cast<unsigned int>(pow(8.f, static_cast<float>(i-1)))) % 8;
 
-        nextOctant = octants[octantIdx];
+        nextOctant = lookup_octants[octantIdx];
 
         // make the octant position 1D for the linear memory
         nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
@@ -85,7 +105,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
 
         unsigned int pointer = nodePool[offset].nodeTilePointer;
 
-        // traverse further until we reach a non valid point. as we wish to iterate to the bottom, we return if there is an inalid connectioon (should not happen)
+        // traverse further until we reach a non valid point. as we wish to iterate to the bottom, we return if there is an invalid connectioon (should not happen)
         if(getBit(pointer, 32) == 1)
             childPointer = pointer & 0x3fffffff;
         else if(i == maxLevel-1)
@@ -108,15 +128,9 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     if(index >= fragmentListSize)
         return;
 
-    const unsigned int mask_bits = 0x000003FF;
-    unsigned int codedPosition = positionBuffer[index].x;
-
     float3 position;
-    // dont forget the .f for casting reasons :P
-    position.x = ((codedPosition) & (mask_bits)) / 1024.f;
-    position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
-    position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
-
+    getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
+/*
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
     unsigned int offset=0;
@@ -150,10 +164,11 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
             position.y = 2 * position.y - nextOctant.y;
             position.z = 2 * position.z - nextOctant.z;
         }
-    }
-
+    }*/
+    unsigned int foundOn=0;
+    unsigned int offset = traverseToCorrespondingNode(nodePool,position,foundOn,maxLevel);
     // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
-    value = nodePool[offset].value;
+    unsigned int value = nodePool[offset].value;
 
     if(getBit(value,32) == 1)
     {
@@ -174,7 +189,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
 
     for(int i=1;i<level;i++)
     {
-        float stepSize = 1.f / powf(2, i); // calculate our stepsize TODO: lookup table
+        float stepSize = 1.f/powf(2,i);// for some reason this is faster than lookups :D
 
         // initialise all neighbours to no neighbour :P
         unsigned int X = 0;
@@ -334,7 +349,7 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
-
+/*
     uint3 octants[8];
     octants[0] = make_uint3(0,0,0);
     octants[1] = make_uint3(0,0,1);
@@ -344,6 +359,18 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
     octants[5] = make_uint3(1,0,1);
     octants[6] = make_uint3(1,1,0);
     octants[7] = make_uint3(1,1,1);
+*/
+    /*  The lookup version is slower. we have probably no registers left. const memory is slower as well
+    unsigned int powLookup[8];
+    powLookup[0] = 1;
+    powLookup[1] = 8;
+    powLookup[2] = 64;
+    powLookup[3] = 512;
+    powLookup[4] = 4096;
+    powLookup[5] = 32768;
+    powLookup[6] = 262144;
+    powLookup[7] = 2097152;*/
+    //static_cast<unsigned int>(powf(8.f, static_cast<float>(i-1)))
 
     uint3 nextOctant;
     unsigned int octantIdx = 0;
@@ -353,9 +380,9 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
         if(i==0)
             octantIdx = 0;
         else
-            octantIdx = (index / static_cast<unsigned int>(pow(8.f, static_cast<float>(i-1)))) % 8;
+            octantIdx = (index / static_cast<unsigned int>(powf(8.f, static_cast<float>(i-1)))) % 8;
 
-        nextOctant = octants[octantIdx];
+        nextOctant = lookup_octants[octantIdx];
 
         // make the octant position 1D for the linear memory
         nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;

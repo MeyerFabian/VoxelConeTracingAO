@@ -9,6 +9,8 @@ int volumeResolution = 384;
 bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
 // this memory is unused atm. we might copy the top of our octree to the constant memory to increase the traversal speed
 __constant__ node constNodePool[maxNodePoolSizeForConstMemory];
+__constant__ uint3 lookup_octants[8];
+__constant__ uint3 insertPositions[8];
 __constant__ int constVolumeResolution[1]; // the volume resolution in constant memory. typically 384
 __device__ unsigned int globalNodePoolCounter = 0; // counter for node pool memory reservation. Gets increased whenever a new node is allocated
 __device__ unsigned int globalBrickPoolCounter = 0; // same as node counter but for bricks

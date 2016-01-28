@@ -1,6 +1,8 @@
 #ifndef BRICK_UTILITIES_CUH
 #define BRICK_UTILITIES_CUH
 
+//#include "globalResources.cuh"
+
 // converts a 1D index (coming from the global brick counter) to a 3D index within the range [0...brickPoolSideLength-1] for each axis
 // the brickSize is considered to prevent overlapping bricks
 __device__ uint3 getBrickCoords(unsigned int brickAdress, unsigned int brickPoolSideLength, unsigned int brickSideLength = 3)
@@ -52,7 +54,7 @@ __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPo
     nextOctant.z = static_cast<unsigned int>(2 * voxelPosition.z);
 
     unsigned int offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
-
+/*
     // here we have our possible brick corners // TODO: fill them in const memory maybe?
     uint3 insertPositions[8];
     // front corners
@@ -66,7 +68,7 @@ __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPo
     insertPositions[5] = make_uint3(2,0,2);
     insertPositions[6] = make_uint3(2,2,2);
     insertPositions[7] = make_uint3(0,2,2);
-
+*/
     uint3 pos = insertPositions[offset];
     pos.x += brickCoords.x;
     pos.y += brickCoords.y;
@@ -88,20 +90,6 @@ if(pos.z<10) {
 // the corner bricks are used as sources
 __device__ void filterBrick(const uint3 &brickCoords)
 {
-    // TODO: filter brick
-    uint3 insertPositions[8];
-    // front corners
-    insertPositions[0] = make_uint3(0,0,0);
-    insertPositions[1] = make_uint3(2,0,0);
-    insertPositions[2] = make_uint3(2,2,0);
-    insertPositions[3] = make_uint3(0,2,0);
-
-    //back corners
-    insertPositions[4] = make_uint3(0,0,2);
-    insertPositions[5] = make_uint3(2,0,2);
-    insertPositions[6] = make_uint3(2,2,2);
-    insertPositions[7] = make_uint3(0,2,2);
-
     uchar4 colors[8];
     colors[0] = make_uchar4(0,0,0,0);
     colors[1] = make_uchar4(0,0,0,0);
