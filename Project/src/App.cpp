@@ -126,7 +126,7 @@ App::App()
 
     // Variables for the loop
     mPrevTime = (GLfloat)glfwGetTime();
-
+	
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
@@ -136,13 +136,15 @@ App::App()
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
-
+	
     // Sparse voxel octree (use fragment voxels and create octree for later use)
-    m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
+
+	m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
+		
     m_svo->init();
-
+	
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
-
+	
 	m_LightViewMap = make_unique<LightViewMap>();
 
 	m_LightViewMap->init(width, height);
@@ -150,7 +152,7 @@ App::App()
 
 	m_VoxelConeTracing->init(width, height);
 
-
+	
 }
 
 App::~App()
@@ -175,7 +177,7 @@ void App::run()
 
         // ImGui new frame
         ImGui_ImplGlfwGL3_NewFrame();
-
+		
         // Update scene
         if(rotateCamera)
         {
@@ -211,17 +213,18 @@ void App::run()
 
 
         // Draw scene
-        //m_scene->draw(width, height);
+       // m_scene->draw(width, height);
 
 
-        // raycast Octree
-        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
 
 		m_VoxelConeTracing->geometryPass(m_scene);
 
-		//m_LightViewMap->shadowMapPass(m_scene);
+		// raycast Octree
+		mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
 
-		//m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
+		m_LightViewMap->shadowMapPass(m_scene);
+
+		m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
 
 
         // Update all controllables
@@ -230,16 +233,19 @@ void App::run()
             pControllable->updateGui();
         }
 
+
+
+
         // Global gui
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         // Render ImGui (that what is defined by controllables)
         ImGui::Render();
-
+		
         // Prepare next frame
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
-
+		
         m_svo->clearOctree();
     }
 }

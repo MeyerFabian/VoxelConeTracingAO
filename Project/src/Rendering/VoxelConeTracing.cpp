@@ -117,6 +117,8 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 void VoxelConeTracing::draw(const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const{
 	//Bind window framebuffer
