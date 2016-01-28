@@ -6,6 +6,7 @@
 #include "bitUtilities.cuh"
 #include "octreeMipMapping.cuh"
 #include "brickUtilities.cuh"
+#include "traverseKernels.cuh"
 
 
 cudaError_t setVolumeResulution(int resolution)
@@ -161,6 +162,120 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     }
 }
 
+__global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1* positionBuffer, unsigned int poolSize, unsigned int fragmentListSize, unsigned int level)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(index >= fragmentListSize)
+        return;
+
+    float3 position;
+    getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
+
+    float stepSize = 1.f / powf(2,level); // calculate our stepsize TODO: lookup table
+
+    // initialise all neighbours to no neighbour :P
+    unsigned int X = 0;
+    unsigned int Y = 0;
+    unsigned int Z = 0;
+    unsigned int negX = 0;
+    unsigned int negY = 0;
+    unsigned int negZ = 0;
+
+    unsigned int nodeLevel = 0;
+    unsigned int foundOnLevel = 0;
+
+    // traverse to my node
+    unsigned int nodeAdress = traverseToCorrespondingNode(nodePool, position, nodeLevel, level);
+
+    // traverse to neighbours
+    if(position.x + stepSize < 1)
+    {
+        // handle X
+        float3 tmp = position;
+        tmp.x +=stepSize;
+        X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+
+        if(nodeLevel != foundOnLevel)
+        {
+            X = 0;
+        }
+        if(level == 1 && X!= 0)
+            printf("X: %d\n",X);
+
+    }
+    if(position.y + stepSize < 1)
+    {
+        // handle Y
+        float3 tmp = position;
+        tmp.y +=stepSize;
+        Y = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+
+        if(nodeLevel != foundOnLevel)
+        {
+            Y = 0;
+        }
+    }
+    if(position.z + stepSize < 1)
+    {
+        // handle Z
+        float3 tmp = position;
+        tmp.z +=stepSize;
+        Z = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+
+        if(nodeLevel != foundOnLevel)
+        {
+            Z = 0;
+        }
+    }
+
+    if(position.x - stepSize > 0)
+    {
+        // handle negX
+        float3 tmp = position;
+        tmp.x -=stepSize;
+        negX = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+
+        if(nodeLevel != foundOnLevel)
+        {
+            negX = 0;
+        }
+    }
+    if(position.y - stepSize > 0)
+    {
+        // handle negY
+        float3 tmp = position;
+        tmp.y -=stepSize;
+        negY = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+
+        if(nodeLevel != foundOnLevel)
+        {
+            negY = 0;
+        }
+    }
+    if(position.z - stepSize > 0)
+    {
+        // handle negZ
+        float3 tmp = position;
+        tmp.z -=stepSize;
+        negZ = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+
+        if(nodeLevel != foundOnLevel)
+        {
+            negZ = 0;
+        }
+    }
+
+    __syncthreads();// probably not necessary
+
+    neighbourPool[nodeAdress].X = X;
+    neighbourPool[nodeAdress].Y = Y;
+    neighbourPool[nodeAdress].Z = Z;
+    neighbourPool[nodeAdress].negX = negX;
+    neighbourPool[nodeAdress].negY = negY;
+    neighbourPool[nodeAdress].negZ = negZ;
+}
+
 // traverses the octree with one thread for each entry in the fragmentlist. Marks every node on its way as dividable
 // this kernel gets executed successively for each level of the tree
 __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLevel, uint1* positionBuffer, int fragmentListSize)
@@ -170,16 +285,8 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
     if(index >= fragmentListSize)
         return;
 
-    // mask to get 10 bit position coords
-    const unsigned int mask_bits = 0x000003FF;
-    unsigned int codedPosition = positionBuffer[index].x;
-
     float3 position;
-    // dont forget the .f for casting reasons :P
-    position.x = ((codedPosition) & (mask_bits)) / 1024.f;
-    position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
-    position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
-
+    getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
@@ -361,6 +468,11 @@ cudaError_t buildSVO(node *nodePool,
         reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         cudaDeviceSynchronize();
 
+        if(i != 0)
+        {
+            fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
+            cudaDeviceSynchronize();
+        }
 
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         printf("reserved node tiles: %d\n", *h_counter);
