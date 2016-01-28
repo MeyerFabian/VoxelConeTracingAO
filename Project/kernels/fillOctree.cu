@@ -11,8 +11,8 @@
 
 cudaError_t setVolumeResulution(int resolution)
 {
+    cudaError_t errorCode = cudaSuccess;
     volumeResolution = resolution;
-    cudaError_t errorCode = cudaMemcpyToSymbol(constVolumeResolution, &resolution, sizeof(int));
 
     uint3 *octants = new uint3[8];
     octants[0] = make_uint3(0,0,0);
@@ -487,14 +487,17 @@ cudaError_t buildSVO(node *nodePool,
         printf("reserved node tiles: %d\n", *h_counter);
     }
 
+    // still not sure if this works
+    errorCode = cudaMemcpyToSymbol(constNodePool, nodePool, sizeof(node)*maxNodePoolSizeForConstMemory,0,cudaMemcpyDeviceToDevice);
+
     fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
 
     cudaChannelFormatDesc channelDesc;
     errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
     errorCode = cudaBindSurfaceToArray(&colorBrickPool, *brickPool, &channelDesc);
 
-    cudaDeviceSynchronize();
+   // cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 
     const unsigned int threadPerBlockSpread = 512;

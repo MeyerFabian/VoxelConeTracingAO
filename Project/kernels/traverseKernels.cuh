@@ -8,6 +8,7 @@
 __device__
 unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsigned int &foundOnLevel, unsigned int maxLevel)
 {
+    bool useConst = true;
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
     unsigned int nodeTile = 0;
@@ -15,7 +16,7 @@ unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsi
     uint3 nextOctant = make_uint3(0,0,0);
 
     // level 0 we just assume that maxdivided is 1 :P
-    nodeTile = nodepool[offset].nodeTilePointer;
+    nodeTile = constNodePool[offset].nodeTilePointer;//nodepool[offset].nodeTilePointer;
     childPointer = nodeTile & 0x3fffffff;
 
     for(unsigned int curLevel=1;curLevel<=maxLevel; curLevel++)
@@ -28,7 +29,14 @@ unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsi
         nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
         offset = nodeOffset + childPointer * 8;
 
-        nodeTile = nodepool[offset].nodeTilePointer;
+        if(offset >= 8168)
+            useConst = false;
+
+        if(useConst)
+            nodeTile = constNodePool[offset].nodeTilePointer;
+        else
+            nodeTile = nodepool[offset].nodeTilePointer;
+
         unsigned int maxDivide = getBit(nodeTile,32);
 
         foundOnLevel = curLevel;

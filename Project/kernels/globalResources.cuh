@@ -3,7 +3,7 @@
 
 #include <SparseOctree/NodePool.h>
 
-const int maxNodePoolSizeForConstMemory = 1024;
+const int maxNodePoolSizeForConstMemory = 8168;
 int volumeResolution = 384;
 
 bool constantMemoryValid = false;   // the flag indicates wheather a kernel is allowed to use the constantNodePool
@@ -11,7 +11,6 @@ bool constantMemoryValid = false;   // the flag indicates wheather a kernel is a
 __constant__ node constNodePool[maxNodePoolSizeForConstMemory];
 __constant__ uint3 lookup_octants[8];
 __constant__ uint3 insertPositions[8];
-__constant__ int constVolumeResolution[1]; // the volume resolution in constant memory. typically 384
 __device__ unsigned int globalNodePoolCounter = 0; // counter for node pool memory reservation. Gets increased whenever a new node is allocated
 __device__ unsigned int globalBrickPoolCounter = 0; // same as node counter but for bricks
 
