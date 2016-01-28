@@ -172,105 +172,96 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
     float3 position;
     getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
-    float stepSize = 1.f / powf(2,level); // calculate our stepsize TODO: lookup table
-
-    // initialise all neighbours to no neighbour :P
-    unsigned int X = 0;
-    unsigned int Y = 0;
-    unsigned int Z = 0;
-    unsigned int negX = 0;
-    unsigned int negY = 0;
-    unsigned int negZ = 0;
-
-    unsigned int nodeLevel = 0;
-    unsigned int foundOnLevel = 0;
-
-    // traverse to my node
-    unsigned int nodeAdress = traverseToCorrespondingNode(nodePool, position, nodeLevel, level);
-
-    // traverse to neighbours
-    if(position.x + stepSize < 1)
+    for(int i=1;i<level;i++)
     {
-        // handle X
-        float3 tmp = position;
-        tmp.x +=stepSize;
-        X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+        float stepSize = 1.f / powf(2, i); // calculate our stepsize TODO: lookup table
 
-        if(nodeLevel != foundOnLevel)
-        {
-            X = 0;
+        // initialise all neighbours to no neighbour :P
+        unsigned int X = 0;
+        unsigned int Y = 0;
+        unsigned int Z = 0;
+        unsigned int negX = 0;
+        unsigned int negY = 0;
+        unsigned int negZ = 0;
+
+        unsigned int nodeLevel = 0;
+        unsigned int foundOnLevel = 0;
+
+        // traverse to my node // TODO: it might be easier if we stack the parent level
+        unsigned int nodeAdress = traverseToCorrespondingNode(nodePool, position, nodeLevel, i);
+
+        // traverse to neighbours
+        if (position.x + stepSize < 1) {
+            // handle X
+            float3 tmp = position;
+            tmp.x += stepSize;
+            X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
+
+            if (nodeLevel != foundOnLevel) {
+                X = 0;
+            }
         }
-    }
-    if(position.y + stepSize < 1)
-    {
-        // handle Y
-        float3 tmp = position;
-        tmp.y +=stepSize;
-        Y = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+        if (position.y + stepSize < 1) {
+            // handle Y
+            float3 tmp = position;
+            tmp.y += stepSize;
+            Y = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-        if(nodeLevel != foundOnLevel)
-        {
-            Y = 0;
+            if (nodeLevel != foundOnLevel) {
+                Y = 0;
+            }
         }
-    }
-    if(position.z + stepSize < 1)
-    {
-        // handle Z
-        float3 tmp = position;
-        tmp.z +=stepSize;
-        Z = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+        if (position.z + stepSize < 1) {
+            // handle Z
+            float3 tmp = position;
+            tmp.z += stepSize;
+            Z = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-        if(nodeLevel != foundOnLevel)
-        {
-            Z = 0;
+            if (nodeLevel != foundOnLevel) {
+                Z = 0;
+            }
         }
-    }
 
-    if(position.x - stepSize > 0)
-    {
-        // handle negX
-        float3 tmp = position;
-        tmp.x -=stepSize;
-        negX = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+        if (position.x - stepSize > 0) {
+            // handle negX
+            float3 tmp = position;
+            tmp.x -= stepSize;
+            negX = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-        if(nodeLevel != foundOnLevel)
-        {
-            negX = 0;
+            if (nodeLevel != foundOnLevel) {
+                negX = 0;
+            }
         }
-    }
-    if(position.y - stepSize > 0)
-    {
-        // handle negY
-        float3 tmp = position;
-        tmp.y -=stepSize;
-        negY = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+        if (position.y - stepSize > 0) {
+            // handle negY
+            float3 tmp = position;
+            tmp.y -= stepSize;
+            negY = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-        if(nodeLevel != foundOnLevel)
-        {
-            negY = 0;
+            if (nodeLevel != foundOnLevel) {
+                negY = 0;
+            }
         }
-    }
-    if(position.z - stepSize > 0)
-    {
-        // handle negZ
-        float3 tmp = position;
-        tmp.z -=stepSize;
-        negZ = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+        if (position.z - stepSize > 0) {
+            // handle negZ
+            float3 tmp = position;
+            tmp.z -= stepSize;
+            negZ = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-        if(nodeLevel != foundOnLevel)
-        {
-            negZ = 0;
+            if (nodeLevel != foundOnLevel) {
+                negZ = 0;
+            }
         }
+
+        __syncthreads();// probably not necessary
+
+        neighbourPool[nodeAdress].X = X;
+        neighbourPool[nodeAdress].Y = Y;
+        neighbourPool[nodeAdress].Z = Z;
+        neighbourPool[nodeAdress].negX = negX;
+        neighbourPool[nodeAdress].negY = negY;
+        neighbourPool[nodeAdress].negZ = negZ;
     }
-
-    __syncthreads();// probably not necessary
-
-    neighbourPool[nodeAdress].X = X;
-    neighbourPool[nodeAdress].Y = Y;
-    neighbourPool[nodeAdress].Z = Z;
-    neighbourPool[nodeAdress].negX = negX;
-    neighbourPool[nodeAdress].negY = negY;
-    neighbourPool[nodeAdress].negZ = negZ;
 }
 
 // traverses the octree with one thread for each entry in the fragmentlist. Marks every node on its way as dividable
@@ -465,15 +456,12 @@ cudaError_t buildSVO(node *nodePool,
         reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         cudaDeviceSynchronize();
 
-        if(i != 0)
-        {
-            fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
-            cudaDeviceSynchronize();
-        }
-
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         printf("reserved node tiles: %d\n", *h_counter);
     }
+
+    fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
+    cudaDeviceSynchronize();
 
     cudaChannelFormatDesc channelDesc;
     errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
