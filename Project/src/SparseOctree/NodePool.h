@@ -22,6 +22,17 @@ struct node
     // in case of pointer: first two bits not used. last 30 bits are a X,Y,Z coordinate to the assigned brick (10 bit per channel)
 };
 
+struct neighbours
+{
+    unsigned int X;
+    unsigned int Y;
+    unsigned int Z;
+
+    unsigned int negX;
+    unsigned int negY;
+    unsigned int negZ;
+};
+
 class NodePool
 {
 public:
@@ -34,13 +45,18 @@ public:
 
     void mapToCUDA();
     void unmapFromCUDA();
-    void bind();
+    void bind(GLuint textureUnit = 1);
+    void bindNeighbourPool(GLuint textureUnit = 2);
 
     int getPoolSize();
     int getNodePoolTextureID();
     int getNodePoolBufferID();
 
+    int getNeighbourPoolTextureID();
+    int getNeighbourPoolBufferID();
+
     node *getNodePoolDevicePointer();
+    neighbours *getNeighbourPoolDevicePointer();
 
 private:
     int m_poolSize;
@@ -48,10 +64,15 @@ private:
                        // i decided against thrust to make things easier with constant memory mapping
 
     node *m_dNodePool;
+    neighbours * m_dNeighbourPool;
 
     cudaGraphicsResource_t  mNodePoolFragmentList;
+    cudaGraphicsResource_t  mNeighbourPoolResource;
+
     GLuint mNodePoolOutputBuffer;
     GLuint mNodePoolOutputTexture;
+    GLuint mNeighbourPoolBuffer;
+    GLuint mNeighbourPoolTexture;
 };
 
 

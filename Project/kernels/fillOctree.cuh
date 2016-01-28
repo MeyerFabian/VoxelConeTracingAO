@@ -5,10 +5,11 @@
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
 // clears the node pool (all bits are set to 0)
-    cudaError_t clearNodePoolCuda(node *nodePool, int poolSize);
+    cudaError_t clearNodePoolCuda(node *nodePool, neighbours* neighbourPool, int poolSize);
 
 // builds the whole SVO (nodepool and brickpool) by using a fragmentlist (includes filtering and mipmapping)
     cudaError_t buildSVO(node *nodePool,
+                         neighbours* neighbourPool,
                          int poolSize,
                          cudaArray_t *brickPool,
                          dim3 textureDim,

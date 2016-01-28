@@ -5,6 +5,7 @@
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
 cudaError_t buildSVO(node *nodePool,
+                     neighbours* neighbourPool,
                      int poolSize,
                      cudaArray_t *brickPool,
                      dim3 textureDim,
@@ -38,6 +39,7 @@ void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFra
     m_brickPool.mapToCUDA();
 
     buildSVO(m_nodePool.getNodePoolDevicePointer(),
+             m_nodePool.getNeighbourPoolDevicePointer(),
              m_nodePool.getPoolSize(),
              m_brickPool.getBrickPoolArray(),
              dim3(384,384,384),

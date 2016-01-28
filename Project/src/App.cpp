@@ -220,7 +220,6 @@ void App::run()
 
 		m_LightViewMap->shadowMapPass(m_scene);
 
-		
 		m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
 
 

@@ -16,7 +16,7 @@ cudaError_t setVolumeResulution(int resolution)
 }
 
 __global__
-void clearNodePoolKernel(node *nodePool, int poolSize)
+void clearNodePoolKernel(node *nodePool, neighbours* neighbourPool, int poolSize)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -25,7 +25,16 @@ void clearNodePoolKernel(node *nodePool, int poolSize)
 
     nodePool[i].nodeTilePointer = 0;
     nodePool[i].value = 0;
+
+    neighbourPool[i].negX = 0;
+    neighbourPool[i].negY = 0;
+    neighbourPool[i].negZ = 0;
+
+    neighbourPool[i].X = 0;
+    neighbourPool[i].Y = 0;
+    neighbourPool[i].Z = 0;
 }
+
 
 // resets the global counters
 __global__
@@ -301,6 +310,7 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 }
 
 cudaError_t buildSVO(node *nodePool,
+                     neighbours* neighbourPool,
                      int poolSize,
                      cudaArray_t *brickPool,
                      dim3 textureDim,
@@ -351,11 +361,10 @@ cudaError_t buildSVO(node *nodePool,
         reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         cudaDeviceSynchronize();
 
-        /*
-        cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        printf("reserved node tiles: %d\n", *h_counter);*/
-    }
 
+        cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        printf("reserved node tiles: %d\n", *h_counter);
+    }
 
     cudaChannelFormatDesc channelDesc;
     errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
@@ -382,13 +391,14 @@ cudaError_t buildSVO(node *nodePool,
     return errorCode;
 }
 
-cudaError_t clearNodePoolCuda(node *nodePool, int poolSize)
+cudaError_t clearNodePoolCuda(node *nodePool, neighbours* neighbourPool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
     int threadsPerBlock = 64;
     int blockCount = poolSize / threadsPerBlock;
 
-    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, poolSize);
+    // clear the nodepool
+    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, poolSize);
 
     return errorCode;
 }
