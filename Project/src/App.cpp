@@ -19,6 +19,7 @@ int deltaCameraYaw = 0;
 int deltaCameraPitch = 0;
 float cameraMovement = 0;
 bool rotateCamera = false;
+bool rotateLight = false; 
 
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
@@ -83,6 +84,14 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
         rotateCamera = false;
     }
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		rotateLight = true;
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+	{
+		rotateLight = false;
+	}
 }
 
 App::App()
@@ -152,7 +161,7 @@ App::App()
 
 	m_VoxelConeTracing->init(width, height);
 
-	
+	m_FullScreenQuad = make_unique<FullScreenQuad>();
 }
 
 App::~App()
@@ -181,12 +190,21 @@ void App::run()
         // Update scene
         if(rotateCamera)
         {
-            m_scene->update(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+            m_scene->updateCamera(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
         }
         else
         {
-            m_scene->update(cameraMovement * deltaTime, 0, 0);
+            m_scene->updateCamera(cameraMovement * deltaTime, 0, 0);
         }
+
+		if (rotateLight)
+		{
+			m_scene->updateLight(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+		}
+		else
+		{
+			m_scene->updateLight(cameraMovement * deltaTime, 0, 0);
+		}
 
         if(testVoxel) {
             // Voxelization (create fragment voxels)
@@ -224,9 +242,9 @@ void App::run()
 
 		m_LightViewMap->shadowMapPass(m_scene);
 
-		m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
+		m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
 
-
+		m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
         // Update all controllables
         for(Controllable* pControllable : mControllables)
         {

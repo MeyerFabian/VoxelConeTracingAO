@@ -32,6 +32,7 @@ void LightViewMap::init(float width, float height)
 {
 	
 	m_shadowMapPass = make_unique<ShaderProgram>("/vertex_shaders/lightViewMap_pass.vert", "/fragment_shaders/lightViewMap_pass.frag");
+	m_shadowMapRender= make_unique<ShaderProgram>("/vertex_shaders/shadowMapRender.vert", "/fragment_shaders/shadowMapRender.frag");
 	m_width = width;
 	m_height = height;
 
@@ -61,7 +62,7 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	// Fill uniforms to shader
 	m_shadowMapPass->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 	m_shadowMapPass->updateUniform("projection", uniformProjection);
-	m_shadowMapPass->updateUniform("view", scene->getCamera().getViewMatrix());
+	m_shadowMapPass->updateUniform("view", scene->getLight().getViewMatrix());
 
 
 
@@ -81,4 +82,30 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
+}
+
+void LightViewMap::shadowMapRender(GLuint ScreenQuad) const{
+
+	GLuint RenderWidth = 150, RenderHeight = 150;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glEnable(GL_BLEND);
+	//glBlendEquation(GL_FUNC_ADD);
+	//glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
+
+
+
+
+	glm::mat4 WVP = glm::mat4(1.f);
+
+	m_shadowMapRender->use();
+	m_shadowMapRender->updateUniform("identity", WVP);
+	m_shadowMapRender->updateUniform("screenSize", glm::vec2(RenderWidth, RenderHeight));
+	m_shadowMapRender->addTexture("LightViewMapTex", m_depthbuffer->getDepthTextureID());
+	glViewport(0, 0, RenderWidth, RenderHeight);
+	glBindVertexArray(ScreenQuad);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+
+	m_shadowMapRender->disable();
+
 }

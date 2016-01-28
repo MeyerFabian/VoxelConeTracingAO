@@ -39,11 +39,11 @@ void main()
 	float DepthFromLight = texture(LightViewMapTex,UVCoord).r;
 	float DepthFromCamera =  texture(camDepthTex,UVCoord).r;
     
-	Everything_else= uv*color*normal*position*DepthFromCamera;
+	Everything_else= uv*color*normal*position*DepthFromLight;
 
     //Show depthmap from the camera
-	float VisualDepth = 1.0 - (1.0 - DepthFromLight)*255.0f;
-	FragColor = vec4(VisualDepth) ;
+	float VisualDepth = 1.0 - (1.0 - DepthFromCamera)*255.0f;
+	FragColor = vec4(VisualDepth,VisualDepth,VisualDepth,1.0) ;
 
 
 }

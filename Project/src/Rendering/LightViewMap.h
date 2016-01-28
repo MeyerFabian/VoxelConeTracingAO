@@ -16,6 +16,8 @@ public:
 	void init(float width, float height);
 
 	void shadowMapPass(const std::unique_ptr<Scene>& scene) const;
+	void shadowMapRender(GLuint ScreenQuad) const;
+
 	float m_width;
 	float m_height;
 	GLuint getDepthTextureID(){
@@ -24,6 +26,7 @@ public:
 	std::unique_ptr<LightDepthBuffer> m_depthbuffer;
 
 	std::unique_ptr<ShaderProgram> m_shadowMapPass;
+	std::unique_ptr<ShaderProgram> m_shadowMapRender;
 };
 
 

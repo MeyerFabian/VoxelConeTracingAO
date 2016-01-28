@@ -14,7 +14,6 @@ public:
 	void init(int width, int height);
 	void bindForWriting();
 	void bindForReading();
-	void setDepthReadBuffer();
 	GLuint getDepthTextureID();
 	GLuint m_fbo;
 	GLuint m_depthTexture;

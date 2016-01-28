@@ -120,8 +120,10 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-void VoxelConeTracing::draw(const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const{
+void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const{
 	//Bind window framebuffer
+
+	glViewport(0, 0, m_width, m_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
@@ -145,24 +147,26 @@ void VoxelConeTracing::draw(const GLuint lightViewMapTexture, const std::unique_
 	m_voxelConeTracing->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
 	m_voxelConeTracing->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
 	m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
-	glBindVertexArray(vaoID);
+	glBindVertexArray(ScreenQuad);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 
 	m_voxelConeTracing->disable();
 
 	//Render little viewports into the main framebuffer that will be displayed onto the screen
+
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
-	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 0, 0, 150, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-
-	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 150, 0, 300, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
 	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 300, 0, 450, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
 	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
+	glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+
+	glDisable(GL_BLEND);
 }
