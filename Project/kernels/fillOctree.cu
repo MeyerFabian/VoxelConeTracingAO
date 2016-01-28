@@ -200,9 +200,6 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         {
             X = 0;
         }
-        if(level == 1 && X!= 0)
-            printf("X: %d\n",X);
-
     }
     if(position.y + stepSize < 1)
     {
