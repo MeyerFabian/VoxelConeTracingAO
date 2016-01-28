@@ -15,12 +15,13 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 }
 #endif
 
+using namespace std;
 
 VoxelConeTracing::VoxelConeTracing()
 {
 	m_width = 0.0f;
 	m_height = 0.0f;
-	m_gbuffer = std::make_unique<GBuffer>();
+	m_gbuffer = make_unique<GBuffer>();
 }
 
 
@@ -29,8 +30,8 @@ VoxelConeTracing::~VoxelConeTracing()
 }
 void VoxelConeTracing::init(float width,float height) {
 	// Prepare the one and only shader
-	m_geomPass = std::make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
-	m_voxelConeTracing = std::make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
+	m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
+	m_voxelConeTracing = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
 	m_width = width;
 	m_height = height;
 
