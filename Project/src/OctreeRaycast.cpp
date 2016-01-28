@@ -15,7 +15,7 @@ OctreeRaycast::OctreeRaycast()
                                                                               "/fragment_shaders/octreeRaycast.frag"));
     mupOctreeRaycastShader->use();
 
-    /*/
+    //*/
     const GLfloat plane_vert_data[] = {
             -1.0f, -1.0f,
             +1.0f, -1.0f,
@@ -43,21 +43,25 @@ OctreeRaycast::OctreeRaycast()
 
 void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, float stepSize) const
 {
-    GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
-    glUniform1i(octreeUniform, 1);
+    //GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
+    //glUniform1i(octreeUniform, 1);
     // bind octree texture
-    nodePool.bind();
+    //nodePool.bind();
 
     // update uniforms
-    mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
-    mupOctreeRaycastShader->updateUniform("camPos", camPos);
+    //mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
+    //mupOctreeRaycastShader->updateUniform("camPos", camPos);
     //mupOctreeRaycastShader->addTexture("octree", nodePool.getNodePoolTextureID());
 
     // use shader AFTER texture is added
     mupOctreeRaycastShader->use();
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     // draw voxel
     glBindVertexArray(vaoID);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+
+    mupOctreeRaycastShader->disable();
 }

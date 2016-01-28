@@ -1,12 +1,11 @@
 #version 430
 
 in vec3 fragPos;
-
+/*
 uniform vec3 camPos;
 uniform float stepSize;
 layout(r32ui) uniform readonly uimageBuffer octree;
 
-layout(location = 0) out vec4 fragColor;
 
 int maxSteps = 100;
 int maxLevel = 8;
@@ -15,9 +14,13 @@ uint getBit(uint value, uint position)
 {
     return (value >> (position-1)) & 1u;
 }
+*/
+
+layout(location = 0) out vec4 fragColor;
 
 void main()
 {
+  /*
     vec4 voxelColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
     vec3 curPos = fragPos;
 
@@ -73,5 +76,6 @@ void main()
     }
 
     voxelColor = uvec4(getBit(nodeTile, 31),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
-    fragColor = vec4(fragPos,0) + 0.01 * voxelColor;
+    */
+    fragColor = vec4(fragPos,1);
 }

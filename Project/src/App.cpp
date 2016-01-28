@@ -213,14 +213,15 @@ void App::run()
         // Draw scene
         //m_scene->draw(width, height);
 
+
         // raycast Octree
-       // mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
+        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
 
 		m_VoxelConeTracing->geometryPass(m_scene);
 
-		m_LightViewMap->shadowMapPass(m_scene);
+		//m_LightViewMap->shadowMapPass(m_scene);
 
-		m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
+		//m_VoxelConeTracing->draw(m_LightViewMap->getDepthTextureID(),m_scene, m_svo->getNodePool(), 5);
 
 
         // Update all controllables
