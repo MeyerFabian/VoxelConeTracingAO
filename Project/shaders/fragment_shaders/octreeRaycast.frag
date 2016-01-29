@@ -1,28 +1,62 @@
 #version 430
 
+// In / out
 in vec3 fragPos;
-uniform sampler2D positionTex;
-layout(r32ui) uniform readonly uimageBuffer octree;
+layout(location = 0) out vec4 fragColor;
 
-/*
-
+// Uniforms
+layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
+layout(rgba32f, location = 1) uniform readonly image2D worldPos;
 uniform vec3 camPos;
 uniform float stepSize;
 
-
+// Defines
 int maxSteps = 100;
 int maxLevel = 8;
 
+// Helper
 uint getBit(uint value, uint position)
 {
     return (value >> (position-1)) & 1u;
 }
-*/
 
-layout(location = 0) out vec4 fragColor;
-
+// Main
 void main()
 {
+    vec3 realWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
+    vec3 dir = normalize(realWorldPosition - camPos);
+    fragColor = vec4(dir, 1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /*
     vec4 voxelColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
     vec3 curPos = fragPos;
@@ -80,6 +114,3 @@ void main()
 
     voxelColor = uvec4(getBit(nodeTile, 31),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
     */
-    vec4 objPos = texture(positionTex, fragPos.xy);
-    fragColor = objPos;
-}

@@ -19,7 +19,7 @@ int deltaCameraYaw = 0;
 int deltaCameraPitch = 0;
 float cameraMovement = 0;
 bool rotateCamera = false;
-bool rotateLight = false; 
+bool rotateLight = false;
 
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
@@ -84,14 +84,14 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
         rotateCamera = false;
     }
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-	{
-		rotateLight = true;
-	}
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-	{
-		rotateLight = false;
-	}
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        rotateLight = true;
+    }
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+    {
+        rotateLight = false;
+    }
 }
 
 App::App()
@@ -135,7 +135,7 @@ App::App()
 
     // Variables for the loop
     mPrevTime = (GLfloat)glfwGetTime();
-	
+
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
@@ -145,23 +145,23 @@ App::App()
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
-	
+
     // Sparse voxel octree (use fragment voxels and create octree for later use)
 
-	m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
-		
+    m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
+
     m_svo->init();
-	
+
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
-	
-	m_LightViewMap = make_unique<LightViewMap>();
 
-	m_LightViewMap->init(width, height);
-	m_VoxelConeTracing = make_unique<VoxelConeTracing>();
+    m_LightViewMap = make_unique<LightViewMap>();
 
-	m_VoxelConeTracing->init(width, height);
+    m_LightViewMap->init(width, height);
+    m_VoxelConeTracing = make_unique<VoxelConeTracing>();
 
-	m_FullScreenQuad = make_unique<FullScreenQuad>();
+    m_VoxelConeTracing->init(width, height);
+
+    m_FullScreenQuad = make_unique<FullScreenQuad>();
 }
 
 App::~App()
@@ -186,7 +186,7 @@ void App::run()
 
         // ImGui new frame
         ImGui_ImplGlfwGL3_NewFrame();
-		
+
         // Update scene
         if(rotateCamera)
         {
@@ -197,14 +197,14 @@ void App::run()
             m_scene->updateCamera(cameraMovement * deltaTime, 0, 0);
         }
 
-		if (rotateLight)
-		{
-			m_scene->updateLight(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-		}
-		else
-		{
-			m_scene->updateLight(cameraMovement * deltaTime, 0, 0);
-		}
+        if (rotateLight)
+        {
+            m_scene->updateLight(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+        }
+        else
+        {
+            m_scene->updateLight(cameraMovement * deltaTime, 0, 0);
+        }
 
         if(testVoxel) {
             // Voxelization (create fragment voxels)
@@ -234,13 +234,14 @@ void App::run()
         //m_scene->draw(width, height);
 
         // geometry pass
-		m_VoxelConeTracing->geometryPass(m_scene);
+        m_VoxelConeTracing->geometryPass(m_scene);
+
         // raycast Octree
         mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), m_VoxelConeTracing->getGBuffer(), 0.005f);
 
-		//m_LightViewMap->shadowMapPass(m_scene);
-		//m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
-		//m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
+        //m_LightViewMap->shadowMapPass(m_scene);
+        //m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
+        //m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
@@ -256,11 +257,11 @@ void App::run()
 
         // Render ImGui (that what is defined by controllables)
         ImGui::Render();
-		
+
         // Prepare next frame
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
-		
+
         m_svo->clearOctree();
     }
 }

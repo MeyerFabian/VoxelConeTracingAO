@@ -48,19 +48,19 @@ void NodePool::init(int nodeCount)
                                                         &sizePosition, mNodePoolFragmentList));
 
     cudaGraphicsUnmapResources(1, &mNodePoolFragmentList, 0);
-	
+
     // create and bin buffers for the neighbourmap
     glGenBuffers(1, &mNeighbourPoolBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, mNeighbourPoolBuffer);
-	glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint)*nodeCount * 6, neighbourData, GL_DYNAMIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint)*nodeCount * 6, neighbourData, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
-	
+
     //neighbourpool texture
     glGenTextures(1,&mNeighbourPoolTexture);
     glBindTexture(GL_TEXTURE_BUFFER, mNeighbourPoolTexture);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI,mNeighbourPoolBuffer);
     glBindTexture(GL_TEXTURE_BUFFER, 0);
-	
+
     // register neighbourbuffer to cuda
     cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNeighbourPoolResource,mNeighbourPoolBuffer,cudaGraphicsMapFlagsReadOnly));
     cudaErrorCheck(cudaGraphicsMapResources(1, &mNeighbourPoolResource,0));
@@ -72,7 +72,7 @@ void NodePool::init(int nodeCount)
 
     delete data;
     delete neighbourData;
-	
+
     //cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(node)*nodeCount));
 }
 
@@ -122,7 +122,7 @@ void NodePool::unmapFromCUDA()
 void NodePool::bind(GLuint textureUnit)
 {
     glActiveTexture(GL_TEXTURE0+textureUnit);
-    glBindImageTexture(1,
+    glBindImageTexture(0,
                        mNodePoolOutputTexture,
                        0,
                        GL_TRUE,

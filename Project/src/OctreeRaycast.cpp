@@ -43,15 +43,27 @@ void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, std::unique_ptr<G
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
-    glUniform1i(octreeUniform, 1);
+    glUniform1i(octreeUniform, 0);
     // bind octree texture
     nodePool.bind();
 
     // update uniforms
-    //mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
-    //mupOctreeRaycastShader->updateUniform("camPos", camPos);
-    //mupOctreeRaycastShader->addTexture("octree", nodePool.getNodePoolTextureID());
-    mupOctreeRaycastShader->addTexture("positionTex", gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+    mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
+    mupOctreeRaycastShader->updateUniform("camPos", camPos);
+
+    //mupOctreeRaycastShader->addTexture("positionTex", gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+
+    // Position texture as image
+    glActiveTexture(GL_TEXTURE1);
+    glBindImageTexture(1,
+                       gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION),
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_READ_ONLY,
+                       GL_RGBA32F);
+    GLint worldPosUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "worldPos");
+    glUniform1i(worldPosUniform, 1);
 
     // use shader AFTER texture is added
     mupOctreeRaycastShader->use();
