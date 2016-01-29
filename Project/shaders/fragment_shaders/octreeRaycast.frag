@@ -51,7 +51,7 @@ void main()
         // Make the octant position 1D for the linear memory
         nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
 
-        // The maxdivide bit indicates wheather the node has children:
+        // The maxdivide bit indicates whether the node has children:
         // 1 means has children
         // 0 means does not have children
         nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
@@ -60,8 +60,10 @@ void main()
         if(maxDivide == 0)
         {
             // Output the reached level as color
-            float level = float(j) / float(maxLevel);
+            float level = float(j) / maxLevel;
             outputColor.x = level;
+            outputColor.y = level;
+            outputColor.z = level;
             break;
         }
         else
@@ -75,8 +77,6 @@ void main()
         position.y = 2 * position.y - nextOctant.y;
         position.z = 2 * position.z - nextOctant.z;
 
-        // JUST SET SOME SHIT IN THE OUTPUT TO TEST IF THAT SHIT EVEN ENTERS THE SHITTY FOR LOOP
-        outputColor.y = 1;
     }
 
     fragColor = outputColor;
