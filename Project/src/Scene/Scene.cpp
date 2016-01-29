@@ -67,12 +67,16 @@ Scene::~Scene()
     // Nothing to do
 }
 
-void Scene::update(float movement, float deltaCameraYaw, float deltaCameraPitch)
+void Scene::updateCamera(float movement, float deltaCameraYaw, float deltaCameraPitch)
 {
     // Update camera
     mCamera.update(movement, deltaCameraYaw, deltaCameraPitch);
 }
-
+void Scene::updateLight(float movement, float deltaCameraYaw, float deltaCameraPitch)
+{
+	// Update camera
+	mLight.update(movement, deltaCameraYaw, deltaCameraPitch);
+}
 void Scene::draw(float windowWidth, float windowHeight) const
 {
     glEnable(GL_DEPTH_TEST);

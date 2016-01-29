@@ -19,6 +19,7 @@
 #include "OctreeRaycast.h"
 #include "Rendering/VoxelConeTracing.h"
 #include "Rendering/LightViewMap.h"
+#include "Rendering/FullScreenQuad.h"
 class App
 {
 public:
@@ -40,6 +41,7 @@ private:
     std::unique_ptr<OctreeRaycast> mupOctreeRaycast;
 	std::unique_ptr<VoxelConeTracing> m_VoxelConeTracing;
 	std::unique_ptr<LightViewMap> m_LightViewMap;
+	std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
 };
 
 #endif // APP_H_

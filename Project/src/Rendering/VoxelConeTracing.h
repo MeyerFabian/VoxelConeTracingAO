@@ -13,8 +13,9 @@ public:
 	~VoxelConeTracing();
 	void init(float width,float height);
 	void geometryPass(const std::unique_ptr<Scene>& scene) const;
-	void draw(const GLuint lightViewMapTexture,const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const;
+	void draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const;
 	std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
+
 private:
 	void supplyFullScreenQuad();
 	std::unique_ptr<ShaderProgram> m_geomPass;
