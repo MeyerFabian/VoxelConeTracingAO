@@ -215,9 +215,9 @@ void App::run()
 
 
         // raycast Octree
-        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), 0.005f);
-
 		m_VoxelConeTracing->geometryPass(m_scene);
+
+        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), m_VoxelConeTracing->getGBuffer(), 0.005f);
 
 		//m_LightViewMap->shadowMapPass(m_scene);
 

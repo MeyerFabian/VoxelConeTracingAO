@@ -2,8 +2,6 @@
 // Created by miland on 16.01.16.
 //
 
-#include <src/Scene/Camera.h>
-#include <src/SparseOctree/NodePool.h>
 #include "OctreeRaycast.h"
 
 OctreeRaycast::OctreeRaycast()
@@ -41,17 +39,19 @@ OctreeRaycast::OctreeRaycast()
     glBindVertexArray(0);
 }
 
-void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, float stepSize) const
+void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, std::unique_ptr<GBuffer>& gbuffer, float stepSize) const
 {
-    //GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
-    //glUniform1i(octreeUniform, 1);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
+    glUniform1i(octreeUniform, 1);
     // bind octree texture
-    //nodePool.bind();
+    nodePool.bind();
 
     // update uniforms
     //mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
     //mupOctreeRaycastShader->updateUniform("camPos", camPos);
     //mupOctreeRaycastShader->addTexture("octree", nodePool.getNodePoolTextureID());
+    mupOctreeRaycastShader->addTexture("positionTex", gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
 
     // use shader AFTER texture is added
     mupOctreeRaycastShader->use();

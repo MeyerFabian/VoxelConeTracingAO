@@ -1,10 +1,13 @@
 #version 430
 
 in vec3 fragPos;
+uniform sampler2D positionTex;
+layout(r32ui) uniform readonly uimageBuffer octree;
+
 /*
+
 uniform vec3 camPos;
 uniform float stepSize;
-layout(r32ui) uniform readonly uimageBuffer octree;
 
 
 int maxSteps = 100;
@@ -77,5 +80,6 @@ void main()
 
     voxelColor = uvec4(getBit(nodeTile, 31),getBit(nodeTile, 32),getBit(nodeTile, 32),1);
     */
-    fragColor = vec4(fragPos,1);
+    vec4 objPos = texture(positionTex, fragPos.xy);
+    fragColor = objPos;
 }
