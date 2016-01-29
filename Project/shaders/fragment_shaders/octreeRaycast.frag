@@ -36,6 +36,10 @@ void main()
     vec3 position = fragVolumePosition;
     vec4 outputColor = vec4(0,0,0,1);
 
+    // Get first child pointer
+    uint nodeTile = imageLoad(octree, int(0)).x;
+    childPointer = nodeTile & uint(0x3fffffff);
+
     for(int j = 1; j < maxLevel; j++)
     {
         // Determine, in which octant the searched position is
@@ -50,7 +54,7 @@ void main()
         // The maxdivide bit indicates wheather the node has children:
         // 1 means has children
         // 0 means does not have children
-        uint nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
+        nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
         uint maxDivide = getBit(nodeTile, 32);
 
         if(maxDivide == 0)
