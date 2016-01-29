@@ -1,7 +1,7 @@
 #include "Material.h"
 
 #include <fstream>
-
+#include <iostream>
 Material::Material(aiMaterial const * material)
 {
     // Name of material

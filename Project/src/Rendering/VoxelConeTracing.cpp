@@ -139,14 +139,33 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
 
     m_voxelConeTracing->use();
 
-    m_voxelConeTracing->updateUniform("identity", WVP);
-    m_voxelConeTracing->updateUniform("screenSize", glm::vec2(m_width, m_height));
+	//Light uniforms
+	m_voxelConeTracing->updateUniform("LightPosition", scene->getLight().getPosition());
+	m_voxelConeTracing->updateUniform("LightColor", scene->getLight().getColor());
+	m_voxelConeTracing->updateUniform("LightAmbientIntensity", scene->getLight().getAmbientIntensity());
+	m_voxelConeTracing->updateUniform("LightDiffuseIntensity", scene->getLight().getDiffuseIntensity());
+
+	m_voxelConeTracing->updateUniform("LightModel", scene->getLight().getModelMatrix());
+	m_voxelConeTracing->updateUniform("LightView", scene->getLight().getViewMatrix());
+	m_voxelConeTracing->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
+	m_voxelConeTracing->updateUniform("shininess", 10.0);
+	m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
+
+	//other uniforms
+	m_voxelConeTracing->updateUniform("identity", WVP);
+	m_voxelConeTracing->updateUniform("screenSize", glm::vec2(m_width, m_height));
+
+	//GBUFFER TEXTURES
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
     m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
     m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
     m_voxelConeTracing->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
     m_voxelConeTracing->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
+
+	//LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
+
+	//Draw FullScreenQuad
     glBindVertexArray(ScreenQuad);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
