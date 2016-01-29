@@ -39,7 +39,13 @@ OctreeRaycast::OctreeRaycast()
     glBindVertexArray(0);
 }
 
-void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, std::unique_ptr<GBuffer>& gbuffer, float stepSize) const
+void OctreeRaycast::draw(
+        glm::vec3 camPos,
+        NodePool& nodePool,
+        std::unique_ptr<GBuffer>& gbuffer,
+        float stepSize,
+        glm::vec3 volumeCenter,
+        float volumeExtent) const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
@@ -50,8 +56,8 @@ void OctreeRaycast::draw(glm::vec3 camPos, NodePool& nodePool, std::unique_ptr<G
     // update uniforms
     mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
-
-    //mupOctreeRaycastShader->addTexture("positionTex", gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+    mupOctreeRaycastShader->updateUniform("volumeCenter", volumeCenter);
+    mupOctreeRaycastShader->updateUniform("volumeExtent", volumeExtent);
 
     // Position texture as image
     glActiveTexture(GL_TEXTURE1);

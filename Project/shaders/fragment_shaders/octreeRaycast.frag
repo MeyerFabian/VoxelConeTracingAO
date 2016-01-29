@@ -9,6 +9,8 @@ layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
 layout(rgba32f, location = 1) uniform readonly image2D worldPos;
 uniform vec3 camPos;
 uniform float stepSize;
+uniform vec3 volumeCenter;
+uniform float volumeExtent;
 
 // Defines
 int maxSteps = 100;
@@ -23,9 +25,51 @@ uint getBit(uint value, uint position)
 // Main
 void main()
 {
-    vec3 realWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
-    vec3 dir = normalize(realWorldPosition - camPos);
-    fragColor = vec4(dir, 1);
+    vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
+    vec3 fragVolumePosition = clamp(((fragWorldPosition - volumeCenter) / volumeExtent) + 0.5, 0, 1);
+    // vec3 dir = normalize(fragWorldPosition - camPos);
+
+    // Catch octree content at fragment position
+    uint nodeOffset = 0;
+    uint childPointer = 0;
+
+    /*vec3 curPos = fragVolumePosition;
+    vec4 outputColor = vec4(0,0,0,1);
+    for(int j = 0; j < maxLevel; j++)
+    {
+        uvec3 nextOctant = uvec3(0, 0, 0);
+        nextOctant.x = uint(2 * curPos.x);
+        nextOctant.y = uint(2 * curPos.y);
+        nextOctant.z = uint(2 * curPos.z);
+
+        // make the octant position 1D for the linear memory
+        nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+
+        // the maxdivide bit indicates wheather the node has children:
+        // 1 means has children
+        // 0 means does not have children
+        uint nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
+        uint maxDivide = getBit(nodeTile, 32);
+
+        //voxelColor = uvec4(nodeTile,nodeTile,nodeTile,1);
+
+        if(maxDivide == 0)
+        {
+            float level = j / maxLevel;
+            outputColor.x = level;
+            break;
+        }
+        else
+        {
+            // if the node has children we read the pointer to the next nodetile
+            childPointer = nodeTile & uint(0x3fffffff);
+        }
+    } */
+
+    uint nodeTile = imageLoad(octree, 0).x;
+    uvec4 test = uvec4(getBit(nodeTile, 31), getBit(nodeTile, 32), getBit(nodeTile, 32), 1);
+
+    fragColor = vec4(test);
 }
 
 

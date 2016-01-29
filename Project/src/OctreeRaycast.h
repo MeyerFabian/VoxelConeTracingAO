@@ -15,7 +15,13 @@
 class OctreeRaycast {
 public:
     OctreeRaycast();
-    void draw(glm::vec3 camPos, NodePool& nodePool, std::unique_ptr<GBuffer>& gbuffer, float stepSize) const;
+    void draw(
+        glm::vec3 camPos,
+        NodePool& nodePool,
+        std::unique_ptr<GBuffer>& gbuffer,
+        float stepSize,
+        glm::vec3 volumeCenter,
+        float volumeExtent) const;
 private:
     std::unique_ptr<ShaderProgram> mupOctreeRaycastShader;
     GLuint vaoID;

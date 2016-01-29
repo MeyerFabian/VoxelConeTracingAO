@@ -141,7 +141,7 @@ App::App()
 
     // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization(glm::vec3(0, 40, 0), 360.f));
+        new Voxelization(VOLUME_CENTER, VOLUME_EXTENT));
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
@@ -237,7 +237,13 @@ void App::run()
         m_VoxelConeTracing->geometryPass(m_scene);
 
         // raycast Octree
-        mupOctreeRaycast->draw(m_scene->getCamPos(), m_svo->getNodePool(), m_VoxelConeTracing->getGBuffer(), 0.005f);
+        mupOctreeRaycast->draw(
+            m_scene->getCamPos(),
+            m_svo->getNodePool(),
+            m_VoxelConeTracing->getGBuffer(),
+            0.005f,
+            VOLUME_CENTER,
+            VOLUME_EXTENT);
 
         //m_LightViewMap->shadowMapPass(m_scene);
         //m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
@@ -248,9 +254,6 @@ void App::run()
         {
             pControllable->updateGui();
         }
-
-
-
 
         // Global gui
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

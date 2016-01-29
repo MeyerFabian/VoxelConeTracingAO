@@ -23,6 +23,11 @@
 class App
 {
 public:
+
+    // Some constants
+    const glm::vec3 VOLUME_CENTER = glm::vec3(0, 40, 0);
+    const float VOLUME_EXTENT = 360.f;
+
     App();
     virtual ~App(); // Virtual not necessary
     void run();
@@ -39,9 +44,9 @@ private:
     std::unique_ptr<Voxelization> m_voxelization;
     std::unique_ptr<FragmentList> mFragmentList;
     std::unique_ptr<OctreeRaycast> mupOctreeRaycast;
-	std::unique_ptr<VoxelConeTracing> m_VoxelConeTracing;
-	std::unique_ptr<LightViewMap> m_LightViewMap;
-	std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
+    std::unique_ptr<VoxelConeTracing> m_VoxelConeTracing;
+    std::unique_ptr<LightViewMap> m_LightViewMap;
+    std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
 };
 
 #endif // APP_H_
