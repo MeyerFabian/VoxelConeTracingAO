@@ -48,7 +48,7 @@ bool calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 	UVCoords.y = 0.5 * ProjCoords.y + 0.5;
 	float z = 0.5 *  ProjCoords.z + 0.5;
 	if(UVCoords.x <0.0f || UVCoords.y <0.0f || UVCoords.x >1.0f || UVCoords.y >1.0f){
-	return false;
+		return false;
 	}
 	float DepthFromLight = texture(LightViewMapTex,UVCoords).r;
 	float bias = 0.00002;  
