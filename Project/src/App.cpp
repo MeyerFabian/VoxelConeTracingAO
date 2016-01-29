@@ -96,8 +96,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
 App::App()
 {
-    int width = 800;
-    int height = 600;
+    int width = 1600;
+    int height = 900;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);

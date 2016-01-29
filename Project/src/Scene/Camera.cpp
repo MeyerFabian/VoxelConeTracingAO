@@ -5,8 +5,8 @@
 
 Camera::Camera()
 {
-    mPosition = glm::vec3(-70,25,0);
-    mDirection = glm::vec3(0,0,-1);
+	mPosition = glm::vec3(-6.45, 56.7, -19.4);
+	mDirection = glm::normalize(glm::vec3(-1.0, -0.5, 0.5));
 }
 
 Camera::~Camera()
