@@ -40,7 +40,7 @@ void main()
     uint nodeTile = imageLoad(octree, int(0)).x;
     childPointer = nodeTile & uint(0x3fffffff);
 
-    for(int j = 1; j < maxLevel; j++)
+    for(int j = 1; j <= maxLevel; j++)
     {
         // Determine, in which octant the searched position is
         uvec3 nextOctant = uvec3(0, 0, 0);
@@ -60,7 +60,7 @@ void main()
         if(maxDivide == 0)
         {
             // Output the reached level as color
-            float level = j / maxLevel;
+            float level = float(j) / float(maxLevel);
             outputColor.x = level;
             break;
         }
