@@ -52,6 +52,7 @@ void main()
     uint nodeOffset = 0;
     uint childPointer = 0;
 
+    // start ray from camera position
     vec3 rayPosition = camPos;
     vec4 outputColor = vec4(0,0,0,1);
 
@@ -67,12 +68,13 @@ void main()
 
     for(int i = 0; i < maxSteps; i++)
     {
-
+        // propagate ray along ray direction
         rayPosition = rayPosition + stepSize * dir;
         position = getVolumePos(rayPosition);
+        // reset child pointer
         childPointer = firstChildPointer;
 
-        for(int j = 1; j <= maxLevel; j++)
+        for(int j = 1; j < maxLevel; j++)
         {
             // Determine, in which octant the searched position is
             uvec3 nextOctant = uvec3(0, 0, 0);
@@ -122,12 +124,12 @@ void main()
                     pos.z += float(brickCoords.z);
 
                     outputColor = texture(brickPool,pos/volumeRes);//vec4(brickCoords/255,1);
+                    finished = true;
                 }
                  else
                  outputColor = vec4(1,1,0,1);
                 //outputColor = vec4(255,255,255,255);
-                if(getBit(nodeValue, 32) == 1)
-                    finished = true;
+
                 break;
             }
             else
@@ -146,7 +148,6 @@ void main()
         if(finished)
             break;
     }
-
 
     fragColor = outputColor;
 }
