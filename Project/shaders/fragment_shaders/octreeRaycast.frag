@@ -7,13 +7,14 @@ layout(location = 0) out vec4 fragColor;
 // Uniforms
 layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
 layout(rgba32f, location = 1) uniform readonly image2D worldPos;
+layout(location = 2) uniform sampler3D brickPool;
 uniform vec3 camPos;
 uniform float stepSize;
 uniform vec3 volumeCenter;
 uniform float volumeExtent;
 
 // Defines
-int maxSteps = 100;
+int maxSteps = 360;
 int maxLevel = 8;
 
 // Helper
@@ -22,23 +23,41 @@ uint getBit(uint value, uint position)
     return (value >> (position-1)) & 1u;
 }
 
+uvec3 decodeBrickCoords(uint coded)
+{
+    uvec3 coords;
+    coords.z =  coded & uint(0x000003FF);
+    coords.y = (coded & uint(0x000FFC00)) >> 10U;
+    coords.x = (coded & uint(0x3FF00000)) >> 20U;
+    return coords;
+}
+
+vec3 getVolumePos(vec3 worldPos)
+{
+    return ((worldPos - volumeCenter) / volumeExtent) + 0.5;
+}
+
 // Main
 void main()
 {
     vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
-    vec3 fragVolumePosition = clamp(((fragWorldPosition - volumeCenter) / volumeExtent) + 0.5, 0, 1);
+    vec3 position = getVolumePos(fragWorldPosition);
     vec3 dir = normalize(fragWorldPosition - camPos);
 
     // Catch octree content at fragment position
     uint nodeOffset = 0;
     uint childPointer = 0;
 
-    vec3 position = fragVolumePosition;
+    //vec3 rayPosition = camPos;
     vec4 outputColor = vec4(0,0,0,1);
 
+    uint nodeTile;
+    uint maxDivide;
+
     // Get first child pointer
-    uint nodeTile = imageLoad(octree, int(0)).x;
-    childPointer = nodeTile & uint(0x3fffffff);
+    nodeTile = imageLoad(octree, int(0)).x;
+    uint firstChildPointer = nodeTile & uint(0x3fffffff);
+    childPointer = firstChildPointer;
 
     for(int j = 1; j <= maxLevel; j++)
     {
@@ -60,10 +79,17 @@ void main()
         if(maxDivide == 0)
         {
             // Output the reached level as color
-            float level = float(j) / maxLevel;
-            outputColor.x = level;
-            outputColor.y = level;
-            outputColor.z = level;
+            //float level = float(j) / maxLevel;
+            //outputColor.x = level;
+            //outputColor.y = level;
+            //outputColor.z = level;
+            //finished = true;
+
+            uint nodeValue = imageLoad(octree, int(nodeOffset + childPointer *16U) + 1).x;
+            uvec3 brickCoords = decodeBrickCoords(nodeValue);
+            //outputColor = texture(brickPool, brickCoords);
+            //outputColor = vec4(getBit(nodeValue, 32), 0, 0, 1);
+            outputColor = vec4(brickCoords/255,1);
             break;
         }
         else

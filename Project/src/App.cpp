@@ -240,8 +240,9 @@ void App::run()
         mupOctreeRaycast->draw(
             m_scene->getCamPos(),
             m_svo->getNodePool(),
+            m_svo->getBrickPool(),
             m_VoxelConeTracing->getGBuffer(),
-            0.005f,
+            0.5f,
             VOLUME_CENTER,
             VOLUME_EXTENT);
 

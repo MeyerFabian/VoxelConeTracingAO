@@ -18,6 +18,8 @@ public:
     void clearOctree();
     void buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize);
     NodePool& getNodePool() { return m_nodePool; }
+    BrickPool& getBrickPool() { return m_brickPool; }
+
 private:
     virtual void fillGui() override; // Implementation of Controllable
 

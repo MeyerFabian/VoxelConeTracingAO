@@ -23,6 +23,7 @@ public:
     void unregisterTextureForCUDA();
 	void mapToCUDA();
 	void unmapFromCUDA();
+	void bind();
 
 	cudaArray_t *getBrickPoolArray();
 private:

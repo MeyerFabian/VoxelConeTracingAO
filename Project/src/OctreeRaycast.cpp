@@ -42,6 +42,7 @@ OctreeRaycast::OctreeRaycast()
 void OctreeRaycast::draw(
         glm::vec3 camPos,
         NodePool& nodePool,
+        BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
         float stepSize,
         glm::vec3 volumeCenter,
@@ -70,6 +71,11 @@ void OctreeRaycast::draw(
                        GL_RGBA32F);
     GLint worldPosUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "worldPos");
     glUniform1i(worldPosUniform, 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "brickPool");
+    glUniform1i(brickPoolUniform, 2);
+    brickPool.bind();
 
     // use shader AFTER texture is added
     mupOctreeRaycastShader->use();

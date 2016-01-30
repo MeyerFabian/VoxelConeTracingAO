@@ -11,6 +11,7 @@
 #include <src/Scene/Camera.h>
 #include <src/SparseOctree/NodePool.h>
 #include <src/Rendering/GBuffer.h>
+#include <src/SparseOctree/BrickPool.h>
 
 class OctreeRaycast {
 public:
@@ -18,6 +19,7 @@ public:
     void draw(
         glm::vec3 camPos,
         NodePool& nodePool,
+        BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
         float stepSize,
         glm::vec3 volumeCenter,

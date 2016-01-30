@@ -101,3 +101,8 @@ void BrickPool::unmapFromCUDA()
 {
     cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
 }
+
+void BrickPool::bind()
+{
+    glBindTexture(GL_TEXTURE_3D, m_brickPoolID);
+}
