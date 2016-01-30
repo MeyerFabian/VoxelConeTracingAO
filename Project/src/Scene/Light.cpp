@@ -8,9 +8,9 @@ Light::Light()
 {
     mPosition = glm::vec3(-40,125,0);
 	mDirection = glm::vec3(0,-1,0);
-	mAmbientIntensity = 0.075f;
-	mDiffuseIntensity = 1.3f;
-	mColor = glm::vec3(1.0, 0.85, 0.7);
+	mAmbientIntensity = 0.2f;
+	mDiffuseIntensity = 1.0f;
+	mColor = glm::vec3(1.0, 0.95, 0.8);
 	m_uniformModel = glm::mat4(1.f);
 	m_width = 0;
 	m_height = 0;
@@ -53,7 +53,7 @@ float Light::getDiffuseIntensity() const
 }
 glm::mat4 Light::getProjectionMatrix() const
 {
-	return glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 300.f);
+	return glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 150.f);
 }
 
 

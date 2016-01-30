@@ -39,25 +39,58 @@ layout(location = 1) out vec4 Everything_else;
 vec2 calcTexCoord(){
 	return gl_FragCoord.xy / screenSize;
 }
-bool calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 
+
+float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
+
+	//Shader is hardcoded for 2*ScreenResolution right now
+	vec2 ShadowMapResToWindowRatio = vec2(2.0f);
 	vec4 positionsFromLight = LightProjection * LightView * LightModel * position;
 	vec3 ProjCoords = positionsFromLight.xyz / positionsFromLight.w;
 	vec2 UVCoords;
-	UVCoords.x = 0.5 * ProjCoords.x + 0.5;
-	UVCoords.y = 0.5 * ProjCoords.y + 0.5;
+	UVCoords.x = 0.5 / ShadowMapResToWindowRatio.x * ProjCoords.x + 0.5/ShadowMapResToWindowRatio.x;
+	UVCoords.y = 0.5 / ShadowMapResToWindowRatio.y * ProjCoords.y + 0.5 / ShadowMapResToWindowRatio.y;
 	float z = 0.5 *  ProjCoords.z + 0.5;
-	if(UVCoords.x <0.0f || UVCoords.y <0.0f || UVCoords.x >1.0f || UVCoords.y >1.0f){
-		return false;
+	
+	float bias = 0.00001;
+	float DepthFromLight[16];
+	float sample= bias * 200.0f;
+	float brightness=0.0f;
+
+	//Percentage Close Filtering Mask
+	vec2 kernel[16]= vec2[16](
+	vec2(1.4f* sample,0.0f),
+	vec2(1.4f* -sample,0.0f)*1.5f,
+	vec2(0.0f,1.4f* sample)*1.5f,
+	vec2(0.0f,1.4f* -sample),
+	vec2(sample,sample)*1.5f,
+	vec2(-sample,sample),
+	vec2(sample,-sample),
+	vec2(-sample,-sample)*1.5f,
+	vec2(2.1f* sample,0.7f*sample)*1.5f,
+	vec2(2.1f* sample,0.7f*-sample),
+	vec2(0.7f*sample,2.1f*sample),
+	vec2(0.7f*-sample,2.1f*-sample)*1.5f,
+	vec2(-2.1f* sample,0.7f*sample),
+	vec2(-2.1f* sample,0.7f*-sample)*1.5f,
+	vec2(-0.7f*sample,2.1f*sample)*1.5f,
+	vec2(-0.7f*sample,2.1f*-sample)
+	);
+
+	for(int i= 0 ; i< 16 ;i++){
+	vec2 samplePos = UVCoords + kernel[i];
+	if(samplePos.x <0.0f || samplePos.y <0.0f || samplePos.x >1.0f || samplePos.y>1.0f){
+	break;
 	}
-	float DepthFromLight = texture(LightViewMapTex,UVCoords).r;
-	float bias = 0.00002;  
-	if(abs(DepthFromLight - z)< bias){
-		return true;
+		DepthFromLight[i]= texture(LightViewMapTex,samplePos).r;
+			if(abs(DepthFromLight[i] - z)< bias){
+				brightness+=0.0625;
+			}
+		
 	}
-	else{
-		return false;
-	}
+	
+	return brightness;
+	
 }
 
 vec3 calcLight(vec4 position, vec4 normal){
@@ -67,9 +100,9 @@ vec3 calcLight(vec4 position, vec4 normal){
 	vec3 lightdirection = normalize(LightPosition-position.xyz);
 	vec3 finalNormal = normalize(normal.xyz);
 
-	if(calcOcclusion(position,lightdirection,finalNormal)){
-		diffuseTerm = LightColor * dot(finalNormal,lightdirection) *LightDiffuseIntensity;
-	}
+	float brightness = calcOcclusion(position,lightdirection,finalNormal);
+	diffuseTerm = brightness* LightColor * dot(finalNormal,lightdirection) *LightDiffuseIntensity;
+	
 
 	vec3 lightValue = ambientTerm + diffuseTerm ;
 	return lightValue;
