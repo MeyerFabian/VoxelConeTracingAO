@@ -39,7 +39,7 @@ void BrickPool::init(int width, int height, int depth)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA32F,width,height,depth,0,GL_RGBA, GL_FLOAT, NULL);
+    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA8,width,height,depth,0,GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     GLenum error = glGetError();
 

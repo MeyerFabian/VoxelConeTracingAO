@@ -56,40 +56,21 @@ __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPo
     nextOctant.z = static_cast<unsigned int>(2 * voxelPosition.z);
 
     unsigned int offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
-/*
-    // here we have our possible brick corners // TODO: fill them in const memory maybe?
-    uint3 insertPositions[8];
-    // front corners
-    insertPositions[0] = make_uint3(0,0,0);
-    insertPositions[1] = make_uint3(2,0,0);
-    insertPositions[2] = make_uint3(2,2,0);
-    insertPositions[3] = make_uint3(0,2,0);
 
-    //back corners
-    insertPositions[4] = make_uint3(0,0,2);
-    insertPositions[5] = make_uint3(2,0,2);
-    insertPositions[6] = make_uint3(2,2,2);
-    insertPositions[7] = make_uint3(0,2,2);
-*/
     uint3 pos = insertPositions[offset];
     pos.x += brickCoords.x;
     pos.y += brickCoords.y;
     pos.z += brickCoords.z;
-    /*
 
+    /*
 if(pos.z<10) {
     printf("offset : %d\n", offset);
     printf("color r: %d g: %d b: %d, a:%d\n", static_cast<unsigned int>(color.x), color.y, color.z, color.w);
     printf("posX: %d, posY: %d, posZ: %d\n", pos.x, pos.y, pos.z);
 }
 */
-    float4 tmp = make_float4(color.x/255.0,color.y/255.0,color.z/255.0,color.w/255.0);
-    //float4 tmp2 = make_float4(1,1,0,1);
     // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
-    surf3Dwrite(tmp, colorBrickPool, pos.x* sizeof(float4), pos.y, pos.z);
-    //uchar4 bla = make_uchar4(255,255,0,255);
-   // surf3Dwrite(tmp, colorBrickPool, 1*sizeof(float4), 0, 0);
-   // surf3Dwrite(tmp2, colorBrickPool, 0*sizeof(float4), 0, 0);
+    surf3Dwrite(color, colorBrickPool, pos.x* sizeof(uchar4), pos.y, pos.z);
 }
 
 // filters the brick with an inverse gaussian mask to fill a brick
