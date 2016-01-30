@@ -49,6 +49,7 @@ void main()
     uint nodeOffset = 0;
     uint childPointer = 0;
 
+    // start ray from camera position
     vec3 rayPosition = camPos;
     vec4 outputColor = vec4(0,0,0,1);
 
@@ -64,9 +65,10 @@ void main()
 
     for(int i = 0; i < maxSteps; i++)
     {
-
+        // propagate ray along ray direction
         rayPosition = rayPosition + stepSize * dir;
         position = getVolumePos(rayPosition);
+        // reset child pointer
         childPointer = firstChildPointer;
 
         for(int j = 1; j <= maxLevel; j++)
@@ -95,13 +97,23 @@ void main()
                 //outputColor.z = level;
                 //finished = true;
 
+                // read the value from the nodeTile
                 uint nodeValue = imageLoad(octree, int(nodeOffset + childPointer *16U) + 1).x;
-                uvec3 brickCoords = decodeBrickCoords(nodeValue);
-                //outputColor = texture(brickPool, brickCoords);
-                //outputColor = vec4(getBit(nodeValue, 32), 0, 0, 1);
-                outputColor = vec4(brickCoords/255,1);
+
+                // set color only if brick is valid
                 if(getBit(nodeValue, 32) == 1)
+                {
+                    // decode brickCoords from value
+                    uvec3 brickCoords = decodeBrickCoords(nodeValue);
+                    /*/
+                    // set color from brickPool
+                    outputColor = texture(brickPool, brickCoords);
+                    /*/
+                    // set color from brickCoords
+                    outputColor = vec4(brickCoords/255,1);
+                    //*/
                     finished = true;
+                }
                 break;
             }
             else
@@ -120,7 +132,6 @@ void main()
         if(finished)
             break;
     }
-
 
     fragColor = outputColor;
 }
