@@ -50,7 +50,7 @@ float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 	UVCoords.y = 0.5 * ProjCoords.y + 0.5 ;
 	float z = 0.5 *  ProjCoords.z + 0.5;
 	
-	float bias = 0.00001;
+	float bias = max(0.00001,0.000025 *(1.0f - dot(lightdirection,normal)));
 	float DepthFromLight[16];
 	float sample= bias * 75.0f;
 	float brightness=0.0f;
