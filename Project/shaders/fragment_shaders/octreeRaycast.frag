@@ -41,14 +41,15 @@ vec3 getVolumePos(vec3 worldPos)
 void main()
 {
     vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
-    vec3 position = getVolumePos(fragWorldPosition);
+    vec3 position;
+    //vec3 position = getVolumePos(fragWorldPosition);
     vec3 dir = normalize(fragWorldPosition - camPos);
 
     // Catch octree content at fragment position
     uint nodeOffset = 0;
     uint childPointer = 0;
 
-    //vec3 rayPosition = camPos;
+    vec3 rayPosition = camPos;
     vec4 outputColor = vec4(0,0,0,1);
 
     uint nodeTile;
@@ -59,51 +60,67 @@ void main()
     uint firstChildPointer = nodeTile & uint(0x3fffffff);
     childPointer = firstChildPointer;
 
-    for(int j = 1; j <= maxLevel; j++)
+    bool finished = false;
+
+    for(int i = 0; i < maxSteps; i++)
     {
-        // Determine, in which octant the searched position is
-        uvec3 nextOctant = uvec3(0, 0, 0);
-        nextOctant.x = uint(2 * position.x);
-        nextOctant.y = uint(2 * position.y);
-        nextOctant.z = uint(2 * position.z);
 
-        // Make the octant position 1D for the linear memory
-        nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+        rayPosition = rayPosition + stepSize * dir;
+        position = getVolumePos(rayPosition);
+        childPointer = firstChildPointer;
 
-        // The maxdivide bit indicates whether the node has children:
-        // 1 means has children
-        // 0 means does not have children
-        nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
-        uint maxDivide = getBit(nodeTile, 32);
-
-        if(maxDivide == 0)
+        for(int j = 1; j <= maxLevel; j++)
         {
-            // Output the reached level as color
-            //float level = float(j) / maxLevel;
-            //outputColor.x = level;
-            //outputColor.y = level;
-            //outputColor.z = level;
-            //finished = true;
+            // Determine, in which octant the searched position is
+            uvec3 nextOctant = uvec3(0, 0, 0);
+            nextOctant.x = uint(2 * position.x);
+            nextOctant.y = uint(2 * position.y);
+            nextOctant.z = uint(2 * position.z);
 
-            uint nodeValue = imageLoad(octree, int(nodeOffset + childPointer *16U) + 1).x;
-            uvec3 brickCoords = decodeBrickCoords(nodeValue);
-            //outputColor = texture(brickPool, brickCoords);
-            //outputColor = vec4(getBit(nodeValue, 32), 0, 0, 1);
-            outputColor = vec4(brickCoords/255,1);
+            // Make the octant position 1D for the linear memory
+            nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+
+            // The maxdivide bit indicates whether the node has children:
+            // 1 means has children
+            // 0 means does not have children
+            nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
+            uint maxDivide = getBit(nodeTile, 32);
+
+            if(maxDivide == 0)
+            {
+                // Output the reached level as color
+                //float level = float(j) / maxLevel;
+                //outputColor.x = level;
+                //outputColor.y = level;
+                //outputColor.z = level;
+                //finished = true;
+
+                uint nodeValue = imageLoad(octree, int(nodeOffset + childPointer *16U) + 1).x;
+                uvec3 brickCoords = decodeBrickCoords(nodeValue);
+                //outputColor = texture(brickPool, brickCoords);
+                //outputColor = vec4(getBit(nodeValue, 32), 0, 0, 1);
+                outputColor = vec4(brickCoords/255,1);
+                if(getBit(nodeValue, 32) == 1)
+                    finished = true;
+                break;
+            }
+            else
+            {
+                // If the node has children we read the pointer to the next nodetile
+                childPointer = nodeTile & uint(0x3fffffff);
+            }
+
+            // Update position
+            position.x = 2 * position.x - nextOctant.x;
+            position.y = 2 * position.y - nextOctant.y;
+            position.z = 2 * position.z - nextOctant.z;
+
+        }
+
+        if(finished)
             break;
-        }
-        else
-        {
-            // If the node has children we read the pointer to the next nodetile
-            childPointer = nodeTile & uint(0x3fffffff);
-        }
-
-        // Update position
-        position.x = 2 * position.x - nextOctant.x;
-        position.y = 2 * position.y - nextOctant.y;
-        position.z = 2 * position.z - nextOctant.z;
-
     }
+
 
     fragColor = outputColor;
 }
