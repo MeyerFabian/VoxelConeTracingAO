@@ -130,7 +130,7 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
     float3 position;
     getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
-/*
+
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
     unsigned int offset=0;
@@ -164,11 +164,11 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
             position.y = 2 * position.y - nextOctant.y;
             position.z = 2 * position.z - nextOctant.z;
         }
-    }*/
+    }
     unsigned int foundOn=0;
-    unsigned int offset = traverseToCorrespondingNode(nodePool,position,foundOn,maxLevel);
+    //unsigned int offset = traverseToCorrespondingNode(nodePool,position,foundOn,maxLevel);
     // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
-    unsigned int value = nodePool[offset].value;
+    value = nodePool[offset].value;
 
     if(getBit(value,32) == 1)
     {
@@ -434,7 +434,7 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 cudaError_t buildSVO(node *nodePool,
                      neighbours* neighbourPool,
                      int poolSize,
-                     cudaArray_t *brickPool,
+                     cudaArray *brickPool,
                      dim3 textureDim,
                      uint1* positionDevPointer,
                      uchar4* colorBufferDevPointer,
@@ -490,12 +490,12 @@ cudaError_t buildSVO(node *nodePool,
     // still not sure if this works
     errorCode = cudaMemcpyToSymbol(constNodePool, nodePool, sizeof(node)*maxNodePoolSizeForConstMemory,0,cudaMemcpyDeviceToDevice);
 
-    fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
+    //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
     //cudaDeviceSynchronize();
 
-    cudaChannelFormatDesc channelDesc;
-    errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
-    errorCode = cudaBindSurfaceToArray(&colorBrickPool, *brickPool, &channelDesc);
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc( 8, 8, 8, 8, cudaChannelFormatKindUnsigned );
+    //errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
+    errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
 
    // cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
@@ -510,7 +510,7 @@ cudaError_t buildSVO(node *nodePool,
         blockCountSpread = nodeCount / threadPerBlockSpread;
 
     cudaDeviceSynchronize();
-    filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
+    //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
     cudaFree(d_counter);
     delete h_counter;

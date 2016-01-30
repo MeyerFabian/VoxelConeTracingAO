@@ -7,7 +7,7 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 cudaError_t buildSVO(node *nodePool,
                      neighbours* neighbourPool,
                      int poolSize,
-                     cudaArray_t *brickPool,
+                     cudaArray *brickPool,
                      dim3 textureDim,
                      uint1 *positionDevPointer,
                      uchar4 *colorBufferDevPointer,

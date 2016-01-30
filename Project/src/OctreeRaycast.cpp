@@ -72,9 +72,9 @@ void OctreeRaycast::draw(
     GLint worldPosUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "worldPos");
     glUniform1i(worldPosUniform, 1);
 
-    glActiveTexture(GL_TEXTURE2);
     GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "brickPool");
     glUniform1i(brickPoolUniform, 2);
+    glActiveTexture(GL_TEXTURE2);
     brickPool.bind();
 
     // use shader AFTER texture is added

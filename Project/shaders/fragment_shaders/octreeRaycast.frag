@@ -7,7 +7,7 @@ layout(location = 0) out vec4 fragColor;
 // Uniforms
 layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
 layout(rgba32f, location = 1) uniform readonly image2D worldPos;
-layout(location = 2) uniform sampler3D brickPool;
+layout(binding = 2) uniform sampler3D brickPool;
 uniform vec3 camPos;
 uniform float stepSize;
 uniform vec3 volumeCenter;
@@ -16,6 +16,7 @@ uniform float volumeExtent;
 // Defines
 int maxSteps = 360;
 int maxLevel = 8;
+float volumeRes = 383.0;
 
 // Helper
 uint getBit(uint value, uint position)
@@ -26,9 +27,9 @@ uint getBit(uint value, uint position)
 uvec3 decodeBrickCoords(uint coded)
 {
     uvec3 coords;
-    coords.z =  coded & uint(0x000003FF);
-    coords.y = (coded & uint(0x000FFC00)) >> 10U;
-    coords.x = (coded & uint(0x3FF00000)) >> 20U;
+    coords.z =  coded & 0x000003FF;
+    coords.y = (coded & 0x000FFC00) >> 10U;
+    coords.x = (coded & 0x3FF00000) >> 20U;
     return coords;
 }
 
@@ -36,6 +37,8 @@ vec3 getVolumePos(vec3 worldPos)
 {
     return ((worldPos - volumeCenter) / volumeExtent) + 0.5;
 }
+
+const uvec3 insertPositions[] = {uvec3(0,0,0),uvec3(2,0,0),uvec3(2,2,0),uvec3(0,2,0),uvec3(0,0,2),uvec3(2,0,2),uvec3(2,2,2),uvec3(0,2,2)};
 
 // Main
 void main()
@@ -95,11 +98,34 @@ void main()
                 //outputColor.z = level;
                 //finished = true;
 
-                uint nodeValue = imageLoad(octree, int(nodeOffset + childPointer *16U) + 1).x;
+                uint nodeValue = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
                 uvec3 brickCoords = decodeBrickCoords(nodeValue);
                 //outputColor = texture(brickPool, brickCoords);
                 //outputColor = vec4(getBit(nodeValue, 32), 0, 0, 1);
-                outputColor = vec4(brickCoords/255,1);
+
+                if(getBit(nodeValue, 32) == 1)
+                {
+                // Update position
+                    position.x = 2 * position.x - nextOctant.x;
+                    position.y = 2 * position.y - nextOctant.y;
+                    position.z = 2 * position.z - nextOctant.z;
+
+                    nextOctant.x = uint(2 * position.x);
+                    nextOctant.y = uint(2 * position.y);
+                    nextOctant.z = uint(2 * position.z);
+
+                    uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
+
+                    vec3 pos = vec3(insertPositions[offset]);
+                    pos.x += float(brickCoords.x);
+                    pos.y += float(brickCoords.y);
+                    pos.z += float(brickCoords.z);
+
+                    outputColor = texture(brickPool,pos/volumeRes);//vec4(brickCoords/255,1);
+                }
+                 else
+                 outputColor = vec4(1,1,0,1);
+                //outputColor = vec4(255,255,255,255);
                 if(getBit(nodeValue, 32) == 1)
                     finished = true;
                 break;

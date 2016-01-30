@@ -3,6 +3,8 @@
 
 //#include "globalResources.cuh"
 
+#include <vector_types.h>
+
 // converts a 1D index (coming from the global brick counter) to a 3D index within the range [0...brickPoolSideLength-1] for each axis
 // the brickSize is considered to prevent overlapping bricks
 __device__ uint3 getBrickCoords(unsigned int brickAdress, unsigned int brickPoolSideLength, unsigned int brickSideLength = 3)
@@ -73,17 +75,21 @@ __device__ void fillBrickCorners(const uint3 &brickCoords, const float3 &voxelPo
     pos.x += brickCoords.x;
     pos.y += brickCoords.y;
     pos.z += brickCoords.z;
+    /*
 
-/*
 if(pos.z<10) {
     printf("offset : %d\n", offset);
-    printf("color r: %d g: %d b: %d\n", static_cast<unsigned int>(color.x), color.y, color.z);
+    printf("color r: %d g: %d b: %d, a:%d\n", static_cast<unsigned int>(color.x), color.y, color.z, color.w);
     printf("posX: %d, posY: %d, posZ: %d\n", pos.x, pos.y, pos.z);
 }
 */
-
+    float4 tmp = make_float4(color.x/255.0,color.y/255.0,color.z/255.0,color.w/255.0);
+    //float4 tmp2 = make_float4(1,1,0,1);
     // write the color value to the corner TODO: use a shared counter to prevent race conditions between double list entries in the fragment list
-    surf3Dwrite(color, colorBrickPool, pos.x*sizeof(uchar4), pos.y, pos.z);
+    surf3Dwrite(tmp, colorBrickPool, pos.x* sizeof(float4), pos.y, pos.z);
+    //uchar4 bla = make_uchar4(255,255,0,255);
+   // surf3Dwrite(tmp, colorBrickPool, 1*sizeof(float4), 0, 0);
+   // surf3Dwrite(tmp2, colorBrickPool, 0*sizeof(float4), 0, 0);
 }
 
 // filters the brick with an inverse gaussian mask to fill a brick

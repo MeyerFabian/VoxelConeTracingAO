@@ -33,13 +33,13 @@ void BrickPool::init(int width, int height, int depth)
     glBindTexture(GL_TEXTURE_3D, m_brickPoolID);
 
     // set the texture parameters
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA8,width,height,depth,0,GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA32F,width,height,depth,0,GL_RGBA, GL_FLOAT, NULL);
 
     GLenum error = glGetError();
 
@@ -87,14 +87,15 @@ void BrickPool::unregisterTextureForCUDA()
     cudaErrorCheck(cudaGraphicsUnregisterResource(m_brickPoolRessource));
 }
 
-cudaArray_t *BrickPool::getBrickPoolArray()
+cudaArray *BrickPool::getBrickPoolArray()
 {
-    return &m_brickPoolArray;
+    return m_brickPoolArray;
 }
 
 void BrickPool::mapToCUDA()
 {
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_brickPoolRessource, 0));
+    cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_brickPoolArray, m_brickPoolRessource, 0, 0));
 }
 
 void BrickPool::unmapFromCUDA()

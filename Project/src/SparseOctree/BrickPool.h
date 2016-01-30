@@ -25,11 +25,11 @@ public:
 	void unmapFromCUDA();
 	void bind();
 
-	cudaArray_t *getBrickPoolArray();
+	cudaArray *getBrickPoolArray();
 private:
     GLuint m_brickPoolID;
     cudaGraphicsResource_t  m_brickPoolRessource;
-    cudaArray_t m_brickPoolArray;
+    cudaArray *m_brickPoolArray;
 
 	dim3 m_poolSize;
 };
