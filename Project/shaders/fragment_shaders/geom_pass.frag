@@ -7,7 +7,7 @@
 //!< in-variables
 in vec3 passWorldPosition;
 in vec2 passUVCoord;
-in vec3 passNormal;
+in vec3 passWorldNormal;
 
 //!< uniforms
 uniform vec4 color;
@@ -32,5 +32,5 @@ void main()
     fragColor = vec4(color.rgb, 1);
     fragPosition = vec4(passWorldPosition,1);
     fragUVCoord = vec4(passUVCoord,0,0);
-    fragNormal = vec4(passNormal,0);
+    fragNormal = vec4(passWorldNormal,0);
 }

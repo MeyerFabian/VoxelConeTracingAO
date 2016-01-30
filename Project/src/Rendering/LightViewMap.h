@@ -24,7 +24,6 @@ public:
 		return m_depthbuffer->getDepthTextureID();
 	}
 	std::unique_ptr<LightDepthBuffer> m_depthbuffer;
-
 	std::unique_ptr<ShaderProgram> m_shadowMapPass;
 	std::unique_ptr<ShaderProgram> m_shadowMapRender;
 };

@@ -32,7 +32,7 @@ public:
 	const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return mRenderBuckets;}
 
 	const Camera& getCamera() const{ return mCamera;}
-	const Light& getLight() const{ return mLight; }
+	 Light& getLight() { return mLight; }
 
 private:
 
