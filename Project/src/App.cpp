@@ -235,7 +235,7 @@ void App::run()
 
         // geometry pass
         m_VoxelConeTracing->geometryPass(m_scene);
-		/*
+
         // raycast Octree
         mupOctreeRaycast->draw(
             m_scene->getCamPos(),
@@ -245,11 +245,11 @@ void App::run()
             0.5f,
             VOLUME_CENTER,
             VOLUME_EXTENT);
-			*/
 
-        m_LightViewMap->shadowMapPass(m_scene);
-        m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
-        m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
+
+        //m_LightViewMap->shadowMapPass(m_scene);
+        //m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
+        //m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
