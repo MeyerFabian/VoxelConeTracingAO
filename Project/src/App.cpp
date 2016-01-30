@@ -156,7 +156,7 @@ App::App()
 
     m_LightViewMap = make_unique<LightViewMap>();
 
-	m_LightViewMap->init(2.0f*width, 2.0f*height);
+	m_LightViewMap->init(width, height);
     m_VoxelConeTracing = make_unique<VoxelConeTracing>();
 
     m_VoxelConeTracing->init(width, height);

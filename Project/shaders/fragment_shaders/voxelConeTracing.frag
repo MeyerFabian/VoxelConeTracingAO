@@ -43,18 +43,16 @@ vec2 calcTexCoord(){
 
 float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 
-	//Shader is hardcoded for 2*ScreenResolution right now
-	vec2 ShadowMapResToWindowRatio = vec2(2.0f);
 	vec4 positionsFromLight = LightProjection * LightView * LightModel * position;
 	vec3 ProjCoords = positionsFromLight.xyz / positionsFromLight.w;
 	vec2 UVCoords;
-	UVCoords.x = 0.5 / ShadowMapResToWindowRatio.x * ProjCoords.x + 0.5/ShadowMapResToWindowRatio.x;
-	UVCoords.y = 0.5 / ShadowMapResToWindowRatio.y * ProjCoords.y + 0.5 / ShadowMapResToWindowRatio.y;
+	UVCoords.x = 0.5 * ProjCoords.x + 0.5;
+	UVCoords.y = 0.5 * ProjCoords.y + 0.5 ;
 	float z = 0.5 *  ProjCoords.z + 0.5;
 	
 	float bias = 0.00001;
 	float DepthFromLight[16];
-	float sample= bias * 200.0f;
+	float sample= bias * 75.0f;
 	float brightness=0.0f;
 
 	//Percentage Close Filtering Mask
