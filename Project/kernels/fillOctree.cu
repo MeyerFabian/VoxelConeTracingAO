@@ -28,14 +28,14 @@ cudaError_t setVolumeResulution(int resolution)
     // front corners
     insertpos[0] = make_uint3(0,0,0);
     insertpos[1] = make_uint3(2,0,0);
-    insertpos[2] = make_uint3(2,2,0);
-    insertpos[3] = make_uint3(0,2,0);
+    insertpos[2] = make_uint3(0,2,0);
+    insertpos[3] = make_uint3(2,2,0);
 
     //back corners
     insertpos[4] = make_uint3(0,0,2);
     insertpos[5] = make_uint3(2,0,2);
-    insertpos[6] = make_uint3(2,2,2);
-    insertpos[7] = make_uint3(0,2,2);
+    insertpos[6] = make_uint3(0,2,2);
+    insertpos[7] = make_uint3(2,2,2);
 
     errorCode = cudaMemcpyToSymbol(lookup_octants, octants, sizeof(uint3)*8);
     errorCode = cudaMemcpyToSymbol(insertPositions, insertpos, sizeof(uint3)*8);
@@ -174,6 +174,9 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     {
         // we have a valid brick => fill it
         fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
+        setBit(value,31);
+        __syncthreads();
+        nodePool[offset].value = value;
     }
 }
 
@@ -443,7 +446,7 @@ cudaError_t buildSVO(node *nodePool,
 {
     cudaError_t errorCode = cudaSuccess;
     // calculate maxlevel
-    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
+    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8)+1);
     // note that we dont calculate +1 as we store 8 voxels per brick
 
     dim3 block_dim(32, 0, 0);

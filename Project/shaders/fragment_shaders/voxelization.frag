@@ -42,6 +42,8 @@ void main()
     uvec3 pos = uvec3(((In.posDevice + 1) / 2.0) * 1024);
     //uint codedPos = (pos.x << 20) | (pos.y << 10) | (pos.z);
 
+    memoryBarrier();
+
     // Save position of voxel fragment
     imageStore(positionOutputImage, int(idx), uvec4(vec3ToUintXYZ10(pos)));
 
@@ -49,5 +51,5 @@ void main()
     imageStore(normalOutputImage, int(idx), vec4(In.normal, 0));
     //texture(tex, In.uv).rgba
     // Save color of voxel fragment
-    imageStore(colorOutputImage, int(idx), texture(tex, In.uv).rgba);
+    imageStore(colorOutputImage, int(idx), vec4(pos/float(1024),1));
 }

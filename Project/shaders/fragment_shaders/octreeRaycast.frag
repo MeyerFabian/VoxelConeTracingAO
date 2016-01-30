@@ -7,15 +7,15 @@ layout(location = 0) out vec4 fragColor;
 // Uniforms
 layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
 layout(rgba32f, location = 1) uniform readonly image2D worldPos;
-layout(binding = 2) uniform sampler3D brickPool;
+layout(rgba8) uniform image3D brickPool;
 uniform vec3 camPos;
 uniform float stepSize;
 uniform vec3 volumeCenter;
 uniform float volumeExtent;
 
 // Defines
-int maxSteps = 360;
-int maxLevel = 8;
+int maxSteps = 720;
+int maxLevel = 9;
 float volumeRes = 383.0;
 
 // Helper
@@ -38,8 +38,15 @@ vec3 getVolumePos(vec3 worldPos)
     return ((worldPos - volumeCenter) / volumeExtent) + 0.5;
 }
 
-const uvec3 insertPositions[] = {uvec3(0,0,0),uvec3(2,0,0),uvec3(2,2,0),uvec3(0,2,0),uvec3(0,0,2),uvec3(2,0,2),uvec3(2,2,2),uvec3(0,2,2)};
-
+const uvec3 insertPositions[] = {
+                                uvec3(0, 0, 0),
+                                uvec3(1, 0, 0),
+                                uvec3(0, 1, 0),
+                                uvec3(1, 1, 0),
+                                uvec3(0, 0, 1),
+                                uvec3(1, 0, 1),
+                                uvec3(0, 1, 1),
+                                uvec3(1, 1, 1)};
 // Main
 void main()
 {
@@ -105,7 +112,7 @@ void main()
                 //outputColor = texture(brickPool, brickCoords);
                 //outputColor = vec4(getBit(nodeValue, 32), 0, 0, 1);
 
-                if(getBit(nodeValue, 32) == 1)
+                if(getBit(nodeValue, 31) == 1)
                 {
                 // Update position
                     position.x = 2 * position.x - nextOctant.x;
@@ -118,12 +125,12 @@ void main()
 
                     uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
 
-                    vec3 pos = vec3(insertPositions[offset]);
+                    vec3 pos = vec3(insertPositions[offset]*2);
                     pos.x += float(brickCoords.x);
                     pos.y += float(brickCoords.y);
                     pos.z += float(brickCoords.z);
 
-                    outputColor = texture(brickPool,pos/volumeRes);//vec4(brickCoords/255,1);
+                    outputColor = imageLoad(brickPool,ivec3(pos));// texture(brickPool,pos/volumeRes);//vec4(brickCoords/255,1);
                     finished = true;
                 }
                  else
