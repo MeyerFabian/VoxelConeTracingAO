@@ -66,6 +66,19 @@ void clearNodePoolKernel(node *nodePool, neighbours* neighbourPool, int poolSize
     neighbourPool[i].Z = 0;
 }
 
+__global__
+void clearBrickPool(unsigned int brick_res)
+{
+    int x = blockIdx.x*blockDim.x + threadIdx.x;
+    int y = blockIdx.y*blockDim.y + threadIdx.y;
+    int z = blockIdx.z*blockDim.z + threadIdx.z;
+
+   if(x >= brick_res || y >= brick_res || z >= brick_res)
+        return;
+
+    surf3Dwrite(make_uchar4(0, 0, 0, 0), colorBrickPool, x*sizeof(uchar4), y, z);
+}
+
 
 // resets the global counters
 __global__
@@ -449,8 +462,8 @@ cudaError_t buildSVO(node *nodePool,
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8)+1);
     // note that we dont calculate +1 as we store 8 voxels per brick
 
-    dim3 block_dim(32, 0, 0);
-    dim3 grid_dim(fragmentListSize/block_dim.x, 0, 0);
+    dim3 block_dim(4,4,4);
+    dim3 grid_dim(volumeResolution/block_dim.x,volumeResolution/block_dim.y,volumeResolution/block_dim.z);
 
     int threadsPerBlock = 64;
     int blockCount = fragmentListSize / threadsPerBlock;
@@ -463,7 +476,10 @@ cudaError_t buildSVO(node *nodePool,
     cudaMalloc(&d_counter, sizeof(int));
     cudaMemcpy(d_counter,h_counter,sizeof(unsigned int),cudaMemcpyHostToDevice);
 
+
     clearCounter<<<1,1>>>();
+    clearBrickPool<<<grid_dim, block_dim>>>(volumeResolution);
+
     cudaDeviceSynchronize();
 
     int lastLevel = 0;
