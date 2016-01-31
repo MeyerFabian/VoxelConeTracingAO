@@ -115,9 +115,10 @@ void main()
                 uvec3 brickCoords = decodeBrickCoords(brickTile);
 
                 // Just a check, whether brick is there
-                //if(getBit(brickTile, 31) == 1)
+                if(getBit(brickTile, 31) == 1)
                 {
                     // Here we should intersect our brick seperately
+                    // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
                     nextOctant.x = uint(2 * innerOctreePosition.x);
                     nextOctant.y = uint(2 * innerOctreePosition.y);
                     nextOctant.z = uint(2 * innerOctreePosition.z);
