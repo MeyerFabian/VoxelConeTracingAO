@@ -105,6 +105,6 @@ void BrickPool::unmapFromCUDA()
 
 void BrickPool::bind()
 {
-    //glBindTexture(GL_TEXTURE_3D, m_brickPoolID);
-    glBindImageTexture(2,m_brickPoolID,0,GL_TRUE,3,GL_READ_ONLY,GL_RGBA8);
+    glBindTexture(GL_TEXTURE_3D, m_brickPoolID);
+    //glBindImageTexture(2,m_brickPoolID,0,GL_TRUE,3,GL_READ_ONLY,GL_RGBA8);
 }
