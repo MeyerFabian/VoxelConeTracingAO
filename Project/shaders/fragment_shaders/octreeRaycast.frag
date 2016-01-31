@@ -53,7 +53,7 @@ void main()
 {
     // Raycasting preparation
     vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
-    vec3 position;
+    vec3 volumePosition;
     vec3 dir = normalize(fragWorldPosition - camPos);
     vec3 rayPosition = fragWorldPosition - dir;
     vec4 outputColor = vec4(0,0,0,0);
@@ -62,7 +62,6 @@ void main()
     uint nodeOffset = 0;
     uint childPointer = 0;
     uint nodeTile;
-    uint maxDivide;
 
     // Get first child pointer
     nodeTile = imageLoad(octree, int(0)).x;
@@ -72,22 +71,24 @@ void main()
     // Determine, when opacity is good enough
     bool finished = false;
 
+    // Go over ray
     for(int i = 0; i < maxSteps; i++)
     {
         // Propagate ray along ray direction
         rayPosition += stepSize * dir;
-        position = getVolumePos(rayPosition);
+        volumePosition = getVolumePos(rayPosition);
 
         // Reset child pointer
         childPointer = firstChildPointer;
 
+        // Go through octree
         for(int j = 1; j < maxLevel; j++)
         {
             // Determine, in which octant the searched position is
             uvec3 nextOctant = uvec3(0, 0, 0);
-            nextOctant.x = uint(2 * position.x);
-            nextOctant.y = uint(2 * position.y);
-            nextOctant.z = uint(2 * position.z);
+            nextOctant.x = uint(2 * volumePosition.x);
+            nextOctant.y = uint(2 * volumePosition.y);
+            nextOctant.z = uint(2 * volumePosition.z);
 
             // Make the octant position 1D for the linear memory
             nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
@@ -98,9 +99,9 @@ void main()
             nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
 
             // Update position
-            position.x = 2 * position.x - nextOctant.x;
-            position.y = 2 * position.y - nextOctant.y;
-            position.z = 2 * position.z - nextOctant.z;
+            volumePosition.x = 2 * volumePosition.x - nextOctant.x;
+            volumePosition.y = 2 * volumePosition.y - nextOctant.y;
+            volumePosition.z = 2 * volumePosition.z - nextOctant.z;
 
             if(getBit(nodeTile, 32) == 0 && j == maxLevel-1)
             {
@@ -118,9 +119,9 @@ void main()
                 if(getBit(brickTile, 31) == 1)
                 {
                     // Here we should intersect our brick seperately
-                    nextOctant.x = uint(2 * position.x);
-                    nextOctant.y = uint(2 * position.y);
-                    nextOctant.z = uint(2 * position.z);
+                    nextOctant.x = uint(2 * volumePosition.x);
+                    nextOctant.y = uint(2 * volumePosition.y);
+                    nextOctant.z = uint(2 * volumePosition.z);
                     uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
                     brickCoords += insertPositions[offset]*2;
 
