@@ -53,9 +53,8 @@ void main()
 {
     // Raycasting preparation
     vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
-    vec3 volumePosition;
-    vec3 dir = normalize(fragWorldPosition - camPos);
-    vec3 rayPosition = fragWorldPosition - dir;
+    vec3 direction = normalize(fragWorldPosition - camPos);
+    vec3 rayPosition = fragWorldPosition - direction;
     vec4 outputColor = vec4(0,0,0,0);
 
     // Octree reading preparation
@@ -66,7 +65,6 @@ void main()
     // Get first child pointer
     nodeTile = imageLoad(octree, int(0)).x;
     uint firstChildPointer = nodeTile & uint(0x3fffffff);
-    childPointer = firstChildPointer;
 
     // Determine, when opacity is good enough
     bool finished = false;
@@ -75,8 +73,8 @@ void main()
     for(int i = 0; i < maxSteps; i++)
     {
         // Propagate ray along ray direction
-        rayPosition += stepSize * dir;
-        volumePosition = getVolumePos(rayPosition);
+        rayPosition += stepSize * direction;
+        vec3 innerOctreePosition = getVolumePos(rayPosition);
 
         // Reset child pointer
         childPointer = firstChildPointer;
@@ -86,23 +84,23 @@ void main()
         {
             // Determine, in which octant the searched position is
             uvec3 nextOctant = uvec3(0, 0, 0);
-            nextOctant.x = uint(2 * volumePosition.x);
-            nextOctant.y = uint(2 * volumePosition.y);
-            nextOctant.z = uint(2 * volumePosition.z);
+            nextOctant.x = uint(2 * innerOctreePosition.x);
+            nextOctant.y = uint(2 * innerOctreePosition.y);
+            nextOctant.z = uint(2 * innerOctreePosition.z);
 
             // Make the octant position 1D for the linear memory
             nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+            nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
 
-            // The maxdivide bit indicates whether the node has children:
+            // Update position in volume
+            innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
+            innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
+            innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
+
+            // The 32nd bit indicates whether the node has children:
             // 1 means has children
             // 0 means does not have children
-            nodeTile = imageLoad(octree, int(nodeOffset + childPointer * 16U)).x;
-
-            // Update position
-            volumePosition.x = 2 * volumePosition.x - nextOctant.x;
-            volumePosition.y = 2 * volumePosition.y - nextOctant.y;
-            volumePosition.z = 2 * volumePosition.z - nextOctant.z;
-
+            // Only read from brick, if we are at aimed level in octree
             if(getBit(nodeTile, 32) == 0 && j == maxLevel-1)
             {
                 // Output the reached level as color
@@ -116,12 +114,13 @@ void main()
                 uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
                 uvec3 brickCoords = decodeBrickCoords(brickTile);
 
-                if(getBit(brickTile, 31) == 1)
+                // Just a check, whether brick is there
+                //if(getBit(brickTile, 31) == 1)
                 {
                     // Here we should intersect our brick seperately
-                    nextOctant.x = uint(2 * volumePosition.x);
-                    nextOctant.y = uint(2 * volumePosition.y);
-                    nextOctant.z = uint(2 * volumePosition.z);
+                    nextOctant.x = uint(2 * innerOctreePosition.x);
+                    nextOctant.y = uint(2 * innerOctreePosition.y);
+                    nextOctant.z = uint(2 * innerOctreePosition.z);
                     uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
                     brickCoords += insertPositions[offset]*2;
 
