@@ -209,20 +209,24 @@ void App::run()
         if(testVoxel) {
             // Voxelization (create fragment voxels)
             m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
+
+
+            // Testing fragment list
+            //
+            m_svo->clearOctree();
+            mFragmentList->mapToCUDA();
+
+
+            //m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
+            m_svo->buildOctree(mFragmentList->getPositionDevPointer(),
+                               mFragmentList->getColorBufferDevPointer(),
+                               mFragmentList->getNormalDevPointer(),
+                               mFragmentList->getVoxelCount());
+
+            mFragmentList->unmapFromCUDA();
+
             testVoxel = false;
         }
-
-        // Testing fragment list
-        mFragmentList->mapToCUDA();
-
-
-        //m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
-        m_svo->buildOctree(mFragmentList->getPositionDevPointer(),
-                           mFragmentList->getColorBufferDevPointer(),
-                           mFragmentList->getNormalDevPointer(),
-                           mFragmentList->getVoxelCount());
-
-        mFragmentList->unmapFromCUDA();
 
         // Get window resolution and set viewport for scene rendering
         GLint width, height;
@@ -267,7 +271,8 @@ void App::run()
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
 
-        m_svo->clearOctree();
+        //m_svo->clearOctree();
+
     }
 }
 

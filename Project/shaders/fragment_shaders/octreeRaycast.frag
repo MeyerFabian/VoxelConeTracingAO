@@ -14,7 +14,7 @@ uniform vec3 volumeCenter;
 uniform float volumeExtent;
 
 // Defines
-const int maxSteps = 3000;
+const int maxSteps = 720;
 const int maxLevel = 9;
 const float volumeRes = 383.0;
 const uint pow2[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
@@ -127,12 +127,13 @@ void main()
 
                     // Accumulate color
                     vec4 src = texture(brickPool, brickCoords/volumeRes);
-                    outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
-                    outputColor.a += (1.0 - outputColor.a) * src.a;
+                    //outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
+                    //outputColor.a += (1.0 - outputColor.a) * src.a;
 
                     // More or less: if you hit something, exit
-                    if(outputColor.a >= 0.5)
+                    if(src.a >= 0.5)
                     {
+                        outputColor = src;
                         finished = true;
                     }
                 }

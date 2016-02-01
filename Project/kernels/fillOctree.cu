@@ -462,12 +462,15 @@ cudaError_t buildSVO(node *nodePool,
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8)+1);
     // note that we dont calculate +1 as we store 8 voxels per brick
 
-    dim3 block_dim(4,4,4);
+    printf("volumeRes: %d\n", volumeResolution);
+    dim3 block_dim(8,8,8);
     dim3 grid_dim(volumeResolution/block_dim.x,volumeResolution/block_dim.y,volumeResolution/block_dim.z);
 
     int threadsPerBlock = 512;
     int blockCount = fragmentListSize / threadsPerBlock;
 
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc( 8, 8, 8, 8, cudaChannelFormatKindUnsigned );
+    errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
 
     unsigned int *h_counter = new unsigned int[1];
     unsigned int *d_counter;
@@ -511,14 +514,7 @@ cudaError_t buildSVO(node *nodePool,
 
     //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
     //cudaDeviceSynchronize();
-
-    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc( 8, 8, 8, 8, cudaChannelFormatKindUnsigned );
-    //errorCode = cudaGetChannelDesc(&channelDesc, *brickPool);
-    errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
-
-   // cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
-
     const unsigned int threadPerBlockSpread = 512;
     unsigned int blockCountSpread;
     unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
