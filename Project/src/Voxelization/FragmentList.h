@@ -20,7 +20,7 @@ class FragmentList
 {
     friend class Voxelization;  // setVoxelCount should only be called by Voxelization
 public:
-    FragmentList(GLuint maxListSize = 10000000);
+    FragmentList(GLuint maxListSize = 8000000);
     ~FragmentList();
 
     void init(GLuint maxListSize);
