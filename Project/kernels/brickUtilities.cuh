@@ -150,6 +150,8 @@ __device__ void filterBrick(const uint3 &brickCoords)
     newCoords.y+=brickCoords.x;
     newCoords.z+=brickCoords.x;
 
+    __syncthreads();
+
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // ################### FACES ##########################

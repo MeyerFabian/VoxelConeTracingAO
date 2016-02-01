@@ -200,11 +200,11 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
     if(index >= fragmentListSize)
         return;
 
-    float3 position;
-    getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
-
     for(int i=1;i<level;i++)
     {
+        float3 position;
+        getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
+
         float stepSize = 1.f/powf(2,i);// for some reason this is faster than lookups :D
 
         // initialise all neighbours to no neighbour :P
@@ -228,58 +228,69 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.x += stepSize;
             X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-            if (nodeLevel != foundOnLevel) {
+            if (i != foundOnLevel)
+            {
                 X = 0;
             }
         }
-        if (position.y + stepSize < 1) {
+        if (position.y + stepSize < 1)
+        {
             // handle Y
             float3 tmp = position;
             tmp.y += stepSize;
             Y = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-            if (nodeLevel != foundOnLevel) {
+            if (i != foundOnLevel)
+            {
                 Y = 0;
             }
         }
-        if (position.z + stepSize < 1) {
+        if (position.z + stepSize < 1)
+        {
             // handle Z
             float3 tmp = position;
             tmp.z += stepSize;
             Z = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-            if (nodeLevel != foundOnLevel) {
+            if (i != foundOnLevel)
+            {
                 Z = 0;
             }
         }
 
-        if (position.x - stepSize > 0) {
+        if (position.x - stepSize > 0)
+        {
             // handle negX
             float3 tmp = position;
             tmp.x -= stepSize;
             negX = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-            if (nodeLevel != foundOnLevel) {
+            if (i != foundOnLevel)
+            {
                 negX = 0;
             }
         }
-        if (position.y - stepSize > 0) {
+        if (position.y - stepSize > 0)
+        {
             // handle negY
             float3 tmp = position;
             tmp.y -= stepSize;
             negY = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-            if (nodeLevel != foundOnLevel) {
+            if (i != foundOnLevel)
+            {
                 negY = 0;
             }
         }
-        if (position.z - stepSize > 0) {
+        if (position.z - stepSize > 0)
+        {
             // handle negZ
             float3 tmp = position;
             tmp.z -= stepSize;
             negZ = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, i);
 
-            if (nodeLevel != foundOnLevel) {
+            if (i != foundOnLevel)
+            {
                 negZ = 0;
             }
         }
@@ -365,28 +376,6 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
-/*
-    uint3 octants[8];
-    octants[0] = make_uint3(0,0,0);
-    octants[1] = make_uint3(0,0,1);
-    octants[2] = make_uint3(0,1,0);
-    octants[3] = make_uint3(0,1,1);
-    octants[4] = make_uint3(1,0,0);
-    octants[5] = make_uint3(1,0,1);
-    octants[6] = make_uint3(1,1,0);
-    octants[7] = make_uint3(1,1,1);
-*/
-    /*  The lookup version is slower. we have probably no registers left. const memory is slower as well
-    unsigned int powLookup[8];
-    powLookup[0] = 1;
-    powLookup[1] = 8;
-    powLookup[2] = 64;
-    powLookup[3] = 512;
-    powLookup[4] = 4096;
-    powLookup[5] = 32768;
-    powLookup[6] = 262144;
-    powLookup[7] = 2097152;*/
-    //static_cast<unsigned int>(powf(8.f, static_cast<float>(i-1)))
 
     uint3 nextOctant;
     unsigned int octantIdx = 0;
@@ -512,7 +501,8 @@ cudaError_t buildSVO(node *nodePool,
     // still not sure if this works
     errorCode = cudaMemcpyToSymbol(constNodePool, nodePool, sizeof(node)*maxNodePoolSizeForConstMemory,0,cudaMemcpyDeviceToDevice);
 
-    //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
+    printf("MAXLEVEL: %d\n", maxLevel);
+    fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
     //cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
     const unsigned int threadPerBlockSpread = 512;
@@ -525,7 +515,14 @@ cudaError_t buildSVO(node *nodePool,
         blockCountSpread = nodeCount / threadPerBlockSpread;
 
     cudaDeviceSynchronize();
-    //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
+    filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
+
+    cudaDeviceSynchronize();
+
+    const unsigned int combineThreadCount = 1024;
+    unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
+
+    //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);
 
     cudaFree(d_counter);
     delete h_counter;

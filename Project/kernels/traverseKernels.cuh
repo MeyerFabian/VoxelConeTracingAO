@@ -8,7 +8,10 @@
 __device__
 unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsigned int &foundOnLevel, unsigned int maxLevel)
 {
-    bool useConst = true;
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    bool useConst = false;
+    bool found = false;
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
     unsigned int nodeTile = 0;
@@ -16,7 +19,7 @@ unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsi
     uint3 nextOctant = make_uint3(0,0,0);
 
     // level 0 we just assume that maxdivided is 1 :P
-    nodeTile = constNodePool[offset].nodeTilePointer;//nodepool[offset].nodeTilePointer;
+    nodeTile = nodepool[offset].nodeTilePointer;
     childPointer = nodeTile & 0x3fffffff;
 
     for(unsigned int curLevel=1;curLevel<=maxLevel; curLevel++)
@@ -29,22 +32,25 @@ unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsi
         nodeOffset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
         offset = nodeOffset + childPointer * 8;
 
-        if(offset >= 8168)
-            useConst = false;
-
-        if(useConst)
-            nodeTile = constNodePool[offset].nodeTilePointer;
-        else
-            nodeTile = nodepool[offset].nodeTilePointer;
+        nodeTile = nodepool[offset].nodeTilePointer;
 
         unsigned int maxDivide = getBit(nodeTile,32);
 
-        foundOnLevel = curLevel;
 
-        if(maxDivide == 1)
-            childPointer = nodeTile & 0x3fffffff;
-        else
-            break;
+        if(getBit(nodeTile,32) == 0 && curLevel != 8) // TODO: define global max level
+            return 0;
+
+        childPointer = nodeTile & 0x3fffffff;
+
+        if(curLevel == maxLevel)
+        {
+            foundOnLevel = curLevel;
+
+            if(maxLevel == 8)
+            {
+                //printf("found: %d, cur: %d, offset:%d, maxLevel:%d \n", foundOnLevel, curLevel, offset, maxLevel);
+            }
+        }
 
         pos.x = 2 * pos.x - nextOctant.x;
         pos.y = 2 * pos.y - nextOctant.y;
