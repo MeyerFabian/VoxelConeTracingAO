@@ -26,7 +26,7 @@ public:
 
     // Some constants
     const glm::vec3 VOLUME_CENTER = glm::vec3(0, 40, 0);
-    const float VOLUME_EXTENT = 360.f;
+    const float VOLUME_EXTENT = 384.f;
 
     App();
     virtual ~App(); // Virtual not necessary

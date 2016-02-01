@@ -16,7 +16,7 @@ public:
 
     // TODO: one needs the size of the color ouput texture for sure...
 
-    Voxelization(glm::vec3 center, float extent, unsigned int resolution = 384);
+    Voxelization(glm::vec3 center, float extent, unsigned int resolution = 1024);
     ~Voxelization();
 
     void voxelize(Scene const * pScene, FragmentList *fragmentList);

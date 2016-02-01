@@ -465,7 +465,7 @@ cudaError_t buildSVO(node *nodePool,
     dim3 block_dim(4,4,4);
     dim3 grid_dim(volumeResolution/block_dim.x,volumeResolution/block_dim.y,volumeResolution/block_dim.z);
 
-    int threadsPerBlock = 64;
+    int threadsPerBlock = 512;
     int blockCount = fragmentListSize / threadsPerBlock;
 
 
