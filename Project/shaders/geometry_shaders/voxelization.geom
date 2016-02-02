@@ -24,11 +24,11 @@ out RenderVertex
     vec2 uv;
 } Out;
 
+//!< uniforms
+uniform float pixelSize;
+
 void main()
 {
-    // TODO
-    // Increase triangle size to fill all pixels at borders
-
     // ### Calculate direction where projection is maximized ###
 
     // Calculate normal
@@ -40,8 +40,6 @@ void main()
 
     // Which direction is prominent? (max component of triNormal)
     float triNormalMax = max(max(triNormal.x, triNormal.y), triNormal.z);
-    triNormal /= triNormalMax;
-    triNormal = floor(triNormal);
 
     // Now, prominent direction is coded in triNormal
     vec2 a;
@@ -50,13 +48,14 @@ void main()
 
     // Ugly case stuff, think about better
     // Rotate in direction of camera
-    if(triNormal.x > 0)
+    // Order of vertices not important, no culling used
+    if(triNormal.x == triNormalMax)
     {
         a = In[0].posDevice.zy;
         b = In[1].posDevice.zy;
         c = In[2].posDevice.zy;
     }
-    else if(triNormal.y > 0)
+    else if(triNormal.y == triNormalMax)
     {
         a = In[0].posDevice.xz;
         b = In[1].posDevice.xz;
@@ -69,8 +68,21 @@ void main()
         c = In[2].posDevice.xy;
     }
 
-    // Move into center
+    // Half pixel size
+    float halfPixelSize = pixelSize / 2;
+
+    // Center of triangle
     vec2 center = (a + b + c) / 3;
+
+    // Simple conservative rasterziation
+    vec2 expandDir = normalize(a - center);
+    a += expandDir * halfPixelSize;
+    expandDir = normalize(b - center);
+    b += expandDir * halfPixelSize;
+    expandDir = normalize(c - center);
+    c += expandDir * halfPixelSize;
+
+    // Move into center
     a -= center;
     b -= center;
     c -= center;

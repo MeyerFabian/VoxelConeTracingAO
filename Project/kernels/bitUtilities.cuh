@@ -29,9 +29,9 @@ void getVoxelPositionUINTtoFLOAT3(const unsigned int codedPosition, float3 &posi
     const unsigned int mask_bits = 0x000003FF;
 
     // dont forget the .f for casting reasons :P
-    position.x = ((codedPosition) & (mask_bits)) / 1024.f;
-    position.y = ((codedPosition >> 10) & (mask_bits)) / 1024.f;
-    position.z = ((codedPosition >> 20) & (mask_bits)) / 1024.f;
+    position.x = ((codedPosition) & (mask_bits)) / 1023.f;
+    position.y = ((codedPosition >> 10) & (mask_bits)) / 1023.f;
+    position.z = ((codedPosition >> 20) & (mask_bits)) / 1023.f;
 }
 
 #endif

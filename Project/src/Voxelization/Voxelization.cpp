@@ -43,7 +43,7 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
     glViewport(0, 0, mResolution, mResolution);
 
     mVoxelizationShader->use();
@@ -72,6 +72,9 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
     glUniform1i(normalOutputUniformPosition, 2);
     GLint colorOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "colorOutputImage");
     glUniform1i(colorOutputUniformPosition, 3);
+
+    // Give shader the pixel size for conservative rasterization
+    glUniform1f(glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / mResolution);
 
     // Bind fragment list with output textures / buffers
     fragmentList->bind();
