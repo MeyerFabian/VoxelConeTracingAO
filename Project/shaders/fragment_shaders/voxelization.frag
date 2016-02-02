@@ -4,7 +4,7 @@
 * Voxelization fragment shader.
 */
 
-// kopier aus dem github von den unileuten
+// Convert vec3 to uint with 10 bit per component (wants values from 0..1023)
 uint vec3ToUintXYZ10(uvec3 val)
 {
     return (uint(val.z) & 0x000003FF)   << 20U
@@ -39,10 +39,7 @@ void main()
     uint idx = atomicCounterIncrement(index);
 
     // Position from 0 to 1023 in volume
-    uvec3 pos = uvec3(((In.posDevice + 1) / 2.0) * 1024);
-    //uint codedPos = (pos.x << 20) | (pos.y << 10) | (pos.z);
-
-    memoryBarrier();
+    uvec3 pos = uvec3(((In.posDevice + 1) / 2.0) * 1023);
 
     // Save position of voxel fragment
     imageStore(positionOutputImage, int(idx), uvec4(vec3ToUintXYZ10(pos)));

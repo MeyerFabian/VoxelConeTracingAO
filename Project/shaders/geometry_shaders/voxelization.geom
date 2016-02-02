@@ -8,6 +8,7 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
+// Input vertex from vertex shader
 in Vertex
 {
     vec3 posDevice;
@@ -15,6 +16,7 @@ in Vertex
     vec2 uv;
 } In[3];
 
+// Vertex ready for rasterizer
 out RenderVertex
 {
     vec3 posDevice;

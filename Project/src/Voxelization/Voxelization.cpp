@@ -43,7 +43,7 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glViewport(0, 0, mResolution, mResolution);
 
     mVoxelizationShader->use();
@@ -77,17 +77,17 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
     fragmentList->bind();
 
     // Draw scene with voxelization shader
-	for (auto& bucket : pScene->getRenderBuckets())
-	{
-		// Bind texture of mesh material (pointer to shader is needed for location)
-		bucket.first->bind(mVoxelizationShader.get());
+    for (auto& bucket : pScene->getRenderBuckets())
+    {
+        // Bind texture of mesh material (pointer to shader is needed for location)
+        bucket.first->bind(mVoxelizationShader.get());
 
-		// Draw all meshes in that bucket
-		for (Mesh const * pMesh : bucket.second)
-		{
-			pMesh->draw();
-		}
-	}
+        // Draw all meshes in that bucket
+        for (Mesh const * pMesh : bucket.second)
+        {
+            pMesh->draw();
+        }
+    }
 
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 

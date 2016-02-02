@@ -14,14 +14,13 @@ class Voxelization
 {
 public:
 
-    // TODO: one needs the size of the color ouput texture for sure...
-
     Voxelization(glm::vec3 center, float extent, unsigned int resolution = 1024);
     ~Voxelization();
 
     void voxelize(Scene const * pScene, FragmentList *fragmentList);
 
 private:
+
     // Members
     std::unique_ptr<ShaderProgram> mVoxelizationShader;
     GLuint mAtomicBuffer;
