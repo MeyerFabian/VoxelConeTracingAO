@@ -141,6 +141,18 @@ void FragmentList::bind()
                        GL_RGBA8);
 }
 
+void FragmentList::bindPosition()
+{
+    glActiveTexture(GL_TEXTURE1);
+    glBindImageTexture(1,
+                       mPositionOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_READ_WRITE,
+                       GL_R32UI);
+}
+
 int FragmentList::getVoxelCount() const
 {
     return mVoxelCount;

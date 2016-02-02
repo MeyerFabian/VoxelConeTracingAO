@@ -23,16 +23,16 @@ public:
     Scene(App* pApp, std::string filepath);
     virtual ~Scene();
 
-	void updateCamera(float movement, float deltaCameraYaw, float deltaCameraPitch);
-	void updateLight(float movement, float deltaCameraYaw, float deltaCameraPitch);
+    void updateCamera(float movement, float deltaCameraYaw, float deltaCameraPitch);
+    void updateLight(float movement, float deltaCameraYaw, float deltaCameraPitch);
     void draw(float windowWidth,float windowHeight) const;
 
     glm::vec3 getCamPos() { return mCamera.getPosition(); }
-	
-	const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return mRenderBuckets;}
 
-	const Camera& getCamera() const{ return mCamera;}
-	 Light& getLight() { return mLight; }
+    const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return mRenderBuckets;}
+
+    const Camera& getCamera() const{ return mCamera;}
+    Light& getLight() { return mLight; }
 
 private:
 
@@ -40,7 +40,7 @@ private:
 
     // Members
     Camera mCamera;
-	Light mLight;
+    Light mLight;
     std::unique_ptr<ShaderProgram> mupShader;
     std::vector<std::unique_ptr<Material> > mMaterials;
     std::vector<std::unique_ptr<Mesh> > mMeshes;

@@ -20,6 +20,8 @@
 #include "Rendering/VoxelConeTracing.h"
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
+#include "PointCloud/PointCloud.h"
+
 class App
 {
 public:
@@ -48,6 +50,7 @@ private:
     std::unique_ptr<VoxelConeTracing> m_VoxelConeTracing;
     std::unique_ptr<LightViewMap> m_LightViewMap;
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
+    std::unique_ptr<PointCloud> m_PointCloud;
 };
 
 #endif // APP_H_

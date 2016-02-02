@@ -162,6 +162,8 @@ App::App()
     m_VoxelConeTracing->init(width, height);
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
+
+    // m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
 }
 
 App::~App()

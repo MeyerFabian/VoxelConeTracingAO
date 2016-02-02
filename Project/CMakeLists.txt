@@ -57,6 +57,7 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/src/Utilities")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/Scene")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/Rendering")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/Voxelization")
+add_subdirectory("${PROJECT_SOURCE_DIR}/src/PointCloud")
 
 # Directory of external code
 set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externals")
