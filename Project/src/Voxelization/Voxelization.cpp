@@ -43,7 +43,7 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glViewport(0, 0, mResolution, mResolution);
 
     mVoxelizationShader->use();

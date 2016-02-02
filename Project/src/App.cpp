@@ -141,7 +141,7 @@ App::App()
 
     // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization(VOLUME_CENTER, VOLUME_EXTENT));
+        new Voxelization(VOLUME_CENTER, VOLUME_EXTENT, VOXELIZATION_RESOLUTION));
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
@@ -156,7 +156,7 @@ App::App()
 
     m_LightViewMap = make_unique<LightViewMap>();
 
-	m_LightViewMap->init(width, height);
+    m_LightViewMap->init(width, height);
     m_VoxelConeTracing = make_unique<VoxelConeTracing>();
 
     m_VoxelConeTracing->init(width, height);

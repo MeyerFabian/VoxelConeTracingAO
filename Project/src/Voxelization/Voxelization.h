@@ -14,7 +14,7 @@ class Voxelization
 {
 public:
 
-    Voxelization(glm::vec3 center, float extent, unsigned int resolution = 1024);
+    Voxelization(glm::vec3 center, float extent, unsigned int resolution);
     ~Voxelization();
 
     void voxelize(Scene const * pScene, FragmentList *fragmentList);

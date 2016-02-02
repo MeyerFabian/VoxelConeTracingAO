@@ -20,6 +20,8 @@ in RenderVertex
     vec2 uv;
 } In;
 
+in vec4 AABB;
+
 //!< uniforms
 layout(binding = 0) uniform atomic_uint index;
 uniform sampler2D tex;
@@ -32,8 +34,14 @@ layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    // TODO
-    // Clipping (when triangle size was increased)
+    // Clipping with bounding box
+    if( gl_FragCoord.x < AABB.x
+        || gl_FragCoord.x >= AABB.z
+        || gl_FragCoord.y < AABB.y
+        || gl_FragCoord.y >= AABB.w)
+    {
+        discard;
+    }
 
     // Index in output textures
     uint idx = atomicCounterIncrement(index);

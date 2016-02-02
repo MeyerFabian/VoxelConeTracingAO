@@ -24,13 +24,27 @@ out RenderVertex
     vec2 uv;
 } Out;
 
+// Output coordinates of clipping quad (axis aligned bounding box)
+out vec4 AABB; // x1, y1, x2, y2
+
 //!< uniforms
 uniform float pixelSize;
 
+// Cross for 2D
+vec2 cross2D(vec2 vector)
+{
+    return vec2(vector.y, -vector.x);
+}
+
+// Float mod
+float floatMod(float value, float divisor)
+{
+    int a = int(value / divisor);
+    return (value - (a * divisor));
+}
+
 void main()
 {
-    // ### Calculate direction where projection is maximized ###
-
     // Calculate normal
     vec3 triNormal =
         abs(
@@ -42,70 +56,123 @@ void main()
     float triNormalMax = max(max(triNormal.x, triNormal.y), triNormal.z);
 
     // Now, prominent direction is coded in triNormal
-    vec2 a;
-    vec2 b;
-    vec2 c;
+    vec2 pos[3];
 
     // Ugly case stuff, think about better
     // Rotate in direction of camera
     // Order of vertices not important, no culling used
     if(triNormal.x == triNormalMax)
     {
-        a = In[0].posDevice.zy;
-        b = In[1].posDevice.zy;
-        c = In[2].posDevice.zy;
+        pos[0] = In[0].posDevice.zy;
+        pos[1] = In[1].posDevice.zy;
+        pos[2] = In[2].posDevice.zy;
     }
     else if(triNormal.y == triNormalMax)
     {
-        a = In[0].posDevice.xz;
-        b = In[1].posDevice.xz;
-        c = In[2].posDevice.xz;
+        pos[0] = In[0].posDevice.xz;
+        pos[1] = In[1].posDevice.xz;
+        pos[2] = In[2].posDevice.xz;
     }
     else
     {
-        a = In[0].posDevice.xy;
-        b = In[1].posDevice.xy;
-        c = In[2].posDevice.xy;
+        pos[0] = In[0].posDevice.xy;
+        pos[1] = In[1].posDevice.xy;
+        pos[2] = In[2].posDevice.xy;
+    }
+
+    // Determine orientation of triangle
+    vec3 orientationHelper = cross(
+                                vec3(pos[1],0) - vec3(pos[0],0),
+                                vec3(pos[2],0) - vec3(pos[0],0));
+    if(orientationHelper.z < 0)
+    {
+        // Change orientation of triangle
+        vec2 tmp = pos[2];
+        pos[2] = pos[1];
+        pos[1] = tmp;
     }
 
     // Half pixel size
-    float halfPixelSize = pixelSize / 2;
+    float halfPixelSize = pixelSize / 2.0;
 
     // Center of triangle
-    vec2 center = (a + b + c) / 3;
+    vec2 center = (pos[0] + pos[1] + pos[2]) / 3;
 
-    // Simple conservative rasterziation
-    vec2 expandDir = normalize(a - center);
-    a += expandDir * halfPixelSize;
-    expandDir = normalize(b - center);
-    b += expandDir * halfPixelSize;
-    expandDir = normalize(c - center);
-    c += expandDir * halfPixelSize;
+    // Prepare variables for line equations
+    vec2 lineStarts[3];
+    vec2 lineDirections[3];
 
-    // Move into center
-    a -= center;
-    b -= center;
-    c -= center;
+    // Conservative rasterziation
+    for(int i = 0; i <= 2; i++)
+    {
+        // Go over vertices and create line equation
+        lineStarts[i] = pos[i];
+        int j = (i+1) % 3;
+        lineDirections[i] = normalize(pos[j] - pos[i]);
+    }
+
+    // Move lines away from center using cross product
+    vec2 expandDirections[3];
+    for(int i = 0; i <= 2; i++)
+    {
+        expandDirections[i] = cross2D(lineDirections[i]); // should be normalized
+        lineStarts[i] += expandDirections[i] * halfPixelSize * 1.41f; // TODO: should depend on angle
+    }
+
+    // Cut lines and use found points as output
+    for(int i = 0; i <= 2; i++)
+    {
+        int j = (i+1) % 3;
+        float a1 = expandDirections[i].x;
+        float b1 = expandDirections[i].y;
+        float a2 = expandDirections[j].x;
+        float b2 = expandDirections[j].y;
+        float c1 = dot(expandDirections[i], lineStarts[i]);
+        float c2 = dot(expandDirections[j], lineStarts[j]);
+        pos[i] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+    }
+
+    // Move into center (but only full pixels)
+    vec2 centerOffset = -center + vec2(floatMod(center.x, pixelSize), floatMod(center.y, pixelSize));
+    pos[0] += centerOffset;
+    pos[1] += centerOffset;
+    pos[2] += centerOffset;
+
+    // Calculate max/min values for clipping
+    float minX = min(pos[2].x, min(pos[0].x, pos[1].x));
+    float minY = min(pos[2].y, min(pos[0].y, pos[1].y));
+    float maxX = max(pos[2].x, max(pos[0].x, pos[1].x));
+    float maxY = max(pos[2].y, max(pos[0].y, pos[1].y));
+
+    // Set bounding box for clipping
+    AABB = vec4(
+        minX - halfPixelSize,
+        minY - halfPixelSize,
+        maxX + halfPixelSize,
+        maxY + halfPixelSize);
+
+    // Scale bounding box to pixels
+    AABB = ((AABB + 1.0) / 2.0) * (2.0 / pixelSize);
 
     // First vertex
     Out.posDevice = In[0].posDevice;
     Out.normal = In[0].normal;
     Out.uv = In[0].uv;
-    gl_Position = vec4(a,0,1);
+    gl_Position = vec4(pos[0],0,1);
     EmitVertex();
 
     // Second vertex
     Out.posDevice = In[1].posDevice;
     Out.normal = In[1].normal;
     Out.uv = In[1].uv;
-    gl_Position = vec4(b,0,1);
+    gl_Position = vec4(pos[1],0,1);
     EmitVertex();
 
     // Third vertex
     Out.posDevice = In[2].posDevice;
     Out.normal = In[2].normal;
     Out.uv = In[2].uv;
-    gl_Position = vec4(c,0,1);
+    gl_Position = vec4(pos[2],0,1);
     EmitVertex();
 
     EndPrimitive();
