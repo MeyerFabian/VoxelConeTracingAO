@@ -235,17 +235,18 @@ void App::run()
         glfwGetWindowSize(mpWindow, &width, &height);
         glViewport(0, 0, width, height);
 
+        m_VoxelConeTracing->geometryPass(m_scene);
+
         // Choose visualization
         switch(VISUALIZATION)
         {
         case Visualization::RAYCASTING:
-            m_VoxelConeTracing->geometryPass(m_scene);
             mupOctreeRaycast->draw(
                 m_scene->getCamPos(),
                 m_svo->getNodePool(),
                 m_svo->getBrickPool(),
                 m_VoxelConeTracing->getGBuffer(),
-                0.5,
+                0.02,
                 VOLUME_CENTER,
                 VOLUME_EXTENT);
             break;
@@ -255,7 +256,7 @@ void App::run()
         }
 
         //m_LightViewMap->shadowMapPass(m_scene);
-        //m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
+        m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
         //m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
 
         // Update all controllables

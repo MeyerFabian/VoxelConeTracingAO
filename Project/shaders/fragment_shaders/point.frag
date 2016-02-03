@@ -9,5 +9,5 @@ uniform layout(rgba8, location = 3) imageBuffer colorImage;
 
 void main()
 {
-    fragColor = vec4(imageLoad(normalImage,int(id)).rgb, 1);
+    fragColor = vec4(imageLoad(colorImage,int(id)).rgb, 1);
 }
