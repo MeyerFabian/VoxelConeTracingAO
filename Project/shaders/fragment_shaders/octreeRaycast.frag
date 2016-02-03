@@ -12,9 +12,9 @@ uniform vec3 camPos;
 uniform float stepSize;
 uniform vec3 volumeCenter;
 uniform float volumeExtent;
-
+uniform float directionBeginScale;
+uniform int maxSteps;
 // Defines
-const int maxSteps = 100;
 const int maxLevel = 9;
 const float volumeRes = 383.0;
 const uint pow2[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
@@ -55,7 +55,7 @@ void main()
     vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
 
     vec3 direction = normalize(fragWorldPosition - camPos);
-    vec3 rayPosition = fragWorldPosition - 0.1 * direction;
+    vec3 rayPosition = fragWorldPosition - directionBeginScale * direction;
     vec4 outputColor = vec4(0,0,0,0);
 
     // Octree reading preparation

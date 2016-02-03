@@ -25,6 +25,7 @@ out Vertex
 void main()
 {
     vec4 posWorld = model * positionAttribute;
+	posWorld.z = -posWorld.z;
     Out.posDevice = (projectionView * posWorld).xyz;
     Out.normal = (modelNormal * normalAttribute).xyz;
     Out.uv = uvCoordAttribute;

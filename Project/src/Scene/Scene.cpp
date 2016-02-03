@@ -9,7 +9,7 @@
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
-Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
+Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Debug")
 {
     // Prepare the one and only shader
    // mupShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/sponza.vert","/fragment_shaders/sponza.frag"));

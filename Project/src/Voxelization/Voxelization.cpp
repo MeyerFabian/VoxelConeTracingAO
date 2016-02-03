@@ -10,12 +10,8 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
     cudaError_t setVolumeResulution(int resolution);
 }
 
-Voxelization::Voxelization(glm::vec3 center, float extent, unsigned int resolution)
+Voxelization::Voxelization( )
 {
-    // Fill members
-    mCenter = center;
-    mExtent = extent;
-    mResolution = resolution;
 
     // ### Shader program ###
     mVoxelizationShader = std::unique_ptr<ShaderProgram>(
@@ -39,26 +35,26 @@ Voxelization::~Voxelization()
 }
 
 
-void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
+void Voxelization::voxelize(unsigned int resolution,glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glViewport(0, 0, mResolution, mResolution);
+	glViewport(0, 0, resolution, resolution);
 
     mVoxelizationShader->use();
 
     // ### Transformation ###
 
     // Orthographic projection
-    float halfExtent = mExtent / 2.0f;
+    float halfExtent = extent / 2.0f;
     glm::mat4 projection = glm::ortho(
-            mCenter.x - halfExtent,
-            mCenter.x + halfExtent,
-            mCenter.y - halfExtent,
-            mCenter.y + halfExtent,
-            mCenter.z - halfExtent,
-            mCenter.z + halfExtent);
+            center.x - halfExtent,
+			center.x + halfExtent,
+			center.y - halfExtent,
+			center.y + halfExtent,
+			center.z - halfExtent,
+			center.z + halfExtent);
     mVoxelizationShader->updateUniform("model", glm::mat4(1.0));
     mVoxelizationShader->updateUniform("modelNormal", glm::mat4(1.0)); // same since identity
     mVoxelizationShader->updateUniform("projectionView", projection);
@@ -74,7 +70,7 @@ void Voxelization::voxelize(Scene const * pScene, FragmentList *fragmentList)
     glUniform1i(colorOutputUniformPosition, 3);
 
     // Give shader the pixel size for conservative rasterization
-    glUniform1f(glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / mResolution);
+    glUniform1f(glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / resolution);
 
     // Bind fragment list with output textures / buffers
     fragmentList->bind();

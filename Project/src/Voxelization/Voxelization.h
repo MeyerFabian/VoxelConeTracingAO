@@ -14,10 +14,10 @@ class Voxelization
 {
 public:
 
-    Voxelization(glm::vec3 center, float extent, unsigned int resolution);
+    Voxelization();
     ~Voxelization();
 
-    void voxelize(Scene const * pScene, FragmentList *fragmentList);
+	void voxelize(unsigned int resolution,glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList);
 
 private:
 
@@ -28,9 +28,6 @@ private:
     void resetAtomicCounter() const;
     GLuint readAtomicCounter() const;
 
-    glm::vec3 mCenter;
-    float mExtent;
-    unsigned int mResolution;
 };
 
 #endif // VOXELIZATION_H_

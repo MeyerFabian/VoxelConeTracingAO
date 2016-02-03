@@ -47,7 +47,6 @@ void main()
     uint idx = atomicCounterIncrement(index);
 
     // Position from 0 to 1023 in volume
-    In.posDevice.z = -In.posDevice.z; // "FIX"
     uvec3 pos = uvec3(((In.posDevice + 1) / 2.0) * 1023);
 
     // Save position of voxel fragment

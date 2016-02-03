@@ -4,8 +4,11 @@
 
 #include "OctreeRaycast.h"
 
-OctreeRaycast::OctreeRaycast()
+OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Debug")
 {
+	stepSize = 0.05f;
+	directionBeginScale=0.5f;
+	maxSteps=100;
     glGenVertexArrays(1, &vaoID);
     glBindVertexArray(vaoID);
 
@@ -44,7 +47,6 @@ void OctreeRaycast::draw(
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-        float stepSize,
         glm::vec3 volumeCenter,
         float volumeExtent) const
 {
@@ -56,6 +58,8 @@ void OctreeRaycast::draw(
 
     // update uniforms
     mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
+	mupOctreeRaycastShader->updateUniform("directionBeginScale", directionBeginScale);
+	mupOctreeRaycastShader->updateUniform("maxSteps", maxSteps);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
     mupOctreeRaycastShader->updateUniform("volumeCenter", volumeCenter);
     mupOctreeRaycastShader->updateUniform("volumeExtent", volumeExtent);
@@ -88,4 +92,10 @@ void OctreeRaycast::draw(
     glBindVertexArray(0);
 
     mupOctreeRaycastShader->disable();
+}
+
+void OctreeRaycast::fillGui(){
+	ImGui::SliderFloat("step size:", &stepSize, 0.001f, 1.0f, "%.3f");
+	ImGui::SliderInt("max steps:", &maxSteps, 50, 2000,"%.0f");
+	ImGui::SliderFloat("Raycast begin:", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 }

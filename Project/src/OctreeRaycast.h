@@ -12,21 +12,26 @@
 #include <src/SparseOctree/NodePool.h>
 #include <src/Rendering/GBuffer.h>
 #include <src/SparseOctree/BrickPool.h>
+#include "Controllable.h"
 
-class OctreeRaycast {
+class OctreeRaycast : public Controllable{
 public:
-    OctreeRaycast();
+	OctreeRaycast(App* pApp);
     void draw(
         glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-        float stepSize,
         glm::vec3 volumeCenter,
-        float volumeExtent) const;
+		float volumeExtent) const; 
+		void fillGui();
+		
 private:
     std::unique_ptr<ShaderProgram> mupOctreeRaycastShader;
-    GLuint vaoID;
+	GLuint vaoID; 
+	float stepSize;
+	float directionBeginScale;
+	int maxSteps;
 };
 
 

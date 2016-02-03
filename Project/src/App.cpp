@@ -141,7 +141,7 @@ App::App()
 
     // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization(VOLUME_CENTER, VOLUME_EXTENT, VOXELIZATION_RESOLUTION));
+        new Voxelization());
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
@@ -152,7 +152,7 @@ App::App()
 
     m_svo->init();
 
-    mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast());
+	mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
 
     m_LightViewMap = make_unique<LightViewMap>();
 
@@ -209,8 +209,9 @@ void App::run()
         }
 
         if(testVoxel) {
+
             // Voxelization (create fragment voxels)
-            m_voxelization->voxelize(m_scene.get(), mFragmentList.get());
+			m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
 
             // Testing fragment list
@@ -246,7 +247,6 @@ void App::run()
                 m_svo->getNodePool(),
                 m_svo->getBrickPool(),
                 m_VoxelConeTracing->getGBuffer(),
-                0.02,
                 VOLUME_CENTER,
                 VOLUME_EXTENT);
             break;
