@@ -7,13 +7,11 @@
 
 #include <memory>
 
-const int POINT_COUNT = 8000000;
-
 class PointCloud
 {
 public:
 
-    PointCloud(FragmentList* pFragmentList, Camera const * pCamera);
+    PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLint pointCount);
     virtual ~PointCloud();
 
     void draw(float width,float height, glm::vec3 volumeCenter, float volumeExtent);
@@ -23,8 +21,8 @@ private:
     FragmentList* mpFragmentList;
     Camera const * mpCamera;
     std::unique_ptr<ShaderProgram> mupShaderProgram;
-    GLuint mVBO;
     GLuint mVAO;
+    GLint mPointCount;
 
 };
 

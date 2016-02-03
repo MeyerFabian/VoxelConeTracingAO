@@ -40,7 +40,7 @@ void Voxelization::voxelize(unsigned int resolution,glm::vec3 center, float exte
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-	glViewport(0, 0, resolution, resolution);
+    glViewport(0, 0, resolution, resolution);
 
     mVoxelizationShader->use();
 
@@ -50,11 +50,11 @@ void Voxelization::voxelize(unsigned int resolution,glm::vec3 center, float exte
     float halfExtent = extent / 2.0f;
     glm::mat4 projection = glm::ortho(
             center.x - halfExtent,
-			center.x + halfExtent,
-			center.y - halfExtent,
-			center.y + halfExtent,
-			center.z - halfExtent,
-			center.z + halfExtent);
+            center.x + halfExtent,
+            center.y - halfExtent,
+            center.y + halfExtent,
+            center.z + halfExtent,
+            center.z - halfExtent);
     mVoxelizationShader->updateUniform("model", glm::mat4(1.0));
     mVoxelizationShader->updateUniform("modelNormal", glm::mat4(1.0)); // same since identity
     mVoxelizationShader->updateUniform("projectionView", projection);

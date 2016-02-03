@@ -152,7 +152,7 @@ App::App()
 
     m_svo->init();
 
-	mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
+    mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
 
     m_LightViewMap = make_unique<LightViewMap>();
 
@@ -163,7 +163,7 @@ App::App()
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
-     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
+     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 8000000);
 }
 
 App::~App()
@@ -183,13 +183,18 @@ void App::run()
         GLfloat deltaTime = currentTime - mPrevTime;
         mPrevTime = currentTime;
 
+        // Get window resolution and set viewport for scene rendering
+        GLint width, height;
+        glfwGetWindowSize(mpWindow, &width, &height);
+        glViewport(0, 0, width, height);
+
         // Clear buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // ImGui new frame
         ImGui_ImplGlfwGL3_NewFrame();
 
-        // Update scene
+        // Update camera
         if(rotateCamera)
         {
             m_scene->updateCamera(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
@@ -199,6 +204,7 @@ void App::run()
             m_scene->updateCamera(cameraMovement * deltaTime, 0, 0);
         }
 
+        // Update light
         if (rotateLight)
         {
             m_scene->updateLight(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
@@ -208,10 +214,11 @@ void App::run()
             m_scene->updateLight(cameraMovement * deltaTime, 0, 0);
         }
 
+        // Voxelization of scene
         if(testVoxel) {
 
             // Voxelization (create fragment voxels)
-			m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
+            m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
 
             // Testing fragment list
@@ -231,14 +238,9 @@ void App::run()
             testVoxel = false;
         }
 
-        // Get window resolution and set viewport for scene rendering
-        GLint width, height;
-        glfwGetWindowSize(mpWindow, &width, &height);
-        glViewport(0, 0, width, height);
-
         m_VoxelConeTracing->geometryPass(m_scene);
 
-        // Choose visualization
+        // Choose visualization TODO: make this available to user interface
         switch(VISUALIZATION)
         {
         case Visualization::RAYCASTING:
@@ -255,6 +257,7 @@ void App::run()
             break;
         }
 
+        // FUTURE STUFF
         //m_LightViewMap->shadowMapPass(m_scene);
         m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
         //m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
@@ -275,8 +278,8 @@ void App::run()
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
 
-        //m_svo->clearOctree();
-
+        // Cleanup
+        m_svo->clearOctree();
     }
 }
 

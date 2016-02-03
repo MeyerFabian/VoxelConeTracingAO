@@ -9,5 +9,7 @@ uniform layout(rgba8, location = 3) imageBuffer colorImage;
 
 void main()
 {
-    fragColor = vec4(imageLoad(colorImage,int(id)).rgb, 1);
+    vec3 normal = imageLoad(normalImage,int(id)).rgb;
+    vec3 color = imageLoad(colorImage,int(id)).rgb;
+    fragColor = vec4(color + 0.01 * normal, 1); // TODO: make controllable
 }
