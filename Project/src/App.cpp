@@ -163,7 +163,7 @@ App::App()
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
-    // m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
+     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
 }
 
 App::~App()
@@ -238,10 +238,10 @@ void App::run()
 
         // Draw scene
         //m_scene->draw(width, height);
-
+		m_PointCloud->draw(width,height);
         // geometry pass
-        m_VoxelConeTracing->geometryPass(m_scene);
-
+        //m_VoxelConeTracing->geometryPass(m_scene);
+		/*
         // raycast Octree
         mupOctreeRaycast->draw(
             m_scene->getCamPos(),
@@ -251,7 +251,7 @@ void App::run()
             0.5,
             VOLUME_CENTER,
             VOLUME_EXTENT);
-
+			*/
 
         //m_LightViewMap->shadowMapPass(m_scene);
         //m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);

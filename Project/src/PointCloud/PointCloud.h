@@ -8,7 +8,6 @@
 #include <memory>
 
 // TODO
-// - make it compile
 // - render colors per point
 // - view/projection
 
@@ -21,7 +20,7 @@ public:
     PointCloud(FragmentList* pFragmentList, Camera const * pCamera);
     virtual ~PointCloud();
 
-    void draw();
+	void draw(float width,float height);
 
 private:
 

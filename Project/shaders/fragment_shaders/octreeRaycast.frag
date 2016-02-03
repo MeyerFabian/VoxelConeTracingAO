@@ -53,6 +53,7 @@ void main()
 {
     // Raycasting preparation
     vec3 fragWorldPosition = imageLoad(worldPos, ivec2(gl_FragCoord.xy)).xyz;
+ 
     vec3 direction = normalize(fragWorldPosition - camPos);
     vec3 rayPosition = camPos;
     vec4 outputColor = vec4(0,0,0,0);

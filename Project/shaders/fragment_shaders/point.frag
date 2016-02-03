@@ -1,6 +1,6 @@
 #version 430
 
-in int id;
+in float id;
 layout(location = 0) out vec4 fragColor;
 
 uniform int voxelCount;

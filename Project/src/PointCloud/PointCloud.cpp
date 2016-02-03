@@ -1,13 +1,18 @@
 #include "PointCloud.h"
 
+#include "externals/GLM/glm/glm.hpp"
+#include "externals/GLM/glm/gtc/matrix_transform.hpp"
+#include "externals/GLM/glm/gtx/string_cast.hpp"
+
 PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera)
 {
+	
     // VertexAttribArray necessary?
     mpFragmentList = pFragmentList;
     mpCamera = pCamera;
-
+	
     mupShaderProgram = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/point.vert", "/fragment_shaders/point.frag"));
-
+	
     glGenBuffers(1, &mVBO);
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(GL_ARRAY_BUFFER, POINT_COUNT * sizeof(GL_FLOAT), 0, GL_STATIC_DRAW);
@@ -30,10 +35,13 @@ PointCloud::~PointCloud()
 
 }
 
-void PointCloud::draw()
+void PointCloud::draw(float width, float height)
 {
-    glBindVertexArray(mVAO);
+	mupShaderProgram->use();
 
+	mupShaderProgram->updateUniform("cameraView", mpCamera->getViewMatrix());
+	mupShaderProgram->updateUniform("projectionView", glm::perspective(glm::radians(35.0f), width / height, 0.1f, 300.f));
+	glBindVertexArray(mVAO);
     // Fragment voxel count
     glUniform1f(glGetUniformLocation(static_cast<GLuint>(mupShaderProgram->getShaderProgramHandle()), "voxelCount"), mpFragmentList->getVoxelCount());
 
@@ -44,10 +52,13 @@ void PointCloud::draw()
     glUniform1i(normalUniformPosition, 2);
     GLint colorUniformPosition = glGetUniformLocation(static_cast<GLuint>(mupShaderProgram->getShaderProgramHandle()), "colorImage");
     glUniform1i(colorUniformPosition, 3);*/
+	
 
     // Bind fragment lists
     mpFragmentList->bindPosition();
 
     glDrawArrays(GL_POINTS, 0, POINT_COUNT);
     glBindVertexArray(0);
+
+	mupShaderProgram->disable();
 }
