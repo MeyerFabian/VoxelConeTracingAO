@@ -7,11 +7,7 @@
 
 #include <memory>
 
-// TODO
-// - render colors per point
-// - view/projection
-
-const int POINT_COUNT = 1000;
+const int POINT_COUNT = 8000000;
 
 class PointCloud
 {
@@ -20,7 +16,7 @@ public:
     PointCloud(FragmentList* pFragmentList, Camera const * pCamera);
     virtual ~PointCloud();
 
-	void draw(float width,float height);
+    void draw(float width,float height, glm::vec3 volumeCenter, float volumeExtent);
 
 private:
 
