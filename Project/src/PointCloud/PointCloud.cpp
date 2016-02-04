@@ -14,6 +14,8 @@ PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLin
     mupShaderProgram = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/point.vert", "/fragment_shaders/point.frag"));
 
     glGenVertexArrays(1, &mVAO);
+
+    glPointSize(6.f);
 }
 
 

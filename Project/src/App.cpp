@@ -279,7 +279,7 @@ void App::run()
         glfwPollEvents();
 
         // Cleanup
-        m_svo->clearOctree();
+        //m_svo->clearOctree();
     }
 }
 
