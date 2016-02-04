@@ -81,6 +81,7 @@ void main()
     }
 
     // Determine orientation of triangle
+    bool orientationChanged = false;
     vec3 orientationHelper = cross(
                                 vec3(pos[1],0) - vec3(pos[0],0),
                                 vec3(pos[2],0) - vec3(pos[0],0));
@@ -90,6 +91,9 @@ void main()
         vec2 tmp = pos[2];
         pos[2] = pos[1];
         pos[1] = tmp;
+
+        // Don't forget to rescue that information
+        orientationChanged = true;
     }
 
     // Half pixel size
@@ -162,16 +166,34 @@ void main()
     EmitVertex();
 
     // Second vertex
-    Out.posDevice = In[1].posDevice;
-    Out.normal = In[1].normal;
-    Out.uv = In[1].uv;
+    if(orientationChanged)
+    {
+        Out.posDevice = In[2].posDevice;
+        Out.normal = In[2].normal;
+        Out.uv = In[2].uv;
+    }
+    else
+    {
+        Out.posDevice = In[1].posDevice;
+        Out.normal = In[1].normal;
+        Out.uv = In[1].uv;
+    }
     gl_Position = vec4(pos[1],0,1);
     EmitVertex();
 
     // Third vertex
-    Out.posDevice = In[2].posDevice;
-    Out.normal = In[2].normal;
-    Out.uv = In[2].uv;
+    if(orientationChanged)
+    {
+        Out.posDevice = In[1].posDevice;
+        Out.normal = In[1].normal;
+        Out.uv = In[1].uv;
+    }
+    else
+    {
+        Out.posDevice = In[2].posDevice;
+        Out.normal = In[2].normal;
+        Out.uv = In[2].uv;
+    }
     gl_Position = vec4(pos[2],0,1);
     EmitVertex();
 
