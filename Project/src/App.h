@@ -22,22 +22,24 @@
 #include "Rendering/FullScreenQuad.h"
 #include "PointCloud/PointCloud.h"
 
-class App
+class App: public Controllable
 {
 public:
 
-    enum class Visualization {RAYCASTING, POINT_CLOUD};
+    enum Visualization {RAYCASTING, POINT_CLOUD};
 
     // Some constants
     const glm::vec3 VOLUME_CENTER = glm::vec3(0, 0, 0);
     const float VOLUME_EXTENT = 384.f;
     const unsigned int VOXELIZATION_RESOLUTION = 512;
-    const Visualization VISUALIZATION = Visualization::POINT_CLOUD;
+    int VISUALIZATION = Visualization::RAYCASTING;
 
     App();
     virtual ~App(); // Virtual not necessary
     void run();
     void registerControllable(Controllable* pControllable);
+
+    void fillGui();
 
 private:
 
@@ -54,6 +56,8 @@ private:
     std::unique_ptr<LightViewMap> m_LightViewMap;
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
+
+    bool mVoxeliseEachFrame;
 };
 
 #endif // APP_H_

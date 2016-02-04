@@ -4,7 +4,7 @@
 
 #include "OctreeRaycast.h"
 
-OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Debug")
+OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Raycasting")
 {
 	stepSize = 0.05f;
 	directionBeginScale=0.5f;

@@ -14,7 +14,7 @@ class App;
 class Controllable
 {
 public:
-
+    Controllable(std::string title);
     Controllable(App* pApp, std::string title);
     virtual ~Controllable() = 0;
     void updateGui();

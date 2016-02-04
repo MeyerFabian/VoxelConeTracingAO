@@ -8,6 +8,12 @@ Controllable::Controllable(App* pApp, std::string title)
     mTitle = title;
 }
 
+Controllable::Controllable(std::string title)
+{
+    mTitle = title;
+}
+
+
 Controllable::~Controllable()
 {
     // Nothing to do
@@ -19,3 +25,4 @@ void Controllable::updateGui()
     fillGui();
     ImGui::End();
 }
+

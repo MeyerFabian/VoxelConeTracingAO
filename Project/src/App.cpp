@@ -94,10 +94,12 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
-App::App()
+App::App() : Controllable("Visualisation")
 {
     int width = 800;
     int height = 600;
+
+    mVoxeliseEachFrame = false;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -163,7 +165,31 @@ App::App()
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
-     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 8000000);
+    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 8000000);
+    this->registerControllable(this);
+
+
+
+
+    // create octree from static geometrie
+    // Voxelization (create fragment voxels)
+    m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
+
+
+    // Testing fragment list
+    //
+    m_svo->clearOctree();
+    mFragmentList->mapToCUDA();
+
+
+    //m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
+    m_svo->buildOctree(mFragmentList->getPositionDevPointer(),
+                       mFragmentList->getColorBufferDevPointer(),
+                       mFragmentList->getNormalDevPointer(),
+                       mFragmentList->getVoxelCount());
+
+    mFragmentList->unmapFromCUDA();
+
 }
 
 App::~App()
@@ -172,7 +198,7 @@ App::~App()
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }
-bool testVoxel = true;
+
 void App::run()
 {
     // Loop
@@ -182,11 +208,6 @@ void App::run()
         GLfloat currentTime = (GLfloat)glfwGetTime();
         GLfloat deltaTime = currentTime - mPrevTime;
         mPrevTime = currentTime;
-
-        // Get window resolution and set viewport for scene rendering
-        GLint width, height;
-        glfwGetWindowSize(mpWindow, &width, &height);
-        glViewport(0, 0, width, height);
 
         // Clear buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -215,8 +236,8 @@ void App::run()
         }
 
         // Voxelization of scene
-        if(testVoxel) {
-
+        if(mVoxeliseEachFrame)
+        {
             // Voxelization (create fragment voxels)
             m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
@@ -234,9 +255,12 @@ void App::run()
                                mFragmentList->getVoxelCount());
 
             mFragmentList->unmapFromCUDA();
-
-            testVoxel = false;
         }
+
+        // Get window resolution and set viewport for scene rendering
+        GLint width, height;
+        glfwGetWindowSize(mpWindow, &width, &height);
+        glViewport(0, 0, width, height);
 
         m_VoxelConeTracing->geometryPass(m_scene);
 
@@ -268,9 +292,6 @@ void App::run()
             pControllable->updateGui();
         }
 
-        // Global gui
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
         // Render ImGui (that what is defined by controllables)
         ImGui::Render();
 
@@ -278,12 +299,18 @@ void App::run()
         glfwSwapBuffers(mpWindow);
         glfwPollEvents();
 
-        // Cleanup
-        //m_svo->clearOctree();
     }
 }
 
 void App::registerControllable(Controllable* pControllable)
 {
     mControllables.push_back(pControllable);
+}
+
+void App::fillGui()
+{
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    ImGui::Checkbox("Voxelize each frame:",&mVoxeliseEachFrame);
+    ImGui::Combo("Visualisation",&VISUALIZATION, "Raycasting\0Pointcloud\0\0");
 }

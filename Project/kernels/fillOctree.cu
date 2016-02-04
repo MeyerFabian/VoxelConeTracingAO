@@ -501,8 +501,7 @@ cudaError_t buildSVO(node *nodePool,
     // still not sure if this works
     errorCode = cudaMemcpyToSymbol(constNodePool, nodePool, sizeof(node)*maxNodePoolSizeForConstMemory,0,cudaMemcpyDeviceToDevice);
 
-    printf("MAXLEVEL: %d\n", maxLevel);
-    fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
+    //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
     //cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
     const unsigned int threadPerBlockSpread = 512;
@@ -514,10 +513,10 @@ cudaError_t buildSVO(node *nodePool,
     if(nodeCount >= threadPerBlockSpread)
         blockCountSpread = nodeCount / threadPerBlockSpread;
 
-    cudaDeviceSynchronize();
-    filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
+    //cudaDeviceSynchronize();
+    //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
-    cudaDeviceSynchronize();
+   // cudaDeviceSynchronize();
 
     const unsigned int combineThreadCount = 1024;
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
