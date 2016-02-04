@@ -10,14 +10,17 @@ are save to buffer textures, collection world position, normal and color of each
 #include "Scene/Scene.h"
 #include "FragmentList.h"
 
-class Voxelization
+class Voxelization : public Controllable
 {
 public:
 
-    Voxelization();
+    enum VoxelizeResolutions {RES_256, RES_384, RES_512 };
+    int VOXELIZE_RESOLUTION = RES_384;
+
+    Voxelization(App *pApp);
     ~Voxelization();
 
-	void voxelize(unsigned int resolution,glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList);
+	void voxelize(glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList);
 
 private:
 
@@ -28,6 +31,9 @@ private:
     void resetAtomicCounter() const;
     GLuint readAtomicCounter() const;
 
+    unsigned int determineVoxeliseResolution(int res);
+
+    void fillGui();
 };
 
 #endif // VOXELIZATION_H_

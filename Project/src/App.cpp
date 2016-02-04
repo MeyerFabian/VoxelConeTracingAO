@@ -143,7 +143,7 @@ App::App() : Controllable("Visualisation")
 
     // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization());
+        new Voxelization(this));
 
     mFragmentList = std::unique_ptr<FragmentList>(
             new FragmentList());
@@ -173,7 +173,7 @@ App::App() : Controllable("Visualisation")
 
     // create octree from static geometrie
     // Voxelization (create fragment voxels)
-    m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
+    m_voxelization->voxelize(VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
 
     // Testing fragment list
@@ -239,7 +239,7 @@ void App::run()
         if(mVoxeliseEachFrame)
         {
             // Voxelization (create fragment voxels)
-            m_voxelization->voxelize(VOXELIZATION_RESOLUTION,VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
+            m_voxelization->voxelize(VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
 
             // Testing fragment list
@@ -314,3 +314,4 @@ void App::fillGui()
     ImGui::Checkbox("Voxelize each frame:",&mVoxeliseEachFrame);
     ImGui::Combo("Visualisation",&VISUALIZATION, "Raycasting\0Pointcloud\0\0");
 }
+

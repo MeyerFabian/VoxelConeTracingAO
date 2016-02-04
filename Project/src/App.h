@@ -31,7 +31,6 @@ public:
     // Some constants
     const glm::vec3 VOLUME_CENTER = glm::vec3(0, 0, 0);
     const float VOLUME_EXTENT = 384.f;
-    const unsigned int VOXELIZATION_RESOLUTION = 512;
     int VISUALIZATION = Visualization::RAYCASTING;
 
     App();

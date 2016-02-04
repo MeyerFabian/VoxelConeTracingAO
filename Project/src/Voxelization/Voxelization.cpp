@@ -10,9 +10,8 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
     cudaError_t setVolumeResulution(int resolution);
 }
 
-Voxelization::Voxelization( )
+Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelisation")
 {
-
     // ### Shader program ###
     mVoxelizationShader = std::unique_ptr<ShaderProgram>(
             new ShaderProgram("/vertex_shaders/voxelization.vert","/fragment_shaders/voxelization.frag", "/geometry_shaders/voxelization.geom"));
@@ -23,7 +22,7 @@ Voxelization::Voxelization( )
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mAtomicBuffer);
     glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
 
-    cudaErrorCheck(setVolumeResulution(384));
+    cudaErrorCheck(setVolumeResulution(384)); // todo: gui for cuda..
 
     resetAtomicCounter();
 }
@@ -35,12 +34,12 @@ Voxelization::~Voxelization()
 }
 
 
-void Voxelization::voxelize(unsigned int resolution,glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList)
+void Voxelization::voxelize(glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glViewport(0, 0, resolution, resolution);
+    glViewport(0, 0, determineVoxeliseResolution(VOXELIZE_RESOLUTION), determineVoxeliseResolution(VOXELIZE_RESOLUTION));
 
     mVoxelizationShader->use();
 
@@ -70,7 +69,7 @@ void Voxelization::voxelize(unsigned int resolution,glm::vec3 center, float exte
     glUniform1i(colorOutputUniformPosition, 3);
 
     // Give shader the pixel size for conservative rasterization
-    glUniform1f(glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / resolution);
+    glUniform1f(glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / determineVoxeliseResolution(VOXELIZE_RESOLUTION));
 
     // Bind fragment list with output textures / buffers
     fragmentList->bind();
@@ -129,3 +128,21 @@ void Voxelization::resetAtomicCounter() const {
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
 }
 
+unsigned int Voxelization::determineVoxeliseResolution(int res) {
+    switch (res)
+    {
+        case VoxelizeResolutions::RES_256 :
+            return 256;
+        case VoxelizeResolutions::RES_384 :
+            return 384;
+        case VoxelizeResolutions::RES_512 :
+            return 512;
+        default:
+            return 256;
+    }
+}
+
+void Voxelization::fillGui()
+{
+    ImGui::Combo("Resolution",&VOXELIZE_RESOLUTION , " 256x256x256\0 384*384*384\0 512*512*512\0");
+}
