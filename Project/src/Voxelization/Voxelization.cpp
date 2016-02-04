@@ -137,6 +137,8 @@ unsigned int Voxelization::determineVoxeliseResolution(int res) {
             return 384;
         case VoxelizeResolutions::RES_512 :
             return 512;
+        case VoxelizeResolutions::RES_1024 :
+            return 1024;
         default:
             return 256;
     }
@@ -144,5 +146,5 @@ unsigned int Voxelization::determineVoxeliseResolution(int res) {
 
 void Voxelization::fillGui()
 {
-    ImGui::Combo("Resolution",&VOXELIZE_RESOLUTION , " 256x256x256\0 384*384*384\0 512*512*512\0");
+    ImGui::Combo("Resolution",&VOXELIZE_RESOLUTION , " 256x256x256\0 384*384*384\0 512*512*512\0 1024*1024*1024\0");
 }
