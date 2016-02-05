@@ -165,7 +165,7 @@ App::App() : Controllable("Visualisation")
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
-    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 10000000);
+    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 11500000);
     this->registerControllable(this);
 
 

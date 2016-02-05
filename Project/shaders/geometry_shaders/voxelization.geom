@@ -1,8 +1,6 @@
 #version 430
 
 // TODO
-// - move triangle to center
-// - debug conservative rasterization
 // - make it faster
 
 /*
@@ -107,6 +105,12 @@ void main()
         In[1].uv = tmp2;
     }
 
+    // Calculate max/min values for clipping before expanding
+    float minX = min(pos[2].x, min(pos[0].x, pos[1].x));
+    float minY = min(pos[2].y, min(pos[0].y, pos[1].y));
+    float maxX = max(pos[2].x, max(pos[0].x, pos[1].x));
+    float maxY = max(pos[2].y, max(pos[0].y, pos[1].y));
+
     // Half pixel size
     float halfPixelSize = pixelSize / 2.0;
 
@@ -117,13 +121,10 @@ void main()
     // Conservative rasterziation
     for(int i = 0; i <= 2; i++)
     {
-        // Go over vertices and create line equation
-        lineStarts[i] = pos[i];
-        int j = (i+1) % 3;
-
         // Move lines away from center using cross product
+        int j = (i+1) % 3;
         expandDirections[i] = cross2D(normalize(pos[j] - pos[i]));
-        lineStarts[i] += expandDirections[i] * halfPixelSize * 1.41f; // TODO: should depend on angle
+        lineStarts[i] = pos[i] + expandDirections[i] * halfPixelSize * 1.41f; // TODO: should depend on angle
     }
 
     // Cut lines and use found points as output
@@ -136,14 +137,8 @@ void main()
         float b2 = expandDirections[j].y;
         float c1 = dot(expandDirections[i], lineStarts[i]);
         float c2 = dot(expandDirections[j], lineStarts[j]);
-        pos[i] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+        pos[j] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
     } */
-
-    // Calculate max/min values for clipping
-    float minX = min(pos[2].x, min(pos[0].x, pos[1].x));
-    float minY = min(pos[2].y, min(pos[0].y, pos[1].y));
-    float maxX = max(pos[2].x, max(pos[0].x, pos[1].x));
-    float maxY = max(pos[2].y, max(pos[0].y, pos[1].y));
 
     // Set bounding box for clipping
     AABB = vec4(
@@ -153,7 +148,7 @@ void main()
         maxY + halfPixelSize);
 
     // Convert to pixel space
-    AABB = ((AABB + 1.0) / 2.0) * (2.0/pixelSize);
+    AABB = (AABB + 1.0) / pixelSize;
 
     // First vertex
     Out.posDevice = In[0].posDevice;;
