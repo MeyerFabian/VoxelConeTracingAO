@@ -96,8 +96,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
 App::App() : Controllable("Visualisation")
 {
-    int width = 800;
-    int height = 600;
+    int width = 1024;
+	int height = 1024;
 
     mVoxeliseEachFrame = false;
 
