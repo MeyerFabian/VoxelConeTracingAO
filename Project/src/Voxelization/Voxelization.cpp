@@ -34,7 +34,7 @@ Voxelization::~Voxelization()
 }
 
 
-void Voxelization::voxelize(glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList)
+void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList *fragmentList)
 {
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);

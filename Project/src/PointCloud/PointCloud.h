@@ -14,7 +14,7 @@ public:
     PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLint pointCount);
     virtual ~PointCloud();
 
-    void draw(float width,float height, glm::vec3 volumeCenter, float volumeExtent);
+    void draw(float width,float height, float volumeExtent);
 
 private:
 

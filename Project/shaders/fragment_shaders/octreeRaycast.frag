@@ -10,7 +10,6 @@ layout(rgba32f, location = 1) uniform readonly image2D worldPos;
 layout(binding = 2) uniform sampler3D brickPool;
 uniform vec3 camPos;
 uniform float stepSize;
-uniform vec3 volumeCenter;
 uniform float volumeExtent;
 uniform float directionBeginScale;
 uniform int maxSteps;
@@ -45,7 +44,7 @@ uvec3 decodeBrickCoords(uint coded)
 
 vec3 getVolumePos(vec3 worldPos)
 {
-    return ((worldPos - volumeCenter) / volumeExtent) + 0.5;
+    return (worldPos / volumeExtent) + 0.5;
 }
 
 // Main

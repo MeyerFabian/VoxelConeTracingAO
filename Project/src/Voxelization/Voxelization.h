@@ -23,7 +23,7 @@ public:
     Voxelization(App *pApp);
     ~Voxelization();
 
-    void voxelize(glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList);
+    void voxelize(float extent, Scene const * pScene, FragmentList *fragmentList);
 
 private:
 

@@ -173,7 +173,7 @@ App::App() : Controllable("Visualisation")
 
     // create octree from static geometrie
     // Voxelization (create fragment voxels)
-    m_voxelization->voxelize(VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
+    m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
 
     // Testing fragment list
@@ -239,7 +239,7 @@ void App::run()
         if(mVoxeliseEachFrame)
         {
             // Voxelization (create fragment voxels)
-            m_voxelization->voxelize(VOLUME_CENTER, VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
+            m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
 
 
             // Testing fragment list
@@ -273,11 +273,10 @@ void App::run()
                 m_svo->getNodePool(),
                 m_svo->getBrickPool(),
                 m_VoxelConeTracing->getGBuffer(),
-                VOLUME_CENTER,
                 VOLUME_EXTENT);
             break;
         case Visualization::POINT_CLOUD:
-            m_PointCloud->draw(width,height, VOLUME_CENTER, VOLUME_EXTENT);
+            m_PointCloud->draw(width,height, VOLUME_EXTENT);
             break;
         }
 

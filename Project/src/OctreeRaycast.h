@@ -16,22 +16,21 @@
 
 class OctreeRaycast : public Controllable{
 public:
-	OctreeRaycast(App* pApp);
+    OctreeRaycast(App* pApp);
     void draw(
         glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-        glm::vec3 volumeCenter,
-		float volumeExtent) const; 
-		void fillGui();
-		
+        float volumeExtent) const;
+        void fillGui();
+
 private:
     std::unique_ptr<ShaderProgram> mupOctreeRaycastShader;
-	GLuint vaoID; 
-	float stepSize;
-	float directionBeginScale;
-	int maxSteps;
+    GLuint vaoID;
+    float stepSize;
+    float directionBeginScale;
+    int maxSteps;
 };
 
 

@@ -24,7 +24,7 @@ PointCloud::~PointCloud()
     glDeleteVertexArrays(1, &mVAO);
 }
 
-void PointCloud::draw(float width, float height, glm::vec3 volumeCenter, float volumeExtent)
+void PointCloud::draw(float width, float height, float volumeExtent)
 {
     // Bind VAO and shader
     glBindVertexArray(mVAO);
@@ -35,7 +35,6 @@ void PointCloud::draw(float width, float height, glm::vec3 volumeCenter, float v
     mupShaderProgram->updateUniform("projection", glm::perspective(glm::radians(35.0f), width / height, 0.1f, 400.f)); // TODO: should be in camera class
 
     // Volume center and extent for scaling
-    mupShaderProgram->updateUniform("volumeCenter", volumeCenter);
     mupShaderProgram->updateUniform("volumeExtent", volumeExtent);
 
     // Fragment voxel count

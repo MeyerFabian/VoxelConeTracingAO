@@ -29,7 +29,6 @@ public:
     enum Visualization {RAYCASTING, POINT_CLOUD};
 
     // Some constants
-    const glm::vec3 VOLUME_CENTER = glm::vec3(0, 0, 0);
     const float VOLUME_EXTENT = 384.f;
     int VISUALIZATION = Visualization::RAYCASTING;
 
