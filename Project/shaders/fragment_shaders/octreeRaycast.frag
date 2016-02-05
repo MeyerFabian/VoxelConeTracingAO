@@ -72,13 +72,17 @@ void main()
     // Go over ray
     for(int i = 0; i < maxSteps; i++)
     {
+		
+        // Propagate ray along ray direction
+        rayPosition += stepSize * direction;
+
+		// Dont Raycast when outside of the volume
 		if(abs(rayPosition).x > volumeExtent/2.0f ||
 		abs(rayPosition).y > volumeExtent/2.0f||
 		abs(rayPosition).z > volumeExtent/2.0f
 		)
 		break;
-        // Propagate ray along ray direction
-        rayPosition += stepSize * direction;
+
         vec3 innerOctreePosition = getVolumePos(rayPosition);
 
         // Reset child pointer
