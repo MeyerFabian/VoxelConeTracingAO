@@ -4,14 +4,6 @@
 * Voxelization fragment shader.
 */
 
-// Convert vec3 to uint with 10 bit per component (wants values from 0..1023)
-uint vec3ToUintXYZ10(uvec3 val)
-{
-    return (uint(val.z) & 0x000003FF)   << 20U
-            |(uint(val.y) & 0x000003FF) << 10U
-            |(uint(val.x) & 0x000003FF);
-}
-
 //!< in-variables
 in RenderVertex
 {
@@ -29,8 +21,17 @@ uniform layout(r32ui, location = 1) uimageBuffer positionOutputImage;
 uniform layout(rgba8, location = 2) imageBuffer normalOutputImage;
 uniform layout(rgba8, location = 3) imageBuffer colorOutputImage;
 
+
 //!< out-variables
 layout(location = 0) out vec4 fragColor;
+
+// Convert vec3 to uint with 10 bit per component (wants values from 0..1023)
+uint vec3ToUintXYZ10(uvec3 val)
+{
+    return (uint(val.z) & 0x000003FF)   << 20U
+            |(uint(val.y) & 0x000003FF) << 10U
+            |(uint(val.x) & 0x000003FF);
+}
 
 void main()
 {

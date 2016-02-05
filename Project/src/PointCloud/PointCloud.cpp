@@ -15,7 +15,7 @@ PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLin
 
     glGenVertexArrays(1, &mVAO);
 
-    glPointSize(6.f);
+    glPointSize(1.f);
 }
 
 

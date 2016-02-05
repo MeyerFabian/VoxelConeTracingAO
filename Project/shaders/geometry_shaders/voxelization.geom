@@ -11,7 +11,7 @@ layout(triangle_strip, max_vertices = 3) out;
 // Input vertex from vertex shader
 in Vertex
 {
-    vec3 posDevice;
+    vec3 posWorld;
     vec3 normal;
     vec2 uv;
 } In[3];
@@ -29,6 +29,9 @@ out vec4 AABB; // x1, y1, x2, y2
 
 //!< uniforms
 uniform float pixelSize;
+uniform mat4 projectionX;
+uniform mat4 projectionY;
+uniform mat4 projectionZ;
 
 // Cross for 2D
 vec2 cross2D(vec2 vector)
@@ -48,37 +51,39 @@ void main()
     // Calculate normal
     vec3 triNormal =
         abs(
-            cross(
-                In[1].posDevice - In[0].posDevice,
-                In[2].posDevice - In[0].posDevice)); // not normalized
+            normalize(
+                cross(
+                    In[1].posWorld - In[0].posWorld,
+                    In[2].posWorld - In[0].posWorld)));
 
     // Which direction is prominent? (max component of triNormal)
     float triNormalMax = max(max(triNormal.x, triNormal.y), triNormal.z);
 
-    // Now, prominent direction is coded in triNormal
-    vec2 pos[3];
-
-    // Ugly case stuff, think about better
-    // Rotate in direction of camera
-    // Order of vertices not important, no culling used
+    mat4 proj;
     if(triNormal.x == triNormalMax)
     {
-        pos[0] = In[0].posDevice.zy;
-        pos[1] = In[1].posDevice.zy;
-        pos[2] = In[2].posDevice.zy;
+        proj = projectionX;
     }
     else if(triNormal.y == triNormalMax)
     {
-        pos[0] = In[0].posDevice.xz;
-        pos[1] = In[1].posDevice.xz;
-        pos[2] = In[2].posDevice.xz;
+        proj = projectionY;
     }
     else
     {
-        pos[0] = In[0].posDevice.xy;
-        pos[1] = In[1].posDevice.xy;
-        pos[2] = In[2].posDevice.xy;
+        proj = projectionZ;
     }
+
+    // Use projection
+    vec4 posOrtho[3];
+    posOrtho[0] = proj * vec4(In[0].posWorld,1);
+    posOrtho[1] = proj * vec4(In[1].posWorld,1);
+    posOrtho[2] = proj * vec4(In[2].posWorld,1);
+
+    // Position for rasterization
+    vec2 pos[3];
+    pos[0] = posOrtho[0].xy;
+    pos[1] = posOrtho[1].xy;
+    pos[2] = posOrtho[2].xy;
 
     // Determine orientation of triangle
     bool orientationChanged = false;
@@ -158,8 +163,14 @@ void main()
     // Scale bounding box to pixels
     AABB = ((AABB + 1.0) / 2.0) * (2.0 / pixelSize);
 
+    // Use one projection to get uniform device coordinates for texture buffer
+    vec3 posDevice[3];
+    posDevice[0] = (projectionZ * vec4(In[0].posWorld,1)).xyz;
+    posDevice[1] = (projectionZ * vec4(In[1].posWorld,1)).xyz;
+    posDevice[2] = (projectionZ * vec4(In[2].posWorld,1)).xyz;
+
     // First vertex
-    Out.posDevice = In[0].posDevice;
+    Out.posDevice = posDevice[0];
     Out.normal = In[0].normal;
     Out.uv = In[0].uv;
     gl_Position = vec4(pos[0],0,1);
@@ -168,13 +179,13 @@ void main()
     // Second vertex
     if(orientationChanged)
     {
-        Out.posDevice = In[2].posDevice;
+        Out.posDevice = posDevice[2];
         Out.normal = In[2].normal;
         Out.uv = In[2].uv;
     }
     else
     {
-        Out.posDevice = In[1].posDevice;
+        Out.posDevice = posDevice[1];
         Out.normal = In[1].normal;
         Out.uv = In[1].uv;
     }
@@ -184,13 +195,13 @@ void main()
     // Third vertex
     if(orientationChanged)
     {
-        Out.posDevice = In[1].posDevice;
+        Out.posDevice = posDevice[1];
         Out.normal = In[1].normal;
         Out.uv = In[1].uv;
     }
     else
     {
-        Out.posDevice = In[2].posDevice;
+        Out.posDevice = posDevice[2];
         Out.normal = In[2].normal;
         Out.uv = In[2].uv;
     }

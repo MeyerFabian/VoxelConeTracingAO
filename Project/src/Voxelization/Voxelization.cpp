@@ -45,18 +45,36 @@ void Voxelization::voxelize(glm::vec3 center, float extent, Scene const * pScene
 
     // ### Transformation ###
 
-    // Orthographic projection
-    float halfExtent = extent / 2.0f;
-    glm::mat4 projection = glm::ortho(
-            center.x - halfExtent,
-            center.x + halfExtent,
-            center.y - halfExtent,
-            center.y + halfExtent,
-            center.z + halfExtent,
-            center.z - halfExtent);
+    // Orthographic projections
+    glm::mat4 projectionX;
+    projectionX[0] = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    projectionX[1] = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    projectionX[2] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    projectionX[3] = glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+
+
+    glm::mat4 projectionY;
+    projectionY[0] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    projectionY[1] = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    projectionY[2] = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    projectionY[3] = glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+
+    glm::mat4 projectionZ;
+    projectionZ[0] = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+    projectionZ[1] = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    projectionZ[2] = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    projectionZ[3] = glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+
+    glm::mat4 volume(2.0f / extent, 0.0f, 0.0f, 0.0f,
+        0.0f, 2.0f / extent, 0.0f, 0.0f,
+        0.0f, 0.0f, -2.0f / extent, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f);
+
     mVoxelizationShader->updateUniform("model", glm::mat4(1.0));
     mVoxelizationShader->updateUniform("modelNormal", glm::mat4(1.0)); // same since identity
-    mVoxelizationShader->updateUniform("projectionView", projection);
+    mVoxelizationShader->updateUniform("projectionX", volume * projectionX);
+    mVoxelizationShader->updateUniform("projectionY", volume * projectionY);
+    mVoxelizationShader->updateUniform("projectionZ", volume * projectionZ);
 
     resetAtomicCounter();
 
