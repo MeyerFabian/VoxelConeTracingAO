@@ -1,7 +1,6 @@
 #version 430
 
 // In / out
-in vec3 fragPos;
 layout(location = 0) out vec4 fragColor;
 
 // Uniforms
@@ -13,6 +12,7 @@ uniform float stepSize;
 uniform float volumeExtent;
 uniform float directionBeginScale;
 uniform int maxSteps;
+
 // Defines
 const int maxLevel = 9;
 const float volumeRes = 383.0;
@@ -127,13 +127,13 @@ void main()
 
                     // Accumulate color
                     vec4 src = texture(brickPool, brickCoords/volumeRes);
-                    //outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
-                    //outputColor.a += (1.0 - outputColor.a) * src.a;
+                    outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
+                    outputColor.a += (1.0 - outputColor.a) * src.a;
 
                     // More or less: if you hit something, exit
-                    if(src.a >= 0.5)
+                    if(outputColor.a >= 0.5)
                     {
-                        outputColor = src;
+                        //outputColor = src;
                         finished = true;
                     }
                 }
