@@ -11,7 +11,7 @@ layout(triangle_strip, max_vertices = 3) out;
 // Input vertex from vertex shader
 in Vertex
 {
-    vec3 posWorld;
+    vec3 posDevice;
     vec3 normal;
     vec2 uv;
 } In[3];
@@ -29,9 +29,6 @@ out vec4 AABB; // x1, y1, x2, y2
 
 //!< uniforms
 uniform float pixelSize;
-uniform mat4 projectionX;
-uniform mat4 projectionY;
-uniform mat4 projectionZ;
 
 // Cross for 2D
 vec2 cross2D(vec2 vector)
@@ -52,38 +49,32 @@ void main()
     vec3 triNormal =
         abs(
             normalize(
-                cross(
-                    In[1].posWorld - In[0].posWorld,
-                    In[2].posWorld - In[0].posWorld)));
+                    cross(
+                        In[1].posDevice - In[0].posDevice,
+                        In[2].posDevice - In[0].posDevice)));
 
     // Which direction is prominent? (max component of triNormal)
     float triNormalMax = max(max(triNormal.x, triNormal.y), triNormal.z);
 
-    mat4 proj;
+    vec2 pos[3];
     if(triNormal.x == triNormalMax)
     {
-        proj = projectionX;
+        pos[0] = In[0].posDevice.zy;
+        pos[1] = In[1].posDevice.zy;
+        pos[2] = In[2].posDevice.zy;
     }
     else if(triNormal.y == triNormalMax)
     {
-        proj = projectionY;
+        pos[0] = In[0].posDevice.xz;
+        pos[1] = In[1].posDevice.xz;
+        pos[2] = In[2].posDevice.xz;
     }
     else
     {
-        proj = projectionZ;
+        pos[0] = In[0].posDevice.xy;
+        pos[1] = In[1].posDevice.xy;
+        pos[2] = In[2].posDevice.xy;
     }
-
-    // Use projection
-    vec4 posOrtho[3];
-    posOrtho[0] = proj * vec4(In[0].posWorld,1);
-    posOrtho[1] = proj * vec4(In[1].posWorld,1);
-    posOrtho[2] = proj * vec4(In[2].posWorld,1);
-
-    // Position for rasterization
-    vec2 pos[3];
-    pos[0] = posOrtho[0].xy;
-    pos[1] = posOrtho[1].xy;
-    pos[2] = posOrtho[2].xy;
 
     // Determine orientation of triangle
     bool orientationChanged = false;
@@ -108,7 +99,7 @@ void main()
     vec2 center = (pos[0] + pos[1] + pos[2]) / 3;
 
     // Prepare variables for line equations
-    vec2 lineStarts[3];
+    /*vec2 lineStarts[3];
     vec2 lineDirections[3];
 
     // Conservative rasterziation
@@ -140,12 +131,14 @@ void main()
         float c2 = dot(expandDirections[j], lineStarts[j]);
         pos[i] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
     }
-
+ */
     // Move into center (but only full pixels)
     vec2 centerOffset = -center + vec2(floatMod(center.x, pixelSize), floatMod(center.y, pixelSize));
     pos[0] += centerOffset;
     pos[1] += centerOffset;
     pos[2] += centerOffset;
+
+
 
     // Calculate max/min values for clipping
     float minX = min(pos[2].x, min(pos[0].x, pos[1].x));
@@ -163,14 +156,8 @@ void main()
     // Scale bounding box to pixels
     AABB = ((AABB + 1.0) / 2.0) * (2.0 / pixelSize);
 
-    // Use one projection to get uniform device coordinates for texture buffer
-    vec3 posDevice[3];
-    posDevice[0] = (projectionZ * vec4(In[0].posWorld,1)).xyz;
-    posDevice[1] = (projectionZ * vec4(In[1].posWorld,1)).xyz;
-    posDevice[2] = (projectionZ * vec4(In[2].posWorld,1)).xyz;
-
     // First vertex
-    Out.posDevice = posDevice[0];
+    Out.posDevice = In[0].posDevice;;
     Out.normal = In[0].normal;
     Out.uv = In[0].uv;
     gl_Position = vec4(pos[0],0,1);
@@ -179,13 +166,13 @@ void main()
     // Second vertex
     if(orientationChanged)
     {
-        Out.posDevice = posDevice[2];
+        Out.posDevice = In[2].posDevice;;
         Out.normal = In[2].normal;
         Out.uv = In[2].uv;
     }
     else
     {
-        Out.posDevice = posDevice[1];
+        Out.posDevice = In[1].posDevice;;
         Out.normal = In[1].normal;
         Out.uv = In[1].uv;
     }
@@ -195,13 +182,13 @@ void main()
     // Third vertex
     if(orientationChanged)
     {
-        Out.posDevice = posDevice[1];
+        Out.posDevice = In[1].posDevice;
         Out.normal = In[1].normal;
         Out.uv = In[1].uv;
     }
     else
     {
-        Out.posDevice = posDevice[2];
+        Out.posDevice = In[2].posDevice;
         Out.normal = In[2].normal;
         Out.uv = In[2].uv;
     }

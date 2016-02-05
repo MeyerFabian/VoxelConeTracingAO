@@ -36,18 +36,20 @@ uint vec3ToUintXYZ10(uvec3 val)
 void main()
 {
     // Clipping with bounding box
-    if( gl_FragCoord.x < AABB.x
+    /*if( gl_FragCoord.x < AABB.x
         || gl_FragCoord.x >= AABB.z
         || gl_FragCoord.y < AABB.y
         || gl_FragCoord.y >= AABB.w)
     {
         discard;
-    }
+    }*/
 
     // Index in output textures
     uint idx = atomicCounterIncrement(index);
 
     // Position from 0 to 1023 in volume
+    //In.posDevice.z = -In.posDevice.z;
+    In.posDevice.x = -In.posDevice.x;
     uvec3 pos = uvec3(((In.posDevice + 1) / 2.0) * 1023);
 
     // Save position of voxel fragment
