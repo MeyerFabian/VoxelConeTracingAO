@@ -1,5 +1,10 @@
 #version 430
 
+// TODO
+// - move triangle to center
+// - debug conservative rasterization
+// - make it faster
+
 /*
 * Voxelization geometry shader.
 */
@@ -25,7 +30,7 @@ out RenderVertex
 } Out;
 
 // Output coordinates of clipping quad (axis aligned bounding box)
-out vec4 AABB; // x1, y1, x2, y2
+out vec4 AABB; // x1, y1, x2, y2 in pixel coordinates
 
 //!< uniforms
 uniform float pixelSize;
@@ -84,9 +89,9 @@ void main()
     if(orientationHelper.z < 0)
     {
         // Change orientation of triangle
-        vec2 tmp = pos[2];
+        vec2 tmp2 = pos[2];
         pos[2] = pos[1];
-        pos[1] = tmp;
+        pos[1] = tmp2;
 
         // Don't forget to rescue that information
         orientationChanged = true;
@@ -95,11 +100,8 @@ void main()
     // Half pixel size
     float halfPixelSize = pixelSize / 2.0;
 
-    // Center of triangle
-    vec2 center = (pos[0] + pos[1] + pos[2]) / 3;
-
     // Prepare variables for line equations
-    /*vec2 lineStarts[3];
+    vec2 lineStarts[3];
     vec2 lineDirections[3];
 
     // Conservative rasterziation
@@ -131,14 +133,6 @@ void main()
         float c2 = dot(expandDirections[j], lineStarts[j]);
         pos[i] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
     }
- */
-    // Move into center (but only full pixels)
-    vec2 centerOffset = -center + vec2(floatMod(center.x, pixelSize), floatMod(center.y, pixelSize));
-    pos[0] += centerOffset;
-    pos[1] += centerOffset;
-    pos[2] += centerOffset;
-
-
 
     // Calculate max/min values for clipping
     float minX = min(pos[2].x, min(pos[0].x, pos[1].x));
@@ -153,8 +147,8 @@ void main()
         maxX + halfPixelSize,
         maxY + halfPixelSize);
 
-    // Scale bounding box to pixels
-    AABB = ((AABB + 1.0) / 2.0) * (2.0 / pixelSize);
+    // Convert to pixel space
+    AABB = ((AABB + 1.0) / 2.0) * (2.0/pixelSize);
 
     // First vertex
     Out.posDevice = In[0].posDevice;;

@@ -10,17 +10,20 @@ are save to buffer textures, collection world position, normal and color of each
 #include "Scene/Scene.h"
 #include "FragmentList.h"
 
+// TODO
+// -Create own framebuffer to be independend from screen resoluation
+
 class Voxelization : public Controllable
 {
 public:
 
     enum VoxelizeResolutions {RES_256, RES_384, RES_512, RES_1024};
-    int VOXELIZE_RESOLUTION = RES_384;
+    int VOXELIZE_RESOLUTION = RES_1024;
 
     Voxelization(App *pApp);
     ~Voxelization();
 
-	void voxelize(glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList);
+    void voxelize(glm::vec3 center, float extent, Scene const * pScene, FragmentList *fragmentList);
 
 private:
 

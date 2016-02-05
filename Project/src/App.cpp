@@ -97,7 +97,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 App::App() : Controllable("Visualisation")
 {
     int width = 1024;
-	int height = 1024;
+    int height = 1024;
 
     mVoxeliseEachFrame = false;
 
@@ -165,7 +165,7 @@ App::App() : Controllable("Visualisation")
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
-    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 8000000);
+    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 10000000);
     this->registerControllable(this);
 
 
