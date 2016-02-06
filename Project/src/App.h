@@ -29,7 +29,7 @@ public:
     enum Visualization {RAYCASTING, POINT_CLOUD};
 
     // Some constants
-    const float VOLUME_EXTENT = 384.f;
+    float VOLUME_EXTENT = 384.f;
     int VISUALIZATION = Visualization::RAYCASTING;
 
     App();

@@ -309,7 +309,7 @@ void App::registerControllable(Controllable* pControllable)
 void App::fillGui()
 {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
+    ImGui::SliderFloat("VolumeExtend:", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame:",&mVoxeliseEachFrame);
     ImGui::Combo("Visualisation",&VISUALIZATION, "Raycasting\0Pointcloud\0\0");
 }
