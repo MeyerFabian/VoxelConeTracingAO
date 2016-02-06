@@ -381,7 +381,7 @@ __global__ void reserveMemoryForNodesFast(node* nodePool, unsigned int startAdre
     unsigned int pointer = nodePool[nodeAdress].nodeTilePointer;
     unsigned int value = nodePool[nodeAdress].value;
 
-    //__syncthreads();
+    __syncthreads();
 
     if (getBit(pointer, 31) == 1)
     {
@@ -537,7 +537,6 @@ cudaError_t buildSVO(node *nodePool,
             lastLevel = 1;
 
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        printf("reserved: %d\n",*h_counter);
         //reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
         cudaDeviceSynchronize();
