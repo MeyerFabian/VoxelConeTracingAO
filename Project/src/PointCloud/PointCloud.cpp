@@ -15,7 +15,7 @@ PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLin
 
     glGenVertexArrays(1, &mVAO);
 
-    glPointSize(1.f);
+    glPointSize(7.f);
 }
 
 
@@ -26,6 +26,10 @@ PointCloud::~PointCloud()
 
 void PointCloud::draw(float width, float height, float volumeExtent)
 {
+    // Prepare OpenGL
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+
     // Bind VAO and shader
     glBindVertexArray(mVAO);
     mupShaderProgram->use();

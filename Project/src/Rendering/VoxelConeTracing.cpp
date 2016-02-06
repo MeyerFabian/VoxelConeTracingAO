@@ -79,15 +79,17 @@ void VoxelConeTracing::supplyFullScreenQuad(){
 
 void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 
-    glDepthMask(true);
+
     //Bind the GBuffer before enabling (and texture stuff) else it will fail
     m_gbuffer->bindForWriting();
 
     glm::mat4 uniformModel = glm::mat4(1.f);
 
+    glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
+
     // Use the one and only shader
     m_geomPass->use();
 
@@ -115,14 +117,11 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
     }
     m_geomPass->disable();
 
-    glDepthMask(GL_FALSE);
-    glDisable(GL_DEPTH_TEST);
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const{
     //Bind window framebuffer
-	
+
     glViewport(0, 0, m_width, m_height);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //glEnable(GL_BLEND);
@@ -133,45 +132,45 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
 
     //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
     //glClear(GL_COLOR_BUFFER_BIT);
-	/*
+    /*
 
     glm::mat4 WVP = glm::mat4(1.f);
 
     m_voxelConeTracing->use();
 
-	//Light uniforms
-	m_voxelConeTracing->updateUniform("LightPosition", scene->getLight().getPosition());
-	m_voxelConeTracing->updateUniform("LightColor", scene->getLight().getColor());
-	m_voxelConeTracing->updateUniform("LightAmbientIntensity", scene->getLight().getAmbientIntensity());
-	m_voxelConeTracing->updateUniform("LightDiffuseIntensity", scene->getLight().getDiffuseIntensity());
+    //Light uniforms
+    m_voxelConeTracing->updateUniform("LightPosition", scene->getLight().getPosition());
+    m_voxelConeTracing->updateUniform("LightColor", scene->getLight().getColor());
+    m_voxelConeTracing->updateUniform("LightAmbientIntensity", scene->getLight().getAmbientIntensity());
+    m_voxelConeTracing->updateUniform("LightDiffuseIntensity", scene->getLight().getDiffuseIntensity());
 
-	m_voxelConeTracing->updateUniform("LightModel", scene->getLight().getModelMatrix());
-	m_voxelConeTracing->updateUniform("LightView", scene->getLight().getViewMatrix());
-	m_voxelConeTracing->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
-	m_voxelConeTracing->updateUniform("shininess", 10.0);
-	m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
+    m_voxelConeTracing->updateUniform("LightModel", scene->getLight().getModelMatrix());
+    m_voxelConeTracing->updateUniform("LightView", scene->getLight().getViewMatrix());
+    m_voxelConeTracing->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
+    m_voxelConeTracing->updateUniform("shininess", 10.0);
+    m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
 
-	//other uniforms
-	m_voxelConeTracing->updateUniform("identity", WVP);
-	m_voxelConeTracing->updateUniform("screenSize", glm::vec2(m_width, m_height));
+    //other uniforms
+    m_voxelConeTracing->updateUniform("identity", WVP);
+    m_voxelConeTracing->updateUniform("screenSize", glm::vec2(m_width, m_height));
 
-	//GBUFFER TEXTURES
+    //GBUFFER TEXTURES
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
     m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
     m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
     m_voxelConeTracing->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
     m_voxelConeTracing->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
 
-	//LIGHT VIEW MAP TEXTURE
+    //LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
 
-	//Draw FullScreenQuad
+    //Draw FullScreenQuad
     glBindVertexArray(ScreenQuad);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 
     m_voxelConeTracing->disable();
-	*/
+    */
     //Render little viewports into the main framebuffer that will be displayed onto the screen
 
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);

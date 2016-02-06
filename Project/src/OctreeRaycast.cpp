@@ -49,7 +49,9 @@ void OctreeRaycast::draw(
         std::unique_ptr<GBuffer>& gbuffer,
         float volumeExtent) const
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+
     GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
     glUniform1i(octreeUniform, 0);
     // bind octree texture
@@ -81,8 +83,6 @@ void OctreeRaycast::draw(
 
     // use shader AFTER texture is added
     mupOctreeRaycastShader->use();
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw voxel
     glBindVertexArray(vaoID);
