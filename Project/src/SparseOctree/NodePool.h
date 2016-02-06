@@ -38,7 +38,7 @@ class NodePool
 public:
     NodePool(){}
     ~NodePool();
-    void init(int nodeCount = 3000000);
+    void init(int nodeCount = 30000000);
                                          // copying global to const memory before traversal might improve the performance
     void updateConstMemory();
     void clearNodePool();

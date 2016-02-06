@@ -340,6 +340,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
         // the maxdivide bit indicates wheather the node has children 1 means has children 0 means does not have children
         unsigned int nodeTile = nodePool[offset].nodeTilePointer;
         __syncthreads();
+
         unsigned int maxDivide = getBit(nodeTile,32);
 
         if(maxDivide == 0)
@@ -362,6 +363,49 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
             position.y = 2 * position.y - nextOctant.y;
             position.z = 2 * position.z - nextOctant.z;
         }
+    }
+}
+
+__global__ void reserveMemoryForNodesFast(node* nodePool, unsigned int startAdress, unsigned int maxNodesOnLevel, unsigned int *counter, unsigned int brickPoolResolution, unsigned int brickResolution, unsigned int lastLevel, unsigned int poolSize)
+{
+    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(index >= maxNodesOnLevel || index > poolSize)
+        return;
+
+    unsigned int nodeAdress = 0;
+
+    if(maxNodesOnLevel != 1)
+        nodeAdress = (startAdress+1)*8 + index;
+
+    unsigned int pointer = nodePool[nodeAdress].nodeTilePointer;
+    unsigned int value = nodePool[nodeAdress].value;
+
+    //__syncthreads();
+
+    if (getBit(pointer, 31) == 1)
+    {
+        // increment the global nodecount and allocate the memory in our
+        unsigned int adress = atomicAdd(counter, 1) + 1;
+        //unsigned int brickAdress = atomicAdd(&globalBrickPoolCounter, 1);
+
+       // printf("child: %d lastLevel:%d \n",adress, lastLevel);
+
+        pointer = (adress & 0x3fffffff) | pointer;
+        value = encodeBrickCoords(getBrickCoords(adress-1, brickPoolResolution, brickResolution));
+
+        // set the first bit to 1. this indicates, that we use the texture brick instead of a constant value as color.
+        setBit(value, 32);
+        setBit(pointer, 32);
+
+        // make sure we don't reserve the same nodeTile next time :)
+        unSetBit(pointer, 31);
+
+        if(lastLevel == 1)
+            unSetBit(pointer,32);
+
+        nodePool[nodeAdress].nodeTilePointer = pointer;
+        nodePool[nodeAdress].value = value;
     }
 }
 
@@ -475,6 +519,7 @@ cudaError_t buildSVO(node *nodePool,
     cudaDeviceSynchronize();
 
     int lastLevel = 0;
+    int reservedOld = 0;
 
     for(int i=0;i<maxLevel;i++)
     {
@@ -491,10 +536,15 @@ cudaError_t buildSVO(node *nodePool,
         if(i == maxLevel-1)
             lastLevel = 1;
 
-        reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
+        cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        printf("reserved: %d\n",*h_counter);
+        //reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
+        reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
         cudaDeviceSynchronize();
 
-        cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        // remember counter
+        reservedOld = *h_counter;
+
        // printf("reserved node tiles: %d\n", *h_counter);
     }
 
