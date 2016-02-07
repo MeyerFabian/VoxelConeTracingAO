@@ -99,7 +99,7 @@ vec3 calcLight(vec4 position, vec4 normal){
 	vec3 finalNormal = normalize(normal.xyz);
 
 	float brightness = calcOcclusion(position,lightdirection,finalNormal);
-	diffuseTerm = brightness* LightColor * dot(finalNormal,lightdirection) *LightDiffuseIntensity;
+	diffuseTerm =brightness* LightColor *  abs(dot(finalNormal,lightdirection)) *LightDiffuseIntensity;
 	
 
 	vec3 lightValue = ambientTerm + diffuseTerm ;
