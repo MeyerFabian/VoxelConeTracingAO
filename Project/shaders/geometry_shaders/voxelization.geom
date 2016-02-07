@@ -1,8 +1,5 @@
 #version 430
 
-// TODO
-// - make it faster
-
 /*
 * Voxelization geometry shader.
 */
@@ -138,7 +135,7 @@ void main()
         float c1 = dot(expandDirections[i], lineStarts[i]);
         float c2 = dot(expandDirections[j], lineStarts[j]);
         pos[j] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
-    } */
+    }*/
 
     // Set bounding box for clipping
     AABB = vec4(
