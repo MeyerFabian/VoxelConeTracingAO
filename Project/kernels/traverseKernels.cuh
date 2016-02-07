@@ -8,10 +8,6 @@
 __device__
 unsigned int traverseToCorrespondingNode(const node* nodepool, float3 &pos, unsigned int &foundOnLevel, unsigned int maxLevel)
 {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    bool useConst = false;
-    bool found = false;
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
     unsigned int nodeTile = 0;

@@ -70,15 +70,6 @@ void clearBrickPool(unsigned int brick_res)
     surf3Dwrite(make_uchar4(0, 0, 0, 0), colorBrickPool, x*sizeof(uchar4), y, z);
 }
 
-
-// resets the global counters
-__global__
-void clearCounter()
-{
-    globalNodePoolCounter = 0;
-    globalBrickPoolCounter = 0;
-}
-
 // traverses to the bottom level and filters all bricks by applying a inverse gaussian mask to the corner voxels
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
 {
@@ -169,19 +160,15 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
             position.z = 2 * position.z - nextOctant.z;
         }
     }
-    unsigned int foundOn=0;
-    //unsigned int offset = traverseToCorrespondingNode(nodePool,position,foundOn,maxLevel);
+
     // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
     value = nodePool[offset].value;
 
-   // if(getBit(value,32) == 1)
-    //{
-        // we have a valid brick => fill it
-        fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
-        setBit(value,31);
-        __syncthreads();
-        nodePool[offset].value = value;
-   // }
+    // we have a valid brick => fill it
+    fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
+    setBit(value,31);
+    __syncthreads();
+    nodePool[offset].value = value;
 }
 
 __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1* positionBuffer, unsigned int poolSize, unsigned int fragmentListSize, unsigned int level)
@@ -436,12 +423,10 @@ __global__ void reserveMemoryForNodes(node *nodePool, int maxNodes, int level, u
         {
             // increment the global nodecount and allocate the memory in our
             unsigned int adress = atomicAdd(counter, 1) + 1;
-            unsigned int brickAdress = atomicAdd(&globalBrickPoolCounter, 1);
 
             pointer = (adress & 0x3fffffff) | pointer;
-            value = encodeBrickCoords(getBrickCoords(brickAdress, brickPoolResolution, brickResolution));
+            value = encodeBrickCoords(getBrickCoords(adress, brickPoolResolution, brickResolution));
             uint3 test = decodeBrickCoords(value);
-            //printf("decode: x:%d, y:%d, z:%d\n" ,test.x, test.y, test.z);
 
             // set the first bit to 1. this indicates, that we use the texture brick instead of a constant value as color.
             setBit(value, 32);
@@ -483,7 +468,6 @@ cudaError_t buildSVO(node *nodePool,
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
     // note that we dont calculate +1 as we store 8 voxels per brick
 
-    //printf("fraglistSize: %d\n", fragmentListSize);
     dim3 block_dim(8,8,8);
     dim3 grid_dim(volumeResolution/block_dim.x,volumeResolution/block_dim.y,volumeResolution/block_dim.z);
 
@@ -500,11 +484,7 @@ cudaError_t buildSVO(node *nodePool,
     cudaMalloc(&d_counter, sizeof(int));
     cudaMemcpy(d_counter,h_counter,sizeof(unsigned int),cudaMemcpyHostToDevice);
 
-
-    clearCounter<<<1,1>>>();
     clearBrickPool<<<grid_dim, block_dim>>>(volumeResolution);
-
-    cudaDeviceSynchronize();
 
     int lastLevel = 0;
     int reservedOld = 0;
@@ -512,7 +492,6 @@ cudaError_t buildSVO(node *nodePool,
     for(int i=0;i<maxLevel;i++)
     {
         markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, fragmentListSize);
-        cudaDeviceSynchronize();
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
         const unsigned int threadPerBlockReserve = 512;
@@ -527,19 +506,15 @@ cudaError_t buildSVO(node *nodePool,
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         //reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
-        cudaDeviceSynchronize();
 
         // remember counter
         reservedOld = *h_counter;
-
-       // printf("reserved node tiles: %d\n", *h_counter);
     }
 
     // still not sure if this works
     errorCode = cudaMemcpyToSymbol(constNodePool, nodePool, sizeof(node)*maxNodePoolSizeForConstMemory,0,cudaMemcpyDeviceToDevice);
 
     //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
-    //cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
     const unsigned int threadPerBlockSpread = 512;
     unsigned int blockCountSpread;
@@ -550,10 +525,8 @@ cudaError_t buildSVO(node *nodePool,
     if(nodeCount >= threadPerBlockSpread)
         blockCountSpread = nodeCount / threadPerBlockSpread;
 
-    //cudaDeviceSynchronize();
     //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
-   // cudaDeviceSynchronize();
 
     const unsigned int combineThreadCount = 1024;
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
