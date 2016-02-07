@@ -121,16 +121,24 @@ void main()
     vec2 expandDirections[3];
 
     // Conservative rasterziation
-    for(int i = 0; i <= 2; i++)
+    /*for(int i = 0; i <= 2; i++)
     {
         // Move lines away from center using cross product
         int j = (i+1) % 3;
         expandDirections[i] = cross2D(normalize(pos[j] - pos[i]));
         lineStarts[i] = pos[i] + expandDirections[i] * halfPixelSize * 1.41f; // TODO: should depend on angle
-    }
+    }*/
+
+    // ### UNROLLED FOR LOOP ABOVE ###
+    expandDirections[0] = cross2D(normalize(pos[1] - pos[0]));
+    lineStarts[0] = pos[0] + expandDirections[0] * halfPixelSize * 1.41f; // TODO: should depend on angle
+    expandDirections[1] = cross2D(normalize(pos[2] - pos[1]));
+    lineStarts[1] = pos[1] + expandDirections[1] * halfPixelSize * 1.41f; // TODO: should depend on angle
+    expandDirections[2] = cross2D(normalize(pos[0] - pos[2]));
+    lineStarts[2] = pos[2] + expandDirections[2] * halfPixelSize * 1.41f; // TODO: should depend on angle
 
     // Cut lines and use found points as output
-    for(int i = 0; i <= 2; i++)
+    /*for(int i = 0; i <= 2; i++)
     {
         int j = (i+1) % 3;
         float a1 = expandDirections[i].x;
@@ -140,7 +148,34 @@ void main()
         float c1 = dot(expandDirections[i], lineStarts[i]);
         float c2 = dot(expandDirections[j], lineStarts[j]);
         pos[j] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
-    }
+    }*/
+
+    // ### UNROLLED FOR LOOP ABOVE ###
+    float a1, b1, a2, b2, c1, c2;
+
+    a1 = expandDirections[0].x;
+    b1 = expandDirections[0].y;
+    a2 = expandDirections[1].x;
+    b2 = expandDirections[1].y;
+    c1 = dot(expandDirections[0], lineStarts[0]);
+    c2 = dot(expandDirections[1], lineStarts[1]);
+    pos[1] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+
+    a1 = expandDirections[1].x;
+    b1 = expandDirections[1].y;
+    a2 = expandDirections[2].x;
+    b2 = expandDirections[2].y;
+    c1 = c2;
+    c2 = dot(expandDirections[2], lineStarts[2]);
+    pos[2] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+
+    a1 = expandDirections[2].x;
+    b1 = expandDirections[2].y;
+    a2 = expandDirections[0].x;
+    b2 = expandDirections[0].y;
+    c1 = c2;
+    c2 = dot(expandDirections[0], lineStarts[0]);
+    pos[0] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
 
     // First vertex
     Out.posDevice = In[0].posDevice;
