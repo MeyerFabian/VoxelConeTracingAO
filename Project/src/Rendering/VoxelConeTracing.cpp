@@ -119,7 +119,7 @@ void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize) const{
+void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize,bool drawGBuffer) const{
     //Bind window framebuffer
 
     glViewport(0, 0, m_width, m_height);
@@ -132,7 +132,7 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
 
     //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
     //glClear(GL_COLOR_BUFFER_BIT);
-    /*
+    
 
     glm::mat4 WVP = glm::mat4(1.f);
 
@@ -170,9 +170,9 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
     glBindVertexArray(0);
 
     m_voxelConeTracing->disable();
-    */
+    
     //Render little viewports into the main framebuffer that will be displayed onto the screen
-
+	if(drawGBuffer){
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
     glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 150, 0, 300, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
@@ -184,7 +184,7 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
 
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
     glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
+	}
 
     glDisable(GL_BLEND);
 }

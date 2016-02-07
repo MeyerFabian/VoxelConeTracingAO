@@ -26,7 +26,7 @@ class App: public Controllable
 {
 public:
 
-    enum Visualization {RAYCASTING, POINT_CLOUD};
+	enum Visualization { RAYCASTING, POINT_CLOUD, SHADOW_MAP, GBUFFER,VOXEL_CONE_TRACING };
 
     // Some constants
     float VOLUME_EXTENT = 384.f;

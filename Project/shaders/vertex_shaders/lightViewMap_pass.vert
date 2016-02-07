@@ -1,7 +1,7 @@
 #version 330
  
  /**
- * This simple shader passes out all important Attributes.
+ * Shader passes out Depth Map of the Lights View.
  */
 
  //!< in-variables
@@ -9,14 +9,11 @@ layout(location = 0) in vec4 positionAttribute;
 
 
 //!< uniforms
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-
-//!< out-variables
+uniform mat4 LightView;
+uniform mat4 LightProjection;
 
 void main(){
 
-    gl_Position =  projection * view * model * positionAttribute;
+    gl_Position =  LightProjection * LightView * positionAttribute;
 
 }

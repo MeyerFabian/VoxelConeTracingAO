@@ -39,27 +39,27 @@ void LightViewMap::init(float width, float height)
 void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 
 	glDepthMask(true);
+
 	//Bind the GBuffer before enabling (and texture stuff) else it will fail
 	m_depthbuffer->bindForWriting();
-
-
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+
+
 	// Use the one and only shader
 	m_shadowMapPass->use();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Create uniforms used by shader
-	// Fill uniforms to shader
-
+	//Set the texture size of the light view map
 	scene->getLight().setProjectionMatrix(m_width, m_height);
 
-	m_shadowMapPass->updateUniform("model", scene->getLight().getModelMatrix()); // all meshes have center at 0,0,0
-	m_shadowMapPass->updateUniform("projection", scene->getLight().getProjectionMatrix());
-	m_shadowMapPass->updateUniform("view", scene->getLight().getViewMatrix());
+	// Create uniforms used by shader
+	// Fill uniforms to shader
+	m_shadowMapPass->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
+	m_shadowMapPass->updateUniform("LightView", scene->getLight().getViewMatrix());
 
 
 

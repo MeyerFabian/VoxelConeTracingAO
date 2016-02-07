@@ -1,10 +1,1 @@
-#version 330
-
-/*
-* Basic Fragmentshader.
-*/
-
-
-void main()
-{
-}
+// nothing to rasterize

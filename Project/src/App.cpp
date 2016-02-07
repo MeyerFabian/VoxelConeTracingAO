@@ -278,12 +278,24 @@ void App::run()
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
             break;
+		case Visualization::SHADOW_MAP:
+			m_LightViewMap->shadowMapPass(m_scene); 
+			m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5,false);
+			m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID()); 
+			break;
+		case Visualization::GBUFFER:
+			m_LightViewMap->shadowMapPass(m_scene);
+			m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5,true);
+			m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
+			break;
+		case Visualization::VOXEL_CONE_TRACING:
+			m_LightViewMap->shadowMapPass(m_scene);
+			m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5,false);
+			break;
         }
 
         // FUTURE STUFF
-        //m_LightViewMap->shadowMapPass(m_scene);
-        m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(),m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5);
-        //m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
+
 
         // Update all controllables
         for(Controllable* pControllable : mControllables)
@@ -311,6 +323,6 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtend:", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame:",&mVoxeliseEachFrame);
-    ImGui::Combo("Visualisation",&VISUALIZATION, "Raycasting\0Pointcloud\0\0");
+	ImGui::Combo("Visualisation",&VISUALIZATION, "Raycasting\0Pointcloud\0Light-View-Map\0GBuffer\0VoxelConeTracing\0\0");
 }
 
