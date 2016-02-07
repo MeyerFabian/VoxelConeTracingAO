@@ -47,13 +47,16 @@ cudaError_t setVolumeResulution(int resolution)
 }
 
 __global__
-void clearNodePoolKernel(node *nodePool, neighbours* neighbourPool, int poolSize)
+void clearNodePoolKernel(unsigned int *nodePool, int poolSize)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(i >= poolSize)
         return;
 
+    nodePool[i] = 0;
+
+    /*
     nodePool[i].nodeTilePointer = 0;
     nodePool[i].value = 0;
 
@@ -64,6 +67,7 @@ void clearNodePoolKernel(node *nodePool, neighbours* neighbourPool, int poolSize
     neighbourPool[i].X = 0;
     neighbourPool[i].Y = 0;
     neighbourPool[i].Z = 0;
+     */
 }
 
 __global__
@@ -581,11 +585,13 @@ cudaError_t buildSVO(node *nodePool,
 cudaError_t clearNodePoolCuda(node *nodePool, neighbours* neighbourPool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
-    int threadsPerBlock = 128;
-    int blockCount = poolSize / threadsPerBlock;
+    int threadsPerBlock = 256;
+    int blockCount = (poolSize*2) / threadsPerBlock;
+    int neighbourPoolBlockCount = (poolSize*6) / threadsPerBlock;
 
     // clear the nodepool
-    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, poolSize);
+    clearNodePoolKernel<<<neighbourPoolBlockCount, threadsPerBlock>>>(reinterpret_cast<unsigned int*>(neighbourPool), poolSize*6);
+    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(reinterpret_cast<unsigned int*>(nodePool), poolSize*2);
 
     return errorCode;
 }
