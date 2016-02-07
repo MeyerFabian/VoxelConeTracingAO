@@ -150,7 +150,7 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     unsigned int nodeTile = 0;
     unsigned int value = 0;
 
-    for (int i = 0; i <= maxLevel; i++)
+    for (int i = 0; i < maxLevel; i++)
     {
         uint3 nextOctant = make_uint3(0, 0, 0);
         // determine octant for the given voxel
@@ -167,11 +167,11 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
         nodeTile = nodePool[offset].nodeTilePointer;
         __syncthreads();
-        if(getBit(nodeTile,32) == 1) {
+        //if(getBit(nodeTile,32) == 1) {
             childPointer = nodeTile & 0x3fffffff;
-        }
+       // }
 
-        if(i != 0)
+        if(i!=0)
         {
             position.x = 2 * position.x - nextOctant.x;
             position.y = 2 * position.y - nextOctant.y;
@@ -183,14 +183,14 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
     value = nodePool[offset].value;
 
-    if(getBit(value,32) == 1)
-    {
+   // if(getBit(value,32) == 1)
+    //{
         // we have a valid brick => fill it
         fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
         setBit(value,31);
         __syncthreads();
         nodePool[offset].value = value;
-    }
+   // }
 }
 
 __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1* positionBuffer, unsigned int poolSize, unsigned int fragmentListSize, unsigned int level)
