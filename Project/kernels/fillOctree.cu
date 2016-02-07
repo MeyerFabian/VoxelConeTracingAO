@@ -492,7 +492,7 @@ cudaError_t buildSVO(node *nodePool,
 {
     cudaError_t errorCode = cudaSuccess;
     // calculate maxlevel
-    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8)+1);
+    int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
     // note that we dont calculate +1 as we store 8 voxels per brick
 
     //printf("fraglistSize: %d\n", fragmentListSize);
