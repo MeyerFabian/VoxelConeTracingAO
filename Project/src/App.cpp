@@ -165,10 +165,8 @@ App::App() : Controllable("Visualisation")
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
-    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()), 11500000);
+    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
     this->registerControllable(this);
-
-
 
 
     // create octree from static geometrie
