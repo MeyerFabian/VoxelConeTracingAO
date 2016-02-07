@@ -26,6 +26,7 @@ public:
     void init(GLuint maxListSize);
 
     void bind();
+    void bindWriteonly();
     void bindPosition();
     int getVoxelCount() const;
 

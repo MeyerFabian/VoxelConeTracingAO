@@ -141,6 +141,36 @@ void FragmentList::bind()
                        GL_RGBA8);
 }
 
+void FragmentList::bindWriteonly()
+{
+    glActiveTexture(GL_TEXTURE1);
+    glBindImageTexture(1,
+                       mPositionOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_WRITE_ONLY,
+                       GL_R32UI);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindImageTexture(2,
+                       mNormalOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_WRITE_ONLY,
+                       GL_RGBA8);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindImageTexture(3,
+                       mColorOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_WRITE_ONLY,
+                       GL_RGBA8);
+}
+
 void FragmentList::bindPosition()
 {
     glActiveTexture(GL_TEXTURE1);

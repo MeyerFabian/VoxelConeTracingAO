@@ -17,9 +17,9 @@ in vec4 AABB;
 //!< uniforms
 layout(binding = 0) uniform atomic_uint index;
 uniform sampler2D tex;
-uniform layout(r32ui, location = 1) uimageBuffer positionOutputImage;
-uniform layout(rgba8, location = 2) imageBuffer normalOutputImage;
-uniform layout(rgba8, location = 3) imageBuffer colorOutputImage;
+layout(r32ui, location = 1) restrict writeonly uniform uimageBuffer positionOutputImage;
+layout(rgba8, location = 2) restrict writeonly uniform imageBuffer normalOutputImage;
+layout(rgba8, location = 3) restrict writeonly uniform imageBuffer colorOutputImage;
 
 
 //!< out-variables

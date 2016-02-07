@@ -58,7 +58,7 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList *fr
     glUniform1f(glGetUniformLocation(static_cast<GLuint>(mVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / determineVoxeliseResolution(VOXELIZE_RESOLUTION));
 
     // Bind fragment list with output textures / buffers
-    fragmentList->bind();
+    fragmentList->bindWriteonly();
 
     // Draw scene with voxelization shader
     for (auto& bucket : pScene->getRenderBuckets())
