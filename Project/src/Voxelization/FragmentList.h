@@ -27,6 +27,7 @@ public:
 
     void bind();
     void bindWriteonly();
+    void bindReadonly();
     void bindPosition();
     int getVoxelCount() const;
 

@@ -3,7 +3,6 @@
 in float id;
 layout(location = 0) out vec4 fragColor;
 
-uniform float voxelCount;
 uniform layout(rgba8, location = 2) imageBuffer normalImage;
 uniform layout(rgba8, location = 3) imageBuffer colorImage;
 

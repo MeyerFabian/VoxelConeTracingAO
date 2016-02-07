@@ -113,7 +113,6 @@ void FragmentList::init(GLuint maxListSize)
 
 void FragmentList::bind()
 {
-    glActiveTexture(GL_TEXTURE1);
     glBindImageTexture(1,
                        mPositionOutputTexture,
                        0,
@@ -122,7 +121,6 @@ void FragmentList::bind()
                        GL_READ_WRITE,
                        GL_R32UI);
 
-    glActiveTexture(GL_TEXTURE2);
     glBindImageTexture(2,
                        mNormalOutputTexture,
                        0,
@@ -131,7 +129,6 @@ void FragmentList::bind()
                        GL_READ_WRITE,
                        GL_RGBA8);
 
-    glActiveTexture(GL_TEXTURE3);
     glBindImageTexture(3,
                        mColorOutputTexture,
                        0,
@@ -143,7 +140,6 @@ void FragmentList::bind()
 
 void FragmentList::bindWriteonly()
 {
-    glActiveTexture(GL_TEXTURE1);
     glBindImageTexture(1,
                        mPositionOutputTexture,
                        0,
@@ -152,7 +148,6 @@ void FragmentList::bindWriteonly()
                        GL_WRITE_ONLY,
                        GL_R32UI);
 
-    glActiveTexture(GL_TEXTURE2);
     glBindImageTexture(2,
                        mNormalOutputTexture,
                        0,
@@ -161,7 +156,6 @@ void FragmentList::bindWriteonly()
                        GL_WRITE_ONLY,
                        GL_RGBA8);
 
-    glActiveTexture(GL_TEXTURE3);
     glBindImageTexture(3,
                        mColorOutputTexture,
                        0,
@@ -171,9 +165,35 @@ void FragmentList::bindWriteonly()
                        GL_RGBA8);
 }
 
+void FragmentList::bindReadonly()
+{
+    glBindImageTexture(1,
+                       mPositionOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_READ_ONLY,
+                       GL_R32UI);
+
+    glBindImageTexture(2,
+                       mNormalOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_READ_ONLY,
+                       GL_RGBA8);
+
+    glBindImageTexture(3,
+                       mColorOutputTexture,
+                       0,
+                       GL_TRUE,
+                       0,
+                       GL_READ_ONLY,
+                       GL_RGBA8);
+}
+
 void FragmentList::bindPosition()
 {
-    glActiveTexture(GL_TEXTURE1);
     glBindImageTexture(1,
                        mPositionOutputTexture,
                        0,

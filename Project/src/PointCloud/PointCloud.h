@@ -11,7 +11,7 @@ class PointCloud
 {
 public:
 
-    PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLint pointCount);
+    PointCloud(FragmentList* pFragmentList, Camera const * pCamera);
     virtual ~PointCloud();
 
     void draw(float width,float height, float volumeExtent);
@@ -22,8 +22,6 @@ private:
     Camera const * mpCamera;
     std::unique_ptr<ShaderProgram> mupShaderProgram;
     GLuint mVAO;
-    GLint mPointCount;
-
 };
 
 #endif // POINT_CLOUD_H_

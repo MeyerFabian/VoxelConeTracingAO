@@ -39,9 +39,6 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList *fr
     // Orthographic projections
     float halfExtent = extent / 2.f;
     glm::mat4 orthographicProjection = glm::ortho(-halfExtent, halfExtent, -halfExtent, halfExtent, -halfExtent, halfExtent);
-
-    mVoxelizationShader->updateUniform("model", glm::mat4(1.0));
-    mVoxelizationShader->updateUniform("modelNormal", glm::mat4(1.0)); // same since identity
     mVoxelizationShader->updateUniform("orthographicProjection", orthographicProjection);
 
     resetAtomicCounter();

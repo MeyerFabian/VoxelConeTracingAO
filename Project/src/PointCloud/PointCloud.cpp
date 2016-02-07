@@ -4,12 +4,11 @@
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
-PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera, GLint pointCount)
+PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera)
 {
 
     mpFragmentList = pFragmentList;
     mpCamera = pCamera;
-    mPointCount = pointCount;
 
     mupShaderProgram = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/point.vert", "/fragment_shaders/point.frag"));
 
@@ -41,19 +40,16 @@ void PointCloud::draw(float width, float height, float volumeExtent)
     // Volume center and extent for scaling
     mupShaderProgram->updateUniform("volumeExtent", volumeExtent);
 
-    // Fragment voxel count
-    mupShaderProgram->updateUniform("voxelCount", (float)mpFragmentList->getVoxelCount());
-
     // Uniforms for fragment lists
     mupShaderProgram->updateUniform("positionImage", 1);
     mupShaderProgram->updateUniform("normalImage", 2);
     mupShaderProgram->updateUniform("colorImage", 3);
 
     // Bind fragment lists
-    mpFragmentList->bind();
+    mpFragmentList->bindReadonly();
 
     // Draw points
-    glDrawArrays(GL_POINTS, 0, mPointCount);
+    glDrawArrays(GL_POINTS, 0, mpFragmentList->getVoxelCount());
 
     // Unbind VAO and shader
     glBindVertexArray(0);
