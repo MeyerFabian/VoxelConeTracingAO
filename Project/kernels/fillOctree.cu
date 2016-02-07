@@ -55,19 +55,6 @@ void clearNodePoolKernel(unsigned int *nodePool, int poolSize)
         return;
 
     nodePool[i] = 0;
-
-    /*
-    nodePool[i].nodeTilePointer = 0;
-    nodePool[i].value = 0;
-
-    neighbourPool[i].negX = 0;
-    neighbourPool[i].negY = 0;
-    neighbourPool[i].negZ = 0;
-
-    neighbourPool[i].X = 0;
-    neighbourPool[i].Y = 0;
-    neighbourPool[i].Z = 0;
-     */
 }
 
 __global__
@@ -343,7 +330,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
 
         // the maxdivide bit indicates wheather the node has children 1 means has children 0 means does not have children
         unsigned int nodeTile = nodePool[offset].nodeTilePointer;
-        __syncthreads();
+        //__syncthreads();
 
         unsigned int maxDivide = getBit(nodeTile,32);
 
@@ -352,7 +339,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
             // as the node has no children we set the second bit to 1 which indicates that memory should be allocated
             setBit(nodeTile,31); // possible race condition but it is not importatnt in our case
             nodePool[offset].nodeTilePointer = nodeTile;
-            __syncthreads();
+            //__syncthreads();
             break;
         }
         else
@@ -385,7 +372,7 @@ __global__ void reserveMemoryForNodesFast(node* nodePool, unsigned int startAdre
     unsigned int pointer = nodePool[nodeAdress].nodeTilePointer;
     unsigned int value = nodePool[nodeAdress].value;
 
-    __syncthreads();
+    //__syncthreads();
 
     if (getBit(pointer, 31) == 1)
     {
