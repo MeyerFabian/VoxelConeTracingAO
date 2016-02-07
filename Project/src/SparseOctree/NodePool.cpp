@@ -40,7 +40,7 @@ void NodePool::init(int nodeCount)
     glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, mNodePoolOutputBuffer);
     glBindTexture(GL_TEXTURE_BUFFER, 0);
 
-    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNodePoolFragmentList,mNodePoolOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNodePoolFragmentList,mNodePoolOutputBuffer,cudaGraphicsMapFlagsNone));
     cudaErrorCheck(cudaGraphicsMapResources(1, &mNodePoolFragmentList, 0));
 
     size_t sizePosition = sizeof(GLuint) * nodeCount * 2;
@@ -62,7 +62,7 @@ void NodePool::init(int nodeCount)
     glBindTexture(GL_TEXTURE_BUFFER, 0);
 
     // register neighbourbuffer to cuda
-    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNeighbourPoolResource,mNeighbourPoolBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNeighbourPoolResource,mNeighbourPoolBuffer,cudaGraphicsMapFlagsNone));
     cudaErrorCheck(cudaGraphicsMapResources(1, &mNeighbourPoolResource,0));
 
     size_t size = sizeof(GLuint) * nodeCount * 6;
@@ -70,8 +70,8 @@ void NodePool::init(int nodeCount)
 
     cudaGraphicsUnmapResources(1,&mNeighbourPoolResource,0);
 
-    delete data;
-    delete neighbourData;
+    delete []data;
+    delete []neighbourData;
 
     //cudaErrorCheck(cudaMalloc((void **)&m_dNodePool,sizeof(node)*nodeCount));
 }

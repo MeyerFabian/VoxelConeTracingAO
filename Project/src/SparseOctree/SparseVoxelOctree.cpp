@@ -1,6 +1,7 @@
 //
 // Created by nils1990 on 06.12.15.
 //
+#include "src/Utilities/errorUtils.h"
 #include "SparseVoxelOctree.h"
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
@@ -13,13 +14,16 @@ cudaError_t buildSVO(node *nodePool,
                      uchar4 *colorBufferDevPointer,
                      uchar4 *normalDevPointer,
                      int fragmentListSize);
+
+cudaError_t setVolumeResulution(int resolution);
 }
 
 void SparseVoxelOctree::init()
 {
     // testsing for node and brick-pool
     m_nodePool.init();
-    m_brickPool.init();
+    m_brickPool.init(256,256,256);
+    cudaErrorCheck(setVolumeResulution(m_brickPool.getResolution().x));
 
     m_brickPool.registerTextureForCUDAWriting();
 }
@@ -42,7 +46,7 @@ void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFra
              m_nodePool.getNeighbourPoolDevicePointer(),
              m_nodePool.getPoolSize(),
              m_brickPool.getBrickPoolArray(),
-             dim3(384,384,384),
+             m_brickPool.getResolution(),
              positionFragmentList,
              colorFragmentList,
              normalFragmentList,

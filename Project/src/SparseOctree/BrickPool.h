@@ -11,6 +11,9 @@
 #include "externals/GLFW/include/GLFW/glfw3.h"
 #include "NodePool.h"
 
+#include <cuda_gl_interop.h>
+#include <cuda_runtime_api.h>
+
 class BrickPool
 {
 public:
@@ -24,6 +27,7 @@ public:
 	void mapToCUDA();
 	void unmapFromCUDA();
 	void bind();
+	const dim3& getResolution();
 
 	cudaArray *getBrickPoolArray();
 private:

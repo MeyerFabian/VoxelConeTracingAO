@@ -581,7 +581,7 @@ cudaError_t buildSVO(node *nodePool,
 cudaError_t clearNodePoolCuda(node *nodePool, neighbours* neighbourPool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
-    int threadsPerBlock = 512;
+    int threadsPerBlock = 128;
     int blockCount = poolSize / threadsPerBlock;
 
     // clear the nodepool

@@ -63,6 +63,7 @@ void OctreeRaycast::draw(
     mupOctreeRaycastShader->updateUniform("maxSteps", maxSteps);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
     mupOctreeRaycastShader->updateUniform("volumeExtent", volumeExtent);
+    mupOctreeRaycastShader->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x-1));
 
     // Position texture as image
     glActiveTexture(GL_TEXTURE1);
