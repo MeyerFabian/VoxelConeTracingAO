@@ -330,7 +330,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
 
         // the maxdivide bit indicates wheather the node has children 1 means has children 0 means does not have children
         unsigned int nodeTile = nodePool[offset].nodeTilePointer;
-        //__syncthreads();
+        __syncthreads();
 
         unsigned int maxDivide = getBit(nodeTile,32);
 
@@ -339,7 +339,7 @@ __global__ void markNodeForSubdivision(node *nodePool, int poolSize, int maxLeve
             // as the node has no children we set the second bit to 1 which indicates that memory should be allocated
             setBit(nodeTile,31); // possible race condition but it is not importatnt in our case
             nodePool[offset].nodeTilePointer = nodeTile;
-            //__syncthreads();
+            __syncthreads();
             break;
         }
         else
@@ -372,15 +372,12 @@ __global__ void reserveMemoryForNodesFast(node* nodePool, unsigned int startAdre
     unsigned int pointer = nodePool[nodeAdress].nodeTilePointer;
     unsigned int value = nodePool[nodeAdress].value;
 
-    //__syncthreads();
+    __syncthreads();
 
     if (getBit(pointer, 31) == 1)
     {
         // increment the global nodecount and allocate the memory in our
         unsigned int adress = atomicAdd(counter, 1) + 1;
-        //unsigned int brickAdress = atomicAdd(&globalBrickPoolCounter, 1);
-
-       // printf("child: %d lastLevel:%d \n",adress, lastLevel);
 
         pointer = (adress & 0x3fffffff) | pointer;
         value = encodeBrickCoords(getBrickCoords(adress-1, brickPoolResolution, brickResolution));
