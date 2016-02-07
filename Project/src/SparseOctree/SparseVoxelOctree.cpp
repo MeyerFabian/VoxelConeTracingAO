@@ -34,7 +34,7 @@ SparseVoxelOctree::~SparseVoxelOctree()
 
 void SparseVoxelOctree::fillGui()
 {
-
+    ImGui::Text("Nothing so far");
 }
 
 void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize)

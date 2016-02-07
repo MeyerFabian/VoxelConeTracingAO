@@ -129,5 +129,5 @@ unsigned int Voxelization::determineVoxeliseResolution(int res) {
 
 void Voxelization::fillGui()
 {
-    ImGui::Combo("Resolution",&VOXELIZE_RESOLUTION , " 256x256x256\0 384*384*384\0 512*512*512\0 1024*1024*1024\0");
+    ImGui::Combo("Resolution", &VOXELIZE_RESOLUTION ," 256x256x256\0 384*384*384\0 512*512*512\0 1024*1024*1024\0");
 }

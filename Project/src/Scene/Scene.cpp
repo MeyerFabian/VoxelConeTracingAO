@@ -9,7 +9,7 @@
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
-Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Debug")
+Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
 {
     // Prepare the one and only shader
    // mupShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/sponza.vert","/fragment_shaders/sponza.frag"));
@@ -19,7 +19,7 @@ Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Debug")
 
     // Import
     const aiScene* scene = importer.ReadFile(filepath,
-		aiProcess_GenNormals			 |
+        aiProcess_GenNormals			 |
         aiProcess_CalcTangentSpace       |
         aiProcess_Triangulate            |
         aiProcess_JoinIdenticalVertices  |
@@ -74,8 +74,8 @@ void Scene::updateCamera(float movement, float deltaCameraYaw, float deltaCamera
 }
 void Scene::updateLight(float movement, float deltaCameraYaw, float deltaCameraPitch)
 {
-	// Update camera
-	mLight.update(movement, deltaCameraYaw, deltaCameraPitch);
+    // Update camera
+    mLight.update(movement, deltaCameraYaw, deltaCameraPitch);
 }
 void Scene::draw(float windowWidth, float windowHeight) const
 {
@@ -111,7 +111,7 @@ void Scene::draw(float windowWidth, float windowHeight) const
 
 void Scene::fillGui()
 {
-    std::string output = "Camera position: " + glm::to_string(mCamera.getPosition());
+    std::string output = "Camera " + glm::to_string(mCamera.getPosition());
     ImGui::Text(output.c_str());
 }
 

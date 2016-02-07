@@ -12,7 +12,7 @@
 class SparseVoxelOctree : public Controllable
 {
 public:
-    SparseVoxelOctree(App* pApp): Controllable(pApp, "Debug") {};
+    SparseVoxelOctree(App* pApp): Controllable(pApp, "SparseVoxelOctree") {};
     ~SparseVoxelOctree();
     void init();
     void clearOctree();

@@ -21,8 +21,9 @@ Controllable::~Controllable()
 
 void Controllable::updateGui()
 {
-    ImGui::Begin(mTitle.c_str());
+    ImGui::BeginChild("");
+    ImGui::TextColored(ImVec4(0,1,0,1), mTitle.c_str());
     fillGui();
-    ImGui::End();
+    ImGui::EndChild();
 }
 

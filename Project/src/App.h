@@ -16,7 +16,7 @@
 
 #include "Scene/Scene.h"
 #include "Voxelization/Voxelization.h"
-#include "OctreeRaycast.h"
+#include "Raycaster/OctreeRaycast.h"
 #include "Rendering/VoxelConeTracing.h"
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
@@ -26,7 +26,7 @@ class App: public Controllable
 {
 public:
 
-	enum Visualization { RAYCASTING, POINT_CLOUD, SHADOW_MAP, GBUFFER,VOXEL_CONE_TRACING };
+    enum Visualization { RAYCASTING, POINT_CLOUD, SHADOW_MAP, GBUFFER,VOXEL_CONE_TRACING };
 
     // Some constants
     float VOLUME_EXTENT = 384.f;

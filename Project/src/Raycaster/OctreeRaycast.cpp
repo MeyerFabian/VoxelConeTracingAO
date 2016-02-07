@@ -94,7 +94,7 @@ void OctreeRaycast::draw(
 }
 
 void OctreeRaycast::fillGui(){
-    ImGui::SliderFloat("step size:", &stepSize, 0.001f, 1.0f, "%.3f");
-    ImGui::SliderInt("max steps:", &maxSteps, 50, 2000,"%.0f");
-    ImGui::SliderFloat("Raycast begin:", &directionBeginScale, 0.0f, 5.0f, "%.1f");
+    ImGui::SliderFloat("step size", &stepSize, 0.001f, 1.0f, "%.3f");
+    ImGui::SliderInt("max steps", &maxSteps, 50, 2000,"%.0f");
+    ImGui::SliderFloat("ray begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 }
