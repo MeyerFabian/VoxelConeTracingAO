@@ -12,7 +12,7 @@ in RenderVertex
     vec2 uv;
 } In;
 
-in vec4 AABB;
+flat in vec4 AABB;
 
 //!< uniforms
 layout(binding = 0) uniform atomic_uint index;
@@ -20,7 +20,6 @@ uniform sampler2D tex;
 layout(r32ui, location = 1) restrict writeonly uniform uimageBuffer positionOutputImage;
 layout(rgba8, location = 2) restrict writeonly uniform imageBuffer normalOutputImage;
 layout(rgba8, location = 3) restrict writeonly uniform imageBuffer colorOutputImage;
-
 
 //!< out-variables
 layout(location = 0) out vec4 fragColor;
@@ -41,7 +40,7 @@ void main()
         || gl_FragCoord.y < AABB.y
         || gl_FragCoord.y >= AABB.w)
     {
-        // discard;
+        discard;
     }
 
     // Index in output textures

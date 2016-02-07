@@ -25,7 +25,7 @@ out RenderVertex
 } Out;
 
 // Output coordinates of clipping quad (axis aligned bounding box)
-out vec4 AABB; // x1, y1, x2, y2 in pixel coordinates
+flat out vec4 AABB; // x1, y1, x2, y2 in pixel coordinates
 
 //!< uniforms
 uniform float pixelSize;
@@ -45,6 +45,9 @@ float floatMod(float value, float divisor)
 
 void main()
 {
+    // Half pixel size
+    float halfPixelSize = pixelSize / 2.0;
+
     // Calculate normal
     vec3 triNormal =
         abs(
@@ -102,17 +105,19 @@ void main()
         In[1].uv = tmp2;
     }
 
-    // Calculate max/min values for clipping before expanding
-    float minX = min(pos[2].x, min(pos[0].x, pos[1].x));
-    float minY = min(pos[2].y, min(pos[0].y, pos[1].y));
-    float maxX = max(pos[2].x, max(pos[0].x, pos[1].x));
-    float maxY = max(pos[2].y, max(pos[0].y, pos[1].y));
+    // Set bounding box for clipping (TODO: does not work :-C )
+    /*AABB = vec4(
+        min(pos[2].x, min(pos[0].x, pos[1].x)) - halfPixelSize,
+        min(pos[2].y, min(pos[0].y, pos[1].y)) - halfPixelSize,
+        max(pos[2].x, max(pos[0].x, pos[1].x)) + halfPixelSize,
+        max(pos[2].y, max(pos[0].y, pos[1].y)) + halfPixelSize); */
+    AABB = vec4(-1,-1,1,1); // Just the complete device coordinates...
 
-    // Half pixel size
-    float halfPixelSize = pixelSize / 2.0;
+    // Convert to pixel space
+    AABB = (AABB + 1.0) / pixelSize;
 
     // Prepare variables for line equations
-    /*vec2 lineStarts[3];
+    vec2 lineStarts[3];
     vec2 expandDirections[3];
 
     // Conservative rasterziation
@@ -135,27 +140,17 @@ void main()
         float c1 = dot(expandDirections[i], lineStarts[i]);
         float c2 = dot(expandDirections[j], lineStarts[j]);
         pos[j] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
-    }*/
-
-    // Set bounding box for clipping
-    AABB = vec4(
-        minX - halfPixelSize,
-        minY - halfPixelSize,
-        maxX + halfPixelSize,
-        maxY + halfPixelSize);
-
-    // Convert to pixel space
-    AABB = (AABB + 1.0) / pixelSize;
+    }
 
     // First vertex
-    Out.posDevice = In[0].posDevice;;
+    Out.posDevice = In[0].posDevice;
     Out.normal = In[0].normal;
     Out.uv = In[0].uv;
     gl_Position = vec4(pos[0],0,1);
     EmitVertex();
 
     // Second vertex
-    Out.posDevice = In[1].posDevice;;
+    Out.posDevice = In[1].posDevice;
     Out.normal = In[1].normal;
     Out.uv = In[1].uv;
     gl_Position = vec4(pos[1],0,1);
