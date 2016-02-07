@@ -92,17 +92,17 @@ float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 }
 
 vec3 calcLight(vec4 position, vec4 normal){
-	vec3 ambientTerm = LightColor * LightAmbientIntensity;
+	vec3 ambientTerm = clamp(LightColor * LightAmbientIntensity,0.0,1.0);
 	vec3 diffuseTerm = vec3(0.0f);
 
 	vec3 lightdirection = normalize(LightPosition-position.xyz);
 	vec3 finalNormal = normalize(normal.xyz);
 
 	float brightness = calcOcclusion(position,lightdirection,finalNormal);
-	diffuseTerm =brightness* LightColor *  abs(dot(finalNormal,lightdirection)) *LightDiffuseIntensity;
+	diffuseTerm =clamp(brightness* LightColor *  (dot(finalNormal,lightdirection)) *LightDiffuseIntensity,0.0,1.0);
 	
 
-	vec3 lightValue = ambientTerm + diffuseTerm ;
+	vec3 lightValue = clamp(ambientTerm + diffuseTerm,0.0,1.0) ;
 	return lightValue;
 }
 void main()
@@ -121,7 +121,7 @@ void main()
     //Show depthmap from the camera
 	//float VisualDepth = 1.0 - (1.0 - DepthFromCamera)*255.0f;
 	//FragColor = vec4(VisualDepth,VisualDepth,VisualDepth,1.0);
-	vec3 finalColor = color.xyz * clamp(calcLight(position, normal),0.0,1.0);
+	vec3 finalColor = color.xyz * calcLight(position, normal);
 	FragColor = vec4(finalColor,1.0); 
 
 }
