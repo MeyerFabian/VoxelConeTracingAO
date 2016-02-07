@@ -31,7 +31,7 @@ void NodePool::init(int nodeCount)
     // Position buffer
     glGenBuffers(1, &mNodePoolOutputBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, mNodePoolOutputBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint) * nodeCount * 2, data, GL_DYNAMIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint) * nodeCount * 2, data, GL_STATIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // nodepool texture
@@ -52,7 +52,7 @@ void NodePool::init(int nodeCount)
     // create and bin buffers for the neighbourmap
     glGenBuffers(1, &mNeighbourPoolBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, mNeighbourPoolBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint)*nodeCount * 6, neighbourData, GL_DYNAMIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint)*nodeCount * 6, neighbourData, GL_STATIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     //neighbourpool texture
