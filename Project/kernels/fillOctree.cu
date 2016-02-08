@@ -594,13 +594,24 @@ cudaError_t initMemory()
         intervalMap[i].end = 0;
     }
 
+    uint3 *indexLookUp = new uint3[27];
+
+    for(unsigned int i=0;i<27;i++)
+    {
+        indexLookUp[i].x = i / 9;
+        indexLookUp[i].y = (i / 3) % 3;
+        indexLookUp[i].z = i % 3;
+    }
+
     error = cudaMemcpyToSymbol(lookup_octants, octants, sizeof(uint3)*8);
     error = cudaMemcpyToSymbol(insertPositions, insertpos, sizeof(uint3)*8);
     error = cudaMemcpyToSymbol(constLevelIntervalMap, intervalMap, sizeof(LevelInterval)*10);
+    error = cudaMemcpyToSymbol(constLookUp1Dto3DIndex, indexLookUp, sizeof(uint3)*27);
 
     delete[] octants;
     delete[] insertpos;
     delete[] intervalMap;
+    delete[] indexLookUp;
 
     return error;
 }

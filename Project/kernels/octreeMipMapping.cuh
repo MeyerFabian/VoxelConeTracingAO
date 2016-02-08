@@ -28,18 +28,67 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     } myChilds[8]; // 8 children with 27 color-values each
 
     uint3 coords, tmpCoords;
-    //load colors TODO: unroll
+    //load colors YAY pragma unroll works here :D
+    #pragma unroll 8
     for(int i=0;i<8;i++)
     {
         coords = sourceBricks[i];
-        for(int j=0;j<27;j++)
+        for(int j=0;j<3;j++)
         {
             //TODO: lookup table
-            tmpCoords.x = coords.x + j / 9;
-            tmpCoords.y = coords.y + (j / 3) % 3;
-            tmpCoords.z = coords.z + j % 3;
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j].z;//j % 3;
 
             surf3Dread(&myChilds[i].childColors[j], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+3].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+3].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+3].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+3], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+6].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+6].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+6].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+6], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+9].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+9].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+9].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+9], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+12].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+12].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+12].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+12], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+15].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+15].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+15].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+15], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+18].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+18].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+18].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+18], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+21].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+21].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+21].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+21], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+
+            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+24].x;//coords.x + j / 9;
+            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+24].y;//(j / 3) % 3;
+            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+24].z;//j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j+24], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
         }
     }
 

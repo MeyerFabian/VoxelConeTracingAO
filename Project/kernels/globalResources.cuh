@@ -15,6 +15,7 @@ struct LevelInterval
 __constant__ uint3 lookup_octants[8];
 __constant__ uint3 insertPositions[8];
 __constant__ LevelInterval constLevelIntervalMap[10]; // a little more memory than needed..
+__constant__ uint3 constLookUp1Dto3DIndex[27]; // is used in mipmapping to get all 27 voxels within a brick. Prevents modulo operations
 
 //
 LevelInterval LevelIntervalMap[10]; // we save the memory positions of every octree level. this should guarantee better performance
