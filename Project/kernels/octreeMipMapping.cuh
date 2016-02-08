@@ -93,9 +93,133 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     }
 
     // TODO: mipmap
+    __syncthreads();
 
-    surf3Dwrite(make_uchar4(0,0,0,0), colorBrickPool, (targetBrick.x) * sizeof(uchar4), 0 + targetBrick.y,
-                0 + targetBrick.z);
+    //MIPMAP CENTER:
+    float4 centerColor = make_float4(0,0,0,0);
+    centerColor.x += 0.25*myChilds[0].childColors[26].x         // center
+                     + 0.125*myChilds[0].childColors[17].x      // faces =>
+                     + 0.125*myChilds[1].childColors[17].x
+                     + 0.125*myChilds[0].childColors[25].x
+                     + 0.125*myChilds[4].childColors[25].x
+                     + 0.125*myChilds[0].childColors[23].x
+                     + 0.125*myChilds[2].childColors[23].x      // <= faces
+                     + 0.0625*myChilds[0].childColors[14].x     // => edges
+                     + 0.0625*myChilds[2].childColors[14].x
+                     + 0.0625*myChilds[0].childColors[16].x
+                     + 0.0625*myChilds[4].childColors[16].x
+                     + 0.0625*myChilds[1].childColors[14].x
+                     + 0.0625*myChilds[3].childColors[14].x
+                     + 0.0625*myChilds[1].childColors[16].x
+                     + 0.0625*myChilds[5].childColors[16].x
+                     + 0.0625*myChilds[0].childColors[22].x
+                     + 0.0625*myChilds[2].childColors[22].x
+                     + 0.0625*myChilds[4].childColors[22].x
+                     + 0.0625*myChilds[6].childColors[22].x    // <= edges
+                     + 0.03125*myChilds[0].childColors[13].x   // corners =>
+                     + 0.03125*myChilds[2].childColors[13].x
+                     + 0.03125*myChilds[1].childColors[13].x
+                     + 0.03125*myChilds[3].childColors[13].x
+                     + 0.03125*myChilds[4].childColors[13].x
+                     + 0.03125*myChilds[6].childColors[13].x
+                     + 0.03125*myChilds[5].childColors[13].x
+                     + 0.03125*myChilds[7].childColors[13].x; // <= corners
+
+    centerColor.y += 0.25*myChilds[0].childColors[26].y         // center
+                     + 0.125*myChilds[0].childColors[17].y      // faces =>
+                     + 0.125*myChilds[1].childColors[17].y
+                     + 0.125*myChilds[0].childColors[25].y
+                     + 0.125*myChilds[4].childColors[25].y
+                     + 0.125*myChilds[0].childColors[23].y
+                     + 0.125*myChilds[2].childColors[23].y      // <= faces
+                     + 0.0625*myChilds[0].childColors[14].y     // => edges
+                     + 0.0625*myChilds[2].childColors[14].y
+                     + 0.0625*myChilds[0].childColors[16].y
+                     + 0.0625*myChilds[4].childColors[16].y
+                     + 0.0625*myChilds[1].childColors[14].y
+                     + 0.0625*myChilds[3].childColors[14].y
+                     + 0.0625*myChilds[1].childColors[16].y
+                     + 0.0625*myChilds[5].childColors[16].y
+                     + 0.0625*myChilds[0].childColors[22].y
+                     + 0.0625*myChilds[2].childColors[22].y
+                     + 0.0625*myChilds[4].childColors[22].y
+                     + 0.0625*myChilds[6].childColors[22].y    // <= edges
+                     + 0.03125*myChilds[0].childColors[13].y   // corners =>
+                     + 0.03125*myChilds[2].childColors[13].y
+                     + 0.03125*myChilds[1].childColors[13].y
+                     + 0.03125*myChilds[3].childColors[13].y
+                     + 0.03125*myChilds[4].childColors[13].y
+                     + 0.03125*myChilds[6].childColors[13].y
+                     + 0.03125*myChilds[5].childColors[13].y
+                     + 0.03125*myChilds[7].childColors[13].y; // <= corners
+
+    centerColor.z += 0.25*myChilds[0].childColors[26].z         // center
+                     + 0.125*myChilds[0].childColors[17].z      // faces =>
+                     + 0.125*myChilds[1].childColors[17].z
+                     + 0.125*myChilds[0].childColors[25].z
+                     + 0.125*myChilds[4].childColors[25].z
+                     + 0.125*myChilds[0].childColors[23].z
+                     + 0.125*myChilds[2].childColors[23].z      // <= faces
+                     + 0.0625*myChilds[0].childColors[14].z     // => edges
+                     + 0.0625*myChilds[2].childColors[14].z
+                     + 0.0625*myChilds[0].childColors[16].z
+                     + 0.0625*myChilds[4].childColors[16].z
+                     + 0.0625*myChilds[1].childColors[14].z
+                     + 0.0625*myChilds[3].childColors[14].z
+                     + 0.0625*myChilds[1].childColors[16].z
+                     + 0.0625*myChilds[5].childColors[16].z
+                     + 0.0625*myChilds[0].childColors[22].z
+                     + 0.0625*myChilds[2].childColors[22].z
+                     + 0.0625*myChilds[4].childColors[22].z
+                     + 0.0625*myChilds[6].childColors[22].z    // <= edges
+                     + 0.03125*myChilds[0].childColors[13].z   // corners =>
+                     + 0.03125*myChilds[2].childColors[13].z
+                     + 0.03125*myChilds[1].childColors[13].z
+                     + 0.03125*myChilds[3].childColors[13].z
+                     + 0.03125*myChilds[4].childColors[13].z
+                     + 0.03125*myChilds[6].childColors[13].z
+                     + 0.03125*myChilds[5].childColors[13].z
+                     + 0.03125*myChilds[7].childColors[13].z; // <= corners
+
+    centerColor.w += 0.25*myChilds[0].childColors[26].w         // center
+                     + 0.125*myChilds[0].childColors[17].w      // faces =>
+                     + 0.125*myChilds[1].childColors[17].w
+                     + 0.125*myChilds[0].childColors[25].w
+                     + 0.125*myChilds[4].childColors[25].w
+                     + 0.125*myChilds[0].childColors[23].w
+                     + 0.125*myChilds[2].childColors[23].w      // <= faces
+                     + 0.0625*myChilds[0].childColors[14].w     // => edges
+                     + 0.0625*myChilds[2].childColors[14].w
+                     + 0.0625*myChilds[0].childColors[16].w
+                     + 0.0625*myChilds[4].childColors[16].w
+                     + 0.0625*myChilds[1].childColors[14].w
+                     + 0.0625*myChilds[3].childColors[14].w
+                     + 0.0625*myChilds[1].childColors[16].w
+                     + 0.0625*myChilds[5].childColors[16].w
+                     + 0.0625*myChilds[0].childColors[22].w
+                     + 0.0625*myChilds[2].childColors[22].w
+                     + 0.0625*myChilds[4].childColors[22].w
+                     + 0.0625*myChilds[6].childColors[22].w    // <= edges
+                     + 0.03125*myChilds[0].childColors[13].w   // corners =>
+                     + 0.03125*myChilds[2].childColors[13].w
+                     + 0.03125*myChilds[1].childColors[13].w
+                     + 0.03125*myChilds[3].childColors[13].w
+                     + 0.03125*myChilds[4].childColors[13].w
+                     + 0.03125*myChilds[6].childColors[13].w
+                     + 0.03125*myChilds[5].childColors[13].w
+                     + 0.03125*myChilds[7].childColors[13].w; // <= corners
+
+    // TODO: real gussian kernel for 3D?
+    centerColor.x /= 2.0;
+    centerColor.y /= 2.0;
+    centerColor.z /= 2.0;
+    centerColor.w /= 2.0;
+
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x + 1) * sizeof(uchar4),
+                targetBrick.y + 1,
+                targetBrick.z + 1);
 }
 
 __global__
