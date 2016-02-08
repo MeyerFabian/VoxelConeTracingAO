@@ -209,7 +209,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                      + 0.03125*myChilds[5].childColors[13].w
                      + 0.03125*myChilds[7].childColors[13].w; // <= corners
 
-    // TODO: real gussian kernel for 3D?
+    // TODO: real gaussian kernel for 3D?
     centerColor.x /= 2.0;
     centerColor.y /= 2.0;
     centerColor.z /= 2.0;
