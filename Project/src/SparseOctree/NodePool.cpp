@@ -85,6 +85,11 @@ NodePool::~NodePool()
 {
     cudaFree(m_dNodePool);
     cudaFree(m_dNeighbourPool);
+
+    glDeleteTextures(1,&mNeighbourPoolTexture);
+    glDeleteTextures(1,&mNodePoolOutputTexture);
+    glDeleteBuffers(1,&mNodePoolOutputBuffer);
+    glDeleteBuffers(1,&mNeighbourPoolBuffer);
 }
 
 int NodePool::getPoolSize()

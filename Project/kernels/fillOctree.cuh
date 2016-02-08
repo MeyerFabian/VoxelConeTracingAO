@@ -20,4 +20,8 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
 
 // sets the volume resolution within the constant memory
     cudaError_t setVolumeResulution(int resolution);
+
+    cudaError_t initMemory();
+
+    cudaError_t freeMemory();
 }

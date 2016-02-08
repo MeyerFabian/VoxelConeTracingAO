@@ -5,17 +5,19 @@
 #include "SparseVoxelOctree.h"
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
-cudaError_t buildSVO(node *nodePool,
-                     neighbours* neighbourPool,
-                     int poolSize,
-                     cudaArray *brickPool,
-                     dim3 textureDim,
-                     uint1 *positionDevPointer,
-                     uchar4 *colorBufferDevPointer,
-                     uchar4 *normalDevPointer,
-                     int fragmentListSize);
+    cudaError_t buildSVO(node *nodePool,
+                         neighbours* neighbourPool,
+                         int poolSize,
+                         cudaArray *brickPool,
+                         dim3 textureDim,
+                         uint1 *positionDevPointer,
+                         uchar4 *colorBufferDevPointer,
+                         uchar4 *normalDevPointer,
+                         int fragmentListSize);
 
-cudaError_t setVolumeResulution(int resolution);
+    cudaError_t setVolumeResulution(int resolution);
+    cudaError_t initMemory();
+    cudaError_t freeMemory();
 }
 
 void SparseVoxelOctree::init()
@@ -24,12 +26,14 @@ void SparseVoxelOctree::init()
     m_nodePool.init();
     m_brickPool.init(256,256,256);
     cudaErrorCheck(setVolumeResulution(m_brickPool.getResolution().x));
+    cudaErrorCheck(initMemory());
 
     m_brickPool.registerTextureForCUDAWriting();
 }
 SparseVoxelOctree::~SparseVoxelOctree()
 {
     m_brickPool.unregisterTextureForCUDA();
+    cudaErrorCheck(freeMemory());
 }
 
 void SparseVoxelOctree::fillGui()
