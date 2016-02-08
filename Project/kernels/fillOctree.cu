@@ -485,13 +485,13 @@ cudaError_t buildSVO(node *nodePool,
         reservedOld = *h_counter;
         // todo: this is silly
         if(i!=0)
-            LevelIntervalMap[i-1].end = reservedOld;
+            LevelIntervalMap[i-1].end = reservedOld-1;
     }
 
     // make sure we fill the interval map complete
     cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     LevelIntervalMap[maxLevel-1].start = LevelIntervalMap[maxLevel-2].end;
-    LevelIntervalMap[maxLevel-1].end = *h_counter;
+    LevelIntervalMap[maxLevel-1].end = *h_counter-1;
 
     for(int i=0;i< maxLevel;i++)
         printf("start: %d end:%d level:%d\n",LevelIntervalMap[i].start, LevelIntervalMap[i].end, i);
