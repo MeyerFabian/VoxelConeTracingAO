@@ -22,6 +22,27 @@ uchar4 avgColor(const uchar4 &c1, const uchar4 &c2)
 __device__
 void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
 {
+    struct child
+    {
+        uchar4 childColors[27];
+    } myChilds[8]; // 8 children with 27 color-values each
+
+    uint3 coords, tmpCoords;
+    //load colors TODO: unroll
+    for(int i=0;i<8;i++)
+    {
+        coords = sourceBricks[i];
+        for(int j=0;j<27;j++)
+        {
+            //TODO: lookup table
+            tmpCoords.x = coords.x + j / 9;
+            tmpCoords.y = coords.y + (j / 3) % 3;
+            tmpCoords.z = coords.z + j % 3;
+
+            surf3Dread(&myChilds[i].childColors[j], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
+        }
+    }
+
     // TODO: mipmap
 }
 
