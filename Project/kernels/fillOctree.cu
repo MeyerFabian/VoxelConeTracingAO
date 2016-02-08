@@ -525,7 +525,7 @@ cudaError_t buildSVO(node *nodePool,
 
     const unsigned int threadsPerBlockMipMap = 256;
     // MIPMAP
-    for(int i=maxLevel-1;i>=0;i--)
+    for(int i=maxLevel-2;i>=0;i--)
     {
         unsigned int blockCountMipMap = 1;
         unsigned int intervalWidth = LevelIntervalMap[i].end - LevelIntervalMap[i].start;

@@ -93,6 +93,9 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     }
 
     // TODO: mipmap
+
+    surf3Dwrite(make_uchar4(0,0,0,0), colorBrickPool, (targetBrick.x) * sizeof(uchar4), 0 + targetBrick.y,
+                0 + targetBrick.z);
 }
 
 __global__
