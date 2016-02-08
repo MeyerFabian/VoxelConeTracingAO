@@ -40,7 +40,7 @@ void main()
         || gl_FragCoord.y < AABB.y
         || gl_FragCoord.y >= AABB.w)
     {
-        discard;
+        // discard; // Does not work as expected :(
     }
 
     // Index in output textures
