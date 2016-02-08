@@ -19,6 +19,12 @@ uchar4 avgColor(const uchar4 &c1, const uchar4 &c2)
     return make_uchar4((c1.x+c2.x)/2,(c1.y+c2.y)/2,(c1.z+c2.z)/2,(c1.w+c2.w)/2);
 }
 
+__device__
+void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
+{
+    // TODO: mipmap
+}
+
 __global__
 void combineBrickBorders(node *nodePool,
                          neighbours* neighbourPool,
@@ -315,6 +321,44 @@ void combineBrickBorders(node *nodePool,
         }
 
     }
+}
+
+__global__
+void mipMapOctreeLevel(node *nodePool, unsigned int level)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // make sure our index matches the node-adresses in a given octree level
+    index += constLevelIntervalMap[level].start;
+    // make sure we dont load invalid adresses
+    if(index > constLevelIntervalMap[level].end)
+        return;
+
+    // load the target node that should be filled by mipmapping
+    node targetNode = nodePool[index];
+
+    // get the childpointer to the node tile
+    unsigned int childPointer = targetNode.nodeTilePointer & 0x3fffffff;
+
+    // load the texture coordinates of the associated Brick
+    uint3 targetBrick = decodeBrickCoords(targetNode.value);
+
+    if(childPointer != 0)
+    {
+        uint3 brickCoords[8];
+
+        // load all child-bricks todo: unroll
+        for(int i=0;i<8;i++)
+        {
+            // we have 8 associated nodes in a nodetile
+            brickCoords[i] = decodeBrickCoords(nodePool[childPointer+i].value);
+        }
+
+        // finally mipmap our node
+        mipMapIsotropic(targetBrick,brickCoords);
+    }
+    else
+        return;
 }
 
 #endif
