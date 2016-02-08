@@ -105,77 +105,38 @@ void main()
         In[1].uv = tmp2;
     }
 
-    // Set bounding box for clipping (TODO: does not work :-C )
-    /*AABB = vec4(
+    // Set bounding box for clipping
+    AABB = vec4(
         min(pos[2].x, min(pos[0].x, pos[1].x)) - halfPixelSize,
         min(pos[2].y, min(pos[0].y, pos[1].y)) - halfPixelSize,
         max(pos[2].x, max(pos[0].x, pos[1].x)) + halfPixelSize,
-        max(pos[2].y, max(pos[0].y, pos[1].y)) + halfPixelSize); */
-    AABB = vec4(-1,-1,1,1); // Just the complete device coordinates...
+        max(pos[2].y, max(pos[0].y, pos[1].y)) + halfPixelSize);
 
     // Convert to pixel space
     AABB = (AABB + 1.0) / pixelSize;
 
-    // Prepare variables for line equations
-    vec2 lineStarts[3];
-    vec2 expandDirections[3];
+    // Compute edges of triangle
+    /*vec2 diag = vec2(halfPixelSize, halfPixelSize);
+    vec2 e0 = pos[1].xy - pos[0].xy;
+    vec2 e1 = pos[2].xy - pos[1].xy;
+    vec2 e2 = pos[0].xy - pos[2].xy;
+    vec2 n0 = normalize(cross2D(e0));
+    vec2 n1 = normalize(cross2D(e1));
+    vec2 n2 = normalize(cross2D(e2));
+    vec2 n0_abs = abs(n0);
+    vec2 n1_abs = abs(n1);
+    vec2 n2_abs = abs(n2);
+    float d20 = dot(n2, e0);
+    float d01 = dot(n0, e1);
+    float d12 = dot(n1, e2);
+    float d02 = dot(n0, e2);
+    float d10 = dot(n1, e0);
+    float d21 = dot(n2, e1);
 
-    // Conservative rasterziation
-    /*for(int i = 0; i <= 2; i++)
-    {
-        // Move lines away from center using cross product
-        int j = (i+1) % 3;
-        expandDirections[i] = cross2D(normalize(pos[j] - pos[i]));
-        lineStarts[i] = pos[i] + expandDirections[i] * halfPixelSize * 1.41f; // TODO: should depend on angle
-    }*/
-
-    // ### UNROLLED FOR LOOP ABOVE ###
-    expandDirections[0] = cross2D(normalize(pos[1] - pos[0]));
-    lineStarts[0] = pos[0] + expandDirections[0] * halfPixelSize * 1.41f; // TODO: should depend on angle
-    expandDirections[1] = cross2D(normalize(pos[2] - pos[1]));
-    lineStarts[1] = pos[1] + expandDirections[1] * halfPixelSize * 1.41f; // TODO: should depend on angle
-    expandDirections[2] = cross2D(normalize(pos[0] - pos[2]));
-    lineStarts[2] = pos[2] + expandDirections[2] * halfPixelSize * 1.41f; // TODO: should depend on angle
-
-    // Cut lines and use found points as output
-    /*for(int i = 0; i <= 2; i++)
-    {
-        int j = (i+1) % 3;
-        float a1 = expandDirections[i].x;
-        float b1 = expandDirections[i].y;
-        float a2 = expandDirections[j].x;
-        float b2 = expandDirections[j].y;
-        float c1 = dot(expandDirections[i], lineStarts[i]);
-        float c2 = dot(expandDirections[j], lineStarts[j]);
-        pos[j] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
-    }*/
-
-    // ### UNROLLED FOR LOOP ABOVE ###
-    float a1, b1, a2, b2, c1, c2;
-
-    a1 = expandDirections[0].x;
-    b1 = expandDirections[0].y;
-    a2 = expandDirections[1].x;
-    b2 = expandDirections[1].y;
-    c1 = dot(expandDirections[0], lineStarts[0]);
-    c2 = dot(expandDirections[1], lineStarts[1]);
-    pos[1] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
-
-    a1 = expandDirections[1].x;
-    b1 = expandDirections[1].y;
-    a2 = expandDirections[2].x;
-    b2 = expandDirections[2].y;
-    c1 = c2;
-    c2 = dot(expandDirections[2], lineStarts[2]);
-    pos[2] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
-
-    a1 = expandDirections[2].x;
-    b1 = expandDirections[2].y;
-    a2 = expandDirections[0].x;
-    b2 = expandDirections[0].y;
-    c1 = c2;
-    c2 = dot(expandDirections[0], lineStarts[0]);
-    pos[0] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+    // Expand triangle
+    pos[0].xy += e0 * dot(n2_abs, diag) / d20 + e2 * dot(n0_abs, diag) / d02;
+    pos[1].xy += e1 * dot(n0_abs, diag) / d01 + e0 * dot(n1_abs, diag) / d10;
+    pos[2].xy += e2 * dot(n1_abs, diag) / d12 + e1 * dot(n2_abs, diag) / d21; */
 
     // First vertex
     Out.posDevice = In[0].posDevice;
@@ -200,3 +161,91 @@ void main()
 
     EndPrimitive();
 }
+
+// #### Muellers conservative rasterization ###
+
+// Compute edges of triangle
+/*vec2 diag = vec2(halfPixelSize, halfPixelSize);
+vec2 e0 = pos[1].xy - pos[0].xy;
+vec2 e1 = pos[2].xy - pos[1].xy;
+vec2 e2 = pos[0].xy - pos[2].xy;
+vec2 n0 = normalize(cross2D(e0));
+vec2 n1 = normalize(cross2D(e1));
+vec2 n2 = normalize(cross2D(e2));
+vec2 n0_abs = abs(n0);
+vec2 n1_abs = abs(n1);
+vec2 n2_abs = abs(n2);
+float d20 = dot(n2, e0);
+float d01 = dot(n0, e1);
+float d12 = dot(n1, e2);
+float d02 = dot(n0, e2);
+float d10 = dot(n1, e0);
+float d21 = dot(n2, e1);
+
+// Expand triangle
+pos[0].xy += e0 * dot(n2_abs, diag) / d20 + e2 * dot(n0_abs, diag) / d02;
+pos[1].xy += e1 * dot(n0_abs, diag) / d01 + e0 * dot(n1_abs, diag) / d10;
+pos[2].xy += e2 * dot(n1_abs, diag) / d12 + e1 * dot(n2_abs, diag) / d21;*/
+
+// ### Raphaels conservative rasterization ###
+
+// Prepare variables for line equations
+//vec2 lineStarts[3];
+//vec2 expandDirections[3];
+
+// Conservative rasterziation
+/*for(int i = 0; i <= 2; i++)
+{
+    // Move lines away from center using cross product
+    int j = (i+1) % 3;
+    expandDirections[i] = cross2D(normalize(pos[j] - pos[i]));
+    lineStarts[i] = pos[i] + expandDirections[i] * halfPixelSize * 1.41f; // TODO: should depend on angle
+}*/
+
+// ### UNROLLED FOR LOOP ABOVE ###
+/*expandDirections[0] = cross2D(normalize(pos[1] - pos[0]));
+lineStarts[0] = pos[0] + expandDirections[0] * halfPixelSize * 1.41f; // TODO: should depend on angle
+expandDirections[1] = cross2D(normalize(pos[2] - pos[1]));
+lineStarts[1] = pos[1] + expandDirections[1] * halfPixelSize * 1.41f; // TODO: should depend on angle
+expandDirections[2] = cross2D(normalize(pos[0] - pos[2]));
+lineStarts[2] = pos[2] + expandDirections[2] * halfPixelSize * 1.41f; // TODO: should depend on angle*/
+
+// Cut lines and use found points as output
+/*for(int i = 0; i <= 2; i++)
+{
+    int j = (i+1) % 3;
+    float a1 = expandDirections[i].x;
+    float b1 = expandDirections[i].y;
+    float a2 = expandDirections[j].x;
+    float b2 = expandDirections[j].y;
+    float c1 = dot(expandDirections[i], lineStarts[i]);
+    float c2 = dot(expandDirections[j], lineStarts[j]);
+    pos[j] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+}*/
+
+// ### UNROLLED FOR LOOP ABOVE ###
+/*float a1, b1, a2, b2, c1, c2;
+
+a1 = expandDirections[0].x;
+b1 = expandDirections[0].y;
+a2 = expandDirections[1].x;
+b2 = expandDirections[1].y;
+c1 = dot(expandDirections[0], lineStarts[0]);
+c2 = dot(expandDirections[1], lineStarts[1]);
+pos[1] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+
+a1 = expandDirections[1].x;
+b1 = expandDirections[1].y;
+a2 = expandDirections[2].x;
+b2 = expandDirections[2].y;
+c1 = c2;
+c2 = dot(expandDirections[2], lineStarts[2]);
+pos[2] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1));
+
+a1 = expandDirections[2].x;
+b1 = expandDirections[2].y;
+a2 = expandDirections[0].x;
+b2 = expandDirections[0].y;
+c1 = c2;
+c2 = dot(expandDirections[0], lineStarts[0]);
+pos[0] = vec2((c1*b2 - c2*b1)/(a1*b2 -a2*b1), (a1*c2 - a2*c1)/(a1*b2 -a2*b1)); */
