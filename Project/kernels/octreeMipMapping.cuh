@@ -526,9 +526,9 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // make sure our index matches the node-adresses in a given octree level
-    index += constLevelIntervalMap[level].start;
+    index += constLevelIntervalMap[level].start*8;
     // make sure we dont load invalid adresses
-    if(index > constLevelIntervalMap[level].end)
+    if(index > constLevelIntervalMap[level].end*8)
         return;
 
     // load the target node that should be filled by mipmapping

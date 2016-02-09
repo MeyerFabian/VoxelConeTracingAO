@@ -528,12 +528,12 @@ cudaError_t buildSVO(node *nodePool,
     for(int i=maxLevel-2;i>=0;i--)
     {
         unsigned int blockCountMipMap = 1;
-        unsigned int intervalWidth = LevelIntervalMap[i].end - LevelIntervalMap[i].start;
+        unsigned int intervalWidth = (LevelIntervalMap[i].end - LevelIntervalMap[i].start)*8;
 
         if(threadsPerBlockMipMap < intervalWidth)
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
-       // printf("blockCount: %d intervalWidth: %d\n", blockCountMipMap, intervalWidth);
+        printf("blockCount: %d intervalWidth: %d\n", blockCountMipMap, intervalWidth);
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
     }
 
