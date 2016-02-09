@@ -215,11 +215,194 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     centerColor.z /= 2.0;
     centerColor.w /= 2.0;
 
+    // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
                 (targetBrick.x + 1) * sizeof(uchar4),
                 targetBrick.y + 1,
                 targetBrick.z + 1);
+
+    //0,0,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z);
+
+    // 0,0,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+1);
+
+    // 0,0,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+2);
+
+    // 0,1,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z);
+
+    // 0,1,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+1);
+
+    // 0,1,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+2);
+
+    // 0,2,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z);
+
+    // 0,2,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+1);
+
+    // 0,2,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+2);
+
+    // 1,0,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z);
+    // 1,0,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+1);
+
+    // 1,0,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+2);
+
+    // 1,1,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z);
+
+    // 1,1,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+2);
+
+    // 1,2,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z);
+
+    // 1,2,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+1);
+
+    // 1,2,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+2);
+
+    // 2,0,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z);
+
+    // 2,0,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+1);
+
+    // 2,0,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+2);
+
+    // 2,1,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z);
+
+    // 2,1,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+1);
+
+    // 2,1,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+2);
+
+    // 2,2,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z);
+
+    // 2,2,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+1);
+
+    // 2,2,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+2);
+
 }
 
 __global__
@@ -528,7 +711,7 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
     // make sure our index matches the node-adresses in a given octree level
     index += constLevelIntervalMap[level].start*8;
     // make sure we dont load invalid adresses
-    if(index > constLevelIntervalMap[level].end*8)
+    if(index > (constLevelIntervalMap[level].end*8)-1)
         return;
 
     // load the target node that should be filled by mipmapping

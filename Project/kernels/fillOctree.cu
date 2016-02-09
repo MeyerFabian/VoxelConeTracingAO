@@ -486,13 +486,13 @@ cudaError_t buildSVO(node *nodePool,
         reservedOld = *h_counter;
         // todo: this is silly
         if(i!=0)
-            LevelIntervalMap[i-1].end = reservedOld-1;
+            LevelIntervalMap[i-1].end = reservedOld;
     }
 
     // make sure we fill the interval map complete
     cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     LevelIntervalMap[maxLevel-1].start = LevelIntervalMap[maxLevel-2].end;
-    LevelIntervalMap[maxLevel-1].end = *h_counter-1;
+    LevelIntervalMap[maxLevel-1].end = *h_counter;
 
     /*
     for(int i=0;i< maxLevel;i++)
@@ -522,10 +522,9 @@ cudaError_t buildSVO(node *nodePool,
 
     //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);
     cudaDeviceSynchronize();
-
     const unsigned int threadsPerBlockMipMap = 256;
-    // MIPMAP
-    for(int i=maxLevel-2;i>=0;i--)
+    // MIPMAP we have some crap with the 0 level. therefore we subtract 3 :)
+    for(int i=maxLevel-3;i>=0;i--)
     {
         unsigned int blockCountMipMap = 1;
         unsigned int intervalWidth = (LevelIntervalMap[i].end - LevelIntervalMap[i].start)*8;
@@ -533,7 +532,7 @@ cudaError_t buildSVO(node *nodePool,
         if(threadsPerBlockMipMap < intervalWidth)
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
-        printf("blockCount: %d intervalWidth: %d\n", blockCountMipMap, intervalWidth);
+        printf("blockCount: %d intervalWidth: %d start:%d end:%d level:%d\n", blockCountMipMap, intervalWidth,LevelIntervalMap[i].start,LevelIntervalMap[i].end,i);
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
     }
 
