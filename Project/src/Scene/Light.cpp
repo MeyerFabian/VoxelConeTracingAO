@@ -51,6 +51,15 @@ float Light::getDiffuseIntensity() const
 {
 	return mDiffuseIntensity;
 }
+
+float& Light::getAmbientIntensity()
+{
+	return mAmbientIntensity;
+}
+float& Light::getDiffuseIntensity()
+{
+	return mDiffuseIntensity;
+}
 glm::mat4 Light::getProjectionMatrix() const
 {
 	return glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 150.f);
