@@ -6,20 +6,24 @@
 #include "LightDepthBuffer.h"
 #include "Scene/Scene.h"
 #include "ShaderProgram.h"
-class LightViewMap
+
+
+class LightViewMap : public Controllable
 {
 public:
 	
-	LightViewMap();
+	LightViewMap(App *pApp);
 	~LightViewMap();
 
-	void init(float width, float height);
+	enum ShadowMapResolutions { RES_1024, RES_2048, RES_4096 };
+	int SHADOW_MAP_RESOLUTION = RES_1024;
+	void init();
 
 	void shadowMapPass(const std::unique_ptr<Scene>& scene) const;
-	void shadowMapRender(GLuint ScreenQuad) const;
-
-	float m_width;
-	float m_height;
+	void shadowMapRender(float windowWidth, float windowHeight, GLuint ScreenQuad) const;
+	int determineShadowMapResolution(int res) const;
+	void fillGui();
+	int getCurrentShadowMapRes();
 	GLuint getDepthTextureID(){
 		return m_depthbuffer->getDepthTextureID();
 	}

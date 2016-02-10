@@ -4,29 +4,42 @@
 
 LightDepthBuffer::LightDepthBuffer()
 {
+	m_width = 0;
+	m_height = 0;
 	m_fbo = 0;
 	m_depthTexture = 0;
+	glGenFramebuffers(1, &m_fbo);
 }
 
 
 LightDepthBuffer::~LightDepthBuffer()
 {
+	clear();
 	if (m_fbo != 0) {
 		glDeleteFramebuffers(1, &m_fbo);
 	}
 
 
+}
+void LightDepthBuffer::clear(){
 	if (m_depthTexture != 0) {
 		glDeleteTextures(1, &m_depthTexture);
+	}
+}
+void LightDepthBuffer::onResize(int width, int height){
+	if (m_width != width || m_height != height){
+		clear();
+		init(width, height);
 	}
 }
 
 void LightDepthBuffer::init(int width, int height)
 {
-	
+
+	m_width = width;
+	m_height = height;
 
 	// First create FBO 
-	glGenFramebuffers(1, &m_fbo);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
 
 	// Create GBuffer to store our geometry information textures
@@ -48,7 +61,7 @@ void LightDepthBuffer::init(int width, int height)
 	}
 	else
 	{
-		printf("GBuffer successfully initialized.\n");
+		printf("LightDepthBuffer successfully initialized.\n");
 	}
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	
