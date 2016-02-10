@@ -16,7 +16,7 @@ public:
 	~LightViewMap();
 
 	enum ShadowMapResolutions { RES_1024, RES_2048, RES_4096 };
-	int SHADOW_MAP_RESOLUTION = RES_1024;
+	int SHADOW_MAP_RESOLUTION = RES_2048;
 	void init();
 
 	void shadowMapPass(const std::unique_ptr<Scene>& scene) const;

@@ -118,7 +118,7 @@ int LightViewMap::determineShadowMapResolution(int res) const{
 		case ShadowMapResolutions::RES_4096:
 			return 4096;
 		default:
-			return 1024;
+			return 2048;
 	}
 }
 int LightViewMap::getCurrentShadowMapRes(){
