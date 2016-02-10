@@ -11,10 +11,8 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 
 using namespace std;
 
-LightViewMap::LightViewMap()
+LightViewMap::LightViewMap(App *pApp) : Controllable(pApp, "Light-View-Map")
 {
-	m_width = 0.0f;
-	m_height = 0.0f;
 	m_depthbuffer = make_unique<LightDepthBuffer>();
 
 }
@@ -24,19 +22,21 @@ LightViewMap::~LightViewMap()
 {
 }
 
-void LightViewMap::init(float width, float height)
+void LightViewMap::init()
 {
-	
 	m_shadowMapPass = make_unique<ShaderProgram>("/vertex_shaders/lightViewMap_pass.vert", "/fragment_shaders/lightViewMap_pass.frag");
 	m_shadowMapRender= make_unique<ShaderProgram>("/vertex_shaders/shadowMapRender.vert", "/fragment_shaders/shadowMapRender.frag");
-	m_width = width;
-	m_height = height;
 
-	m_depthbuffer->init(m_width, m_height);
+	m_depthbuffer->init(
+		determineShadowMapResolution(SHADOW_MAP_RESOLUTION),
+		determineShadowMapResolution(SHADOW_MAP_RESOLUTION));
 
 }
 
 void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
+
+	int res = determineShadowMapResolution(SHADOW_MAP_RESOLUTION);
+	m_depthbuffer->onResize(res, res);
 
 	glDepthMask(true);
 
@@ -52,9 +52,8 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	m_shadowMapPass->use();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	//Set the texture size of the light view map
-	scene->getLight().setProjectionMatrix(m_width, m_height);
+	scene->getLight().setProjectionMatrix(res, res);
 
 	// Create uniforms used by shader
 	// Fill uniforms to shader
@@ -81,7 +80,9 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	glDisable(GL_DEPTH_TEST);
 }
 
-void LightViewMap::shadowMapRender(GLuint ScreenQuad) const{
+void LightViewMap::shadowMapRender(float windowWidth, float windowHeight, GLuint ScreenQuad) const{
+
+	int res = determineShadowMapResolution(SHADOW_MAP_RESOLUTION);
 
 	GLuint RenderWidth = 150, RenderHeight = 150;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -97,6 +98,7 @@ void LightViewMap::shadowMapRender(GLuint ScreenQuad) const{
 	m_shadowMapRender->use();
 	m_shadowMapRender->updateUniform("identity", WVP);
 	m_shadowMapRender->updateUniform("screenSize", glm::vec2(RenderWidth, RenderHeight));
+	m_shadowMapRender->updateUniform("shadowToWindowRatio", glm::vec2(windowWidth / (float)res, windowHeight / (float)res));
 	m_shadowMapRender->addTexture("LightViewMapTex", m_depthbuffer->getDepthTextureID());
 	glViewport(0, 0, RenderWidth, RenderHeight);
 	glBindVertexArray(ScreenQuad);
@@ -105,4 +107,24 @@ void LightViewMap::shadowMapRender(GLuint ScreenQuad) const{
 
 	m_shadowMapRender->disable();
 
+}
+int LightViewMap::determineShadowMapResolution(int res) const{
+	switch (res)
+	{
+		case ShadowMapResolutions::RES_1024:
+			return 1024;
+		case ShadowMapResolutions::RES_2048:
+			return 2048;
+		case ShadowMapResolutions::RES_4096:
+			return 4096;
+		default:
+			return 1024;
+	}
+}
+int LightViewMap::getCurrentShadowMapRes(){
+	return determineShadowMapResolution(SHADOW_MAP_RESOLUTION);
+}
+void LightViewMap::fillGui()
+{
+	ImGui::Combo("ShadowMap Resolution", &SHADOW_MAP_RESOLUTION, " 1024x1024\0 2048x2048\0 4096x4096 \0");
 }

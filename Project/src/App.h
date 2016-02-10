@@ -28,7 +28,7 @@ public:
 
     enum Visualization { RAYCASTING, POINT_CLOUD, SHADOW_MAP, GBUFFER,VOXEL_CONE_TRACING };
 
-    // Some constants
+	 // Some constants
     float VOLUME_EXTENT = 384.f;
     int VISUALIZATION = Visualization::RAYCASTING;
 
@@ -36,7 +36,7 @@ public:
     virtual ~App(); // Virtual not necessary
     void run();
     void registerControllable(Controllable* pControllable);
-
+	
     void fillGui();
 
 private:

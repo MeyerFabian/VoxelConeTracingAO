@@ -28,6 +28,7 @@ uniform mat4 LightProjection;
 //other uniforms
 uniform vec3 eyeVector;
 uniform vec2 screenSize;
+uniform vec2 shadowToWindowRatio;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
@@ -47,7 +48,7 @@ float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 	vec3 ProjCoords = positionsFromLight.xyz / positionsFromLight.w;
 	vec2 UVCoords;
 	UVCoords.x = 0.5 * ProjCoords.x + 0.5;
-	UVCoords.y = 0.5 * ProjCoords.y + 0.5 ;
+	UVCoords.y = 0.5 * ProjCoords.y + 0.5;
 	float z = 0.5 *  ProjCoords.z + 0.5;
 	
 	float bias = max(0.00001,0.000025 *(1.0f - dot(lightdirection,normal)));
@@ -55,8 +56,9 @@ float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 	float sample= bias * 75.0f;
 	float brightness=0.0f;
 
+	const int MAX_ITER = 16;
 	//Percentage Close Filtering Mask
-	vec2 kernel[16]= vec2[16](
+	vec2 kernel[MAX_ITER]= vec2[MAX_ITER](
 	vec2(1.4f* sample,0.0f),
 	vec2(1.4f* -sample,0.0f)*1.5f,
 	vec2(0.0f,1.4f* sample)*1.5f,
@@ -75,15 +77,16 @@ float calcOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 	vec2(-0.7f*sample,2.1f*-sample)
 	);
 
-	for(int i= 0 ; i< 16 ;i++){
-	vec2 samplePos = UVCoords + kernel[i];
-	if(samplePos.x <0.0f || samplePos.y <0.0f || samplePos.x >1.0f || samplePos.y>1.0f){
-	break;
-	}
+	for(int i= 0 ; i< MAX_ITER ;i++){
+		vec2 samplePos = UVCoords + kernel[i];
+		if(samplePos.x <0.0f || samplePos.y <0.0f || samplePos.x >1.0f || samplePos.y>1.0f){
+			break;
+		}
+		samplePos = samplePos*shadowToWindowRatio;
 		DepthFromLight[i]= texture(LightViewMapTex,samplePos).r;
-			if(abs(DepthFromLight[i] - z)< bias){
-				brightness+=0.0625;
-			}
+		if(abs(DepthFromLight[i] - z)< bias){
+			brightness+= 1.0/MAX_ITER;
+		}
 		
 	}
 	

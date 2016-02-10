@@ -21,7 +21,7 @@ public:
 	~GBuffer();
 
 	void init(int width, int height);
-	void beginDestroy();
+	void clear();
 	void onResize(int width, int height);
 	void bindForWriting();
 	void bindForReading();

@@ -19,8 +19,6 @@ using namespace std;
 
 VoxelConeTracing::VoxelConeTracing()
 {
-    m_width = 0.0f;
-    m_height = 0.0f;
     m_gbuffer = make_unique<GBuffer>();
 }
 
@@ -32,12 +30,9 @@ void VoxelConeTracing::init(float width,float height) {
     // Prepare the one and only shader
     m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
     m_voxelConeTracing = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
-    m_width = width;
-    m_height = height;
 
-    m_uniformProjection = glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 300.f);
 
-    m_gbuffer->init(m_width, m_height);
+	m_gbuffer->init(width, height);
 
 
     supplyFullScreenQuad();
@@ -77,7 +72,8 @@ void VoxelConeTracing::supplyFullScreenQuad(){
     //m_lightPass->disable();
 }
 
-void VoxelConeTracing::geometryPass(float width,float height,const std::unique_ptr<Scene>& scene) const{
+void VoxelConeTracing::geometryPass(float width,float height,const std::unique_ptr<Scene>& scene) {
+	m_uniformProjection = glm::perspective(glm::radians(35.0f), width / height, 0.1f, 300.f);
 
 	m_gbuffer->onResize(width, height);
     //Bind the GBuffer before enabling (and texture stuff) else it will fail
@@ -119,10 +115,10 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize,bool drawGBuffer) const{
+void VoxelConeTracing::draw(float width, float height,  int shadowMapResolution , GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize, bool drawGBuffer) const{
     //Bind window framebuffer
 
-    glViewport(0, 0, m_width, m_height);
+	glViewport(0, 0, width, height);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //glEnable(GL_BLEND);
    // glBlendEquation(GL_FUNC_ADD);
@@ -152,7 +148,8 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
 
     //other uniforms
     m_voxelConeTracing->updateUniform("identity", WVP);
-    m_voxelConeTracing->updateUniform("screenSize", glm::vec2(m_width, m_height));
+	m_voxelConeTracing->updateUniform("screenSize", glm::vec2(width, height));
+	m_voxelConeTracing->updateUniform("shadowToWindowRatio", glm::vec2(width / (float)shadowMapResolution, height / (float)shadowMapResolution));
 
     //GBUFFER TEXTURES
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
@@ -174,16 +171,16 @@ void VoxelConeTracing::draw(GLuint ScreenQuad, const GLuint lightViewMapTexture,
     //Render little viewports into the main framebuffer that will be displayed onto the screen
 	if(drawGBuffer){
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
-    glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 150, 0, 300, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 150, 0, 300, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
-    glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 300, 0, 450, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 300, 0, 450, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
-    glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
-    glBlitFramebuffer(0, 0, (GLint)m_width, (GLint)m_height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 
     glDisable(GL_BLEND);

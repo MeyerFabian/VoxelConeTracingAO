@@ -12,8 +12,8 @@ public:
     VoxelConeTracing();
     ~VoxelConeTracing();
     void init(float width,float height);
-	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene) const;
-    void draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize,bool drawGBuffer) const;
+	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene);
+	void draw(float width, float height, int shadowMapResolution, GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize, bool drawGBuffer) const;
     std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
     glm::mat4 getProjectionMatrix() {return m_uniformProjection;}
 
@@ -23,8 +23,6 @@ private:
     std::unique_ptr<ShaderProgram> m_voxelConeTracing;
     std::unique_ptr<GBuffer> m_gbuffer;
     glm::mat4 m_uniformProjection;
-    float m_width;
-    float m_height;
     GLuint vaoID;
 };
 #endif //VOXELCONETRACING_H
