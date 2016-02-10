@@ -137,6 +137,9 @@ App::App() : Controllable("App")
     // Variables for the loop
     mPrevTime = (GLfloat)glfwGetTime();
 
+    // Register app as controllable
+    this->registerControllable(this);
+
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
@@ -165,13 +168,10 @@ App::App() : Controllable("App")
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
-    this->registerControllable(this);
-
 
     // create octree from static geometrie
     // Voxelization (create fragment voxels)
     m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
-
 
     // Testing fragment list
     //
