@@ -185,3 +185,22 @@ void VoxelConeTracing::draw(float width, float height,  int shadowMapResolution 
 
     glDisable(GL_BLEND);
 }
+void VoxelConeTracing::RenderGBuffer(float width,float height){
+	//Bind window framebuffer
+
+	glViewport(0, 0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_gbuffer->bindForReading();
+
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 0, height / 2.0, width / 2.0, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, height / 2.0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, 0 , width, height / 2.0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	glDisable(GL_BLEND);
+}

@@ -80,11 +80,10 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	glDisable(GL_DEPTH_TEST);
 }
 
-void LightViewMap::shadowMapRender(float windowWidth, float windowHeight, GLuint ScreenQuad) const{
+void LightViewMap::shadowMapRender(GLuint RenderWidth, GLuint  RenderHeight, float windowWidth, float windowHeight, GLuint ScreenQuad) const{
 
 	int res = determineShadowMapResolution(SHADOW_MAP_RESOLUTION);
 
-	GLuint RenderWidth = 150, RenderHeight = 150;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glEnable(GL_BLEND);
 	//glBlendEquation(GL_FUNC_ADD);

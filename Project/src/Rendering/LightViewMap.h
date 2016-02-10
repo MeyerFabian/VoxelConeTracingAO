@@ -20,7 +20,7 @@ public:
 	void init();
 
 	void shadowMapPass(const std::unique_ptr<Scene>& scene) const;
-	void shadowMapRender(float windowWidth, float windowHeight, GLuint ScreenQuad) const;
+	void shadowMapRender(GLuint RenderWidth, GLuint  RenderHeight, float windowWidth, float windowHeight, GLuint ScreenQuad) const;
 	int determineShadowMapResolution(int res) const;
 	void fillGui();
 	int getCurrentShadowMapRes();

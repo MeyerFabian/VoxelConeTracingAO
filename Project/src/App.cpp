@@ -277,17 +277,22 @@ void App::run()
         case Visualization::SHADOW_MAP:
 			m_LightViewMap->shadowMapPass(m_scene);
 			m_VoxelConeTracing->draw(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5, false);
-			m_LightViewMap->shadowMapRender(width, height, m_FullScreenQuad->getvaoID());
+			m_LightViewMap->shadowMapRender(150,150,width, height, m_FullScreenQuad->getvaoID());
             break;
-        case Visualization::GBUFFER:
+        case Visualization::TRACINGGBUFFER:
             m_LightViewMap->shadowMapPass(m_scene);
 			m_VoxelConeTracing->draw(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5, true);
-			m_LightViewMap->shadowMapRender(width, height, m_FullScreenQuad->getvaoID());
+			m_LightViewMap->shadowMapRender(150,150,width, height, m_FullScreenQuad->getvaoID());
             break;
         case Visualization::VOXEL_CONE_TRACING:
 			m_LightViewMap->shadowMapPass(m_scene);
 			m_VoxelConeTracing->draw(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5, false);
             break;
+		case Visualization::GBUFFER:
+			m_LightViewMap->shadowMapPass(m_scene);
+			m_VoxelConeTracing->RenderGBuffer(width, height);
+			m_LightViewMap->shadowMapRender(width/2,height/2,width, height, m_FullScreenQuad->getvaoID());
+			break;
         }
 
         // FUTURE STUFF
@@ -322,6 +327,6 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
+	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0TracingAndGBuffer\0VoxelConeTracing\0GBuffer\0");
 }
 

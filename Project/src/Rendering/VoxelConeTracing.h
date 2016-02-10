@@ -14,7 +14,8 @@ public:
     void init(float width,float height);
 	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene);
 	void draw(float width, float height, int shadowMapResolution, GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize, bool drawGBuffer) const;
-    std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
+	void RenderGBuffer(float width, float height);
+	std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
     glm::mat4 getProjectionMatrix() {return m_uniformProjection;}
 
 private:
