@@ -210,11 +210,14 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                      + 0.03125*myChilds[7].childColors[13].w; // <= corners
 
     // TODO: real gaussian kernel for 3D?
+    /*
     centerColor.x /= 2.0;
     centerColor.y /= 2.0;
     centerColor.z /= 2.0;
     centerColor.w /= 2.0;
-
+*/
+    //centerColor = make_float4(255,1,1,255);
+    centerColor.w = 255;
     // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
@@ -711,7 +714,7 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
     // make sure our index matches the node-adresses in a given octree level
     index += constLevelIntervalMap[level].start*8;
     // make sure we dont load invalid adresses
-    if(index > (constLevelIntervalMap[level].end*8)-1)
+    if(index >= constLevelIntervalMap[level].end*8)
         return;
 
     // load the target node that should be filled by mipmapping
@@ -731,7 +734,7 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
         for(int i=0;i<8;i++)
         {
             // we have 8 associated nodes in a nodetile
-            brickCoords[i] = decodeBrickCoords(nodePool[childPointer+i].value);
+            brickCoords[i] = decodeBrickCoords(nodePool[childPointer*8+i].value);
         }
 
         // finally mipmap our node

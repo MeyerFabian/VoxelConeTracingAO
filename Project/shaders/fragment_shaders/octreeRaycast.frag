@@ -110,7 +110,7 @@ void main()
             // 1 means has children
             // 0 means does not have children
             // Only read from brick, if we are at aimed level in octree
-            if(getBit(nodeTile, 32) == 0 && j == maxLevel-1)
+            if(/*getBit(nodeTile, 32) == 0 &&*/ j == maxLevel-1)
             {
                 // Output the reached level as color
                 //float level = float(j) / maxLevel;
@@ -139,6 +139,7 @@ void main()
                     outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
                     outputColor.a += (1.0 - outputColor.a) * src.a;
 
+                    outputColor = src;
                     // More or less: if you hit something, exit
                     if(outputColor.a >= 0.5)
                     {

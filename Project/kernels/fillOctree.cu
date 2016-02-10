@@ -41,6 +41,33 @@ void clearBrickPool(unsigned int brick_res)
     surf3Dwrite(make_uchar4(0, 0, 0, 0), colorBrickPool, x*sizeof(uchar4), y, z);
 }
 
+__global__ void filterBrickCornersFast(node* nodePool, unsigned int level, unsigned int startAdress)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // make sure our index matches the node-adresses in a given octree level
+    if(index == 0)
+        printf("startadress:%d end:%d\n",startAdress*8,constLevelIntervalMap[level].end*8);
+    index += (startAdress*8);
+
+    if(index > constLevelIntervalMap[level].end*8)
+        return;
+
+    if(index == 249456)
+        printf("ICH BIN DER START\n");
+
+    if(index == 1089504)
+        printf("ICH BIN DAS ENDE\n");
+
+    // load the target node that should be filled by mipmapping
+    node targetNode = nodePool[index];
+    __syncthreads();
+    if(targetNode.nodeTilePointer & 0x3fffffff != 0)
+        printf("index:%d x:%d y:%d z:%d, brickValue:%d\n", index, decodeBrickCoords(targetNode.value).x, decodeBrickCoords(targetNode.value).y, decodeBrickCoords(targetNode.value).z, targetNode.nodeTilePointer & 0x3fffffff);
+
+    filterBrick(decodeBrickCoords(nodePool[index].value));
+}
+
 // traverses to the bottom level and filters all bricks by applying a inverse gaussian mask to the corner voxels
 // TODO: use levelMap!
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
@@ -481,23 +508,25 @@ cudaError_t buildSVO(node *nodePool,
         //reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
 
-
+        printf("reserveOLD:%d\n",reservedOld);
         // remember counter
         reservedOld = *h_counter;
+
         // todo: this is silly
         if(i!=0)
-            LevelIntervalMap[i-1].end = reservedOld;
+            LevelIntervalMap[i-1].end = reservedOld-1;
     }
+    printf("reserveOLD:%d\n",reservedOld);
 
     // make sure we fill the interval map complete
     cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     LevelIntervalMap[maxLevel-1].start = LevelIntervalMap[maxLevel-2].end;
-    LevelIntervalMap[maxLevel-1].end = *h_counter;
+    LevelIntervalMap[maxLevel-1].end = *h_counter-1;
 
-    /*
-    for(int i=0;i< maxLevel;i++)
+
+    for(int i=0;i<= maxLevel;i++)
         printf("start: %d end:%d level:%d\n",LevelIntervalMap[i].start, LevelIntervalMap[i].end, i);
-        */
+
 
     // copy the level interval map to constant memory
     errorCode = cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10);
@@ -515,14 +544,20 @@ cudaError_t buildSVO(node *nodePool,
 
     // filter the last level with an inverse gaussian kernel
     cudaDeviceSynchronize();
-    filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
+    //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
+    int level = 7;
+    unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
+
+    printf("tmpBlock:%d start:%d end:%d\n",tmpBlock,LevelIntervalMap[level].start,LevelIntervalMap[level].end);
+    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level,LevelIntervalMap[level].start);
     const unsigned int combineThreadCount = 1024;
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
 
     //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);
     cudaDeviceSynchronize();
     const unsigned int threadsPerBlockMipMap = 256;
+  /*
     // MIPMAP we have some crap with the 0 level. therefore we subtract 3 :)
     for(int i=maxLevel-3;i>=0;i--)
     {
@@ -536,7 +571,7 @@ cudaError_t buildSVO(node *nodePool,
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
     }
 
-
+*/
     delete h_counter;
 
     return errorCode;
