@@ -4,6 +4,8 @@
 
 GBuffer::GBuffer()
 {
+	m_width = 0;
+	m_height = 0;
     m_fbo = 0;
     m_depthTexture = 0;
 }
@@ -11,19 +13,29 @@ GBuffer::GBuffer()
 
 GBuffer::~GBuffer()
 {
-    if (m_fbo != 0) {
-        glDeleteFramebuffers(1, &m_fbo);
-    }
-
-
-    if (m_depthTexture != 0) {
-        glDeleteTextures(1, &m_depthTexture);
-    }
+	beginDestroy();
 }
+void GBuffer::beginDestroy(){
+	if (m_fbo != 0) {
+		glDeleteFramebuffers(1, &m_fbo);
+	}
 
+
+	if (m_depthTexture != 0) {
+		glDeleteTextures(1, &m_depthTexture);
+	}
+
+}
+void GBuffer::onResize(int width,int height){
+	if (m_width != width || m_height != height){
+		beginDestroy();
+	init(width, height);
+	}
+}
 void GBuffer::init(int width, int height)
 {
-
+	m_width = width;
+	m_height = height;
     //GL_COLOR_ATTACHMENT0 pos
     //GL_COLOR_ATTACHMENT1 dif
     //GL_COLOR_ATTACHMENT2 nor

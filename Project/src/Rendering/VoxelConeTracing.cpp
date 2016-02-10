@@ -77,9 +77,9 @@ void VoxelConeTracing::supplyFullScreenQuad(){
     //m_lightPass->disable();
 }
 
-void VoxelConeTracing::geometryPass(const std::unique_ptr<Scene>& scene) const{
+void VoxelConeTracing::geometryPass(float width,float height,const std::unique_ptr<Scene>& scene) const{
 
-
+	m_gbuffer->onResize(width, height);
     //Bind the GBuffer before enabling (and texture stuff) else it will fail
     m_gbuffer->bindForWriting();
 

@@ -12,7 +12,7 @@ public:
     VoxelConeTracing();
     ~VoxelConeTracing();
     void init(float width,float height);
-    void geometryPass(const std::unique_ptr<Scene>& scene) const;
+	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene) const;
     void draw(GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize,bool drawGBuffer) const;
     std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
     glm::mat4 getProjectionMatrix() {return m_uniformProjection;}

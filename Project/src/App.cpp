@@ -259,7 +259,7 @@ void App::run()
         glfwGetWindowSize(mpWindow, &width, &height);
         glViewport(0, 0, width, height);
 
-        m_VoxelConeTracing->geometryPass(m_scene);
+        m_VoxelConeTracing->geometryPass(width,height,m_scene);
 
         // Choose visualization TODO: make this available to user interface
         switch(VISUALIZATION)
