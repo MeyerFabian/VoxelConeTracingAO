@@ -41,31 +41,37 @@ void clearBrickPool(unsigned int brick_res)
     surf3Dwrite(make_uchar4(0, 0, 0, 0), colorBrickPool, x*sizeof(uchar4), y, z);
 }
 
-__global__ void filterBrickCornersFast(node* nodePool, unsigned int level, unsigned int startAdress)
+// just for debugging
+__device__ void makeBrickWhite(const uint3 &brickCoords)
+{
+    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, brickCoords.x*sizeof(uchar4), brickCoords.y, brickCoords.z);
+}
+
+__global__ void filterBrickCornersFast(node* nodePool, unsigned int level, unsigned int startAdress, unsigned int endAdress)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // make sure our index matches the node-adresses in a given octree level
-    if(index == 0)
-        printf("startadress:%d end:%d\n",startAdress*8,constLevelIntervalMap[level].end*8);
-    index += (startAdress*8);
+    __syncthreads();
+    index += (startAdress);
 
-    if(index > constLevelIntervalMap[level].end*8)
+    if(index > endAdress)
         return;
-
-    if(index == 249456)
-        printf("ICH BIN DER START\n");
-
-    if(index == 1089504)
-        printf("ICH BIN DAS ENDE\n");
 
     // load the target node that should be filled by mipmapping
     node targetNode = nodePool[index];
     __syncthreads();
-    if(targetNode.nodeTilePointer & 0x3fffffff != 0)
-        printf("index:%d x:%d y:%d z:%d, brickValue:%d\n", index, decodeBrickCoords(targetNode.value).x, decodeBrickCoords(targetNode.value).y, decodeBrickCoords(targetNode.value).z, targetNode.nodeTilePointer & 0x3fffffff);
+    if(getBit(targetNode.value,31) != 0)
+    {
+        //printf("index:%d x:%d y:%d z:%d, brickValue:%d startadress:%d end:%d\n", index,
+          //     decodeBrickCoords(targetNode.value).x, decodeBrickCoords(targetNode.value).y,
+            //   decodeBrickCoords(targetNode.value).z, targetNode.nodeTilePointer & 0x3fffffff, startAdress, endAdress);
 
-    filterBrick(decodeBrickCoords(nodePool[index].value));
+        filterBrick(decodeBrickCoords(nodePool[index].value));
+        //makeBrickWhite(decodeBrickCoords(nodePool[index].value)); // upper left corner. just for debugging
+    }
+
+    __syncthreads();
 }
 
 // traverses to the bottom level and filters all bricks by applying a inverse gaussian mask to the corner voxels
@@ -130,6 +136,7 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     unsigned int offset=0;
     unsigned int nodeTile = 0;
     unsigned int value = 0;
+    bool test = false;
 
     for (int i = 0; i < maxLevel; i++)
     {
@@ -508,7 +515,7 @@ cudaError_t buildSVO(node *nodePool,
         //reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
 
-        printf("reserveOLD:%d\n",reservedOld);
+       // printf("reserveOLD:%d\n",reservedOld);
         // remember counter
         reservedOld = *h_counter;
 
@@ -516,7 +523,7 @@ cudaError_t buildSVO(node *nodePool,
         if(i!=0)
             LevelIntervalMap[i-1].end = reservedOld-1;
     }
-    printf("reserveOLD:%d\n",reservedOld);
+    //printf("reserveOLD:%d\n",reservedOld);
 
     // make sure we fill the interval map complete
     cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -524,8 +531,8 @@ cudaError_t buildSVO(node *nodePool,
     LevelIntervalMap[maxLevel-1].end = *h_counter-1;
 
 
-    for(int i=0;i<= maxLevel;i++)
-        printf("start: %d end:%d level:%d\n",LevelIntervalMap[i].start, LevelIntervalMap[i].end, i);
+   // for(int i=0;i<= maxLevel;i++)
+     //   printf("start: %d end:%d level:%d\n",LevelIntervalMap[i].start, LevelIntervalMap[i].end, i);
 
 
     // copy the level interval map to constant memory
@@ -546,18 +553,18 @@ cudaError_t buildSVO(node *nodePool,
     cudaDeviceSynchronize();
     //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
-    int level = 7;
+    int level = 6;
     unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
 
-    printf("tmpBlock:%d start:%d end:%d\n",tmpBlock,LevelIntervalMap[level].start,LevelIntervalMap[level].end);
-    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level,LevelIntervalMap[level].start);
+    //printf("tmpBlock:%d start:%d end:%d\n",tmpBlock,LevelIntervalMap[level].start,LevelIntervalMap[level].end);
+    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level,LevelIntervalMap[level].start*8,LevelIntervalMap[level].end*8);
     const unsigned int combineThreadCount = 1024;
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
 
     //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);
     cudaDeviceSynchronize();
     const unsigned int threadsPerBlockMipMap = 256;
-  /*
+
     // MIPMAP we have some crap with the 0 level. therefore we subtract 3 :)
     for(int i=maxLevel-3;i>=0;i--)
     {
@@ -567,11 +574,10 @@ cudaError_t buildSVO(node *nodePool,
         if(threadsPerBlockMipMap < intervalWidth)
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
-        printf("blockCount: %d intervalWidth: %d start:%d end:%d level:%d\n", blockCountMipMap, intervalWidth,LevelIntervalMap[i].start,LevelIntervalMap[i].end,i);
+       // printf("blockCount: %d intervalWidth: %d start:%d end:%d level:%d\n", blockCountMipMap, intervalWidth,LevelIntervalMap[i].start,LevelIntervalMap[i].end,i);
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
     }
 
-*/
     delete h_counter;
 
     return errorCode;

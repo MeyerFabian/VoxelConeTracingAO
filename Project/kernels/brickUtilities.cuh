@@ -145,14 +145,14 @@ __device__ void filterBrick(const uint3 &brickCoords)
     tmp.z *= 0.125f;
     tmp.w *= 0.125f;
 
-    uint3 newCoords = make_uint3(0,0,0);
+    uint3 newCoords = make_uint3(1,1,1);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
     __syncthreads();
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // ################### FACES ##########################
     // right side: 1, 2, 5, 6
@@ -182,12 +182,12 @@ __device__ void filterBrick(const uint3 &brickCoords)
     tmp.z *= 0.25f;
     tmp.w *= 0.25f;
 
-    newCoords = make_uint3(2,2,2);
+    newCoords = make_uint3(2,1,1);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // left side: 0, 3, 4, 7
     tmp = make_float4(0,0,0,0);
@@ -216,12 +216,12 @@ __device__ void filterBrick(const uint3 &brickCoords)
     tmp.z *= 0.25f;
     tmp.w *= 0.25f;
 
-    newCoords = make_uint3(2,2,0);
+    newCoords = make_uint3(0,1,1);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // bottom side: 2, 3, 6, 7
     tmp = make_float4(0,0,0,0);
@@ -250,12 +250,12 @@ __device__ void filterBrick(const uint3 &brickCoords)
     tmp.z *= 0.25f;
     tmp.w *= 0.25f;
 
-    newCoords = make_uint3(0,2,2);
+    newCoords = make_uint3(1,2,1);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // top side: 0, 1, 4, 5
     tmp = make_float4(0,0,0,0);
@@ -284,12 +284,12 @@ __device__ void filterBrick(const uint3 &brickCoords)
     tmp.z *= 0.25f;
     tmp.w *= 0.25f;
 
-    newCoords = make_uint3(2,0,2);
+    newCoords = make_uint3(1,0,1);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // near side: 0, 1, 2, 3
     tmp = make_float4(0,0,0,0);
@@ -320,10 +320,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(1,1,0);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // far side: 4, 5, 6, 7
     tmp = make_float4(0,0,0,0);
@@ -354,10 +354,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(1,1,2);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // ####################### EDGES (FRONT) #####################
     // top edge
@@ -379,10 +379,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(1,0,0);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // bottom edge
     tmp = make_float4(0,0,0,0);
@@ -403,10 +403,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(1,2,0);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // left edge
     tmp = make_float4(0,0,0,0);
@@ -427,10 +427,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(0,1,0);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // right edge
     tmp = make_float4(0,0,0,0);
@@ -451,10 +451,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(2,1,0);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // ####################### EDGES (BACK) #####################
     // top edge
@@ -476,10 +476,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(1,0,2);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // bottom edge
     tmp = make_float4(0,0,0,0);
@@ -500,10 +500,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(1,2,2);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // left edge
     tmp = make_float4(0,0,0,0);
@@ -524,10 +524,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(0,1,2);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // right edge
     tmp = make_float4(0,0,0,0);
@@ -548,12 +548,11 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     newCoords = make_uint3(2,1,2);
     newCoords.x+=brickCoords.x;
-    newCoords.y+=brickCoords.x;
-    newCoords.z+=brickCoords.x;
+    newCoords.y+=brickCoords.y;
+    newCoords.z+=brickCoords.z;
 
-    surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+    surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    //TODO: it might be faster to save each filtered voxel in a gpu register and write all of them to the texture at once
 }
 
 

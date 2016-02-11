@@ -15,7 +15,7 @@ uniform float volumeRes;
 uniform int maxSteps;
 
 // Defines
-const int maxLevel = 8;
+const int maxLevel = 7;
 const uint pow2[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
 const uvec3 insertPositions[] = {
     uvec3(0, 0, 0),

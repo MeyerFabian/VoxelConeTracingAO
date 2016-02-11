@@ -739,6 +739,7 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
 
         // finally mipmap our node
         mipMapIsotropic(targetBrick,brickCoords);
+        setBit(nodePool[index].value,31);
     }
 }
 
