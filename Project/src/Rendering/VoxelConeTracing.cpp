@@ -17,9 +17,12 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 
 using namespace std;
 
-VoxelConeTracing::VoxelConeTracing()
+VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone Tracing")
 {
     m_gbuffer = make_unique<GBuffer>();
+	beginningVoxelSize = 0.05f;
+	directionBeginScale = 0.5f;
+	maxSteps = 100;
 }
 
 
@@ -30,47 +33,13 @@ void VoxelConeTracing::init(float width,float height) {
     // Prepare the one and only shader
     m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
     m_voxelConeTracing = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
+	m_ambientOcclusion= make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/ambientOcclusion.frag");
 
 
 	m_gbuffer->init(width, height);
 
-
-    supplyFullScreenQuad();
 }
 
-void VoxelConeTracing::supplyFullScreenQuad(){
-    //HERE FILL IN THINGS
-
-    glGenVertexArrays(1, &vaoID);
-    glBindVertexArray(vaoID);
-
-    //m_lightPass->use();
-    //*/
-    const GLfloat plane_vert_data[] = {
-        -1.0f, -1.0f,
-        +1.0f, -1.0f,
-        -1.0f, +1.0f,
-        +1.0f, +1.0f,
-    };
-    /*/
-    const GLfloat plane_vert_data[] = {
-    -0.5f, -0.5f,
-    +0.5f, -0.5f,
-    -0.5f, +0.5f,
-    +0.5f, +0.5f,
-    };
-    //*/
-    GLuint mBufferID;
-    glGenBuffers(1, &mBufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, mBufferID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vert_data), plane_vert_data, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-    glBindVertexArray(0);
-    //m_lightPass->disable();
-}
 
 void VoxelConeTracing::geometryPass(float width,float height,const std::unique_ptr<Scene>& scene) {
 	m_uniformProjection = glm::perspective(glm::radians(35.0f), width / height, 0.1f, 300.f);
@@ -115,7 +84,15 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-void VoxelConeTracing::draw(float width, float height,  int shadowMapResolution , GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize, bool drawGBuffer) const{
+void VoxelConeTracing::draw(float width, float height, 
+							int shadowMapResolution, GLuint ScreenQuad, 
+							const GLuint lightViewMapTexture, 
+							const std::unique_ptr<Scene>& scene, 
+							const NodePool& nodePool, 
+							BrickPool& brickPool, const float stepSize, 
+							bool drawGBuffer, const float volumeExtent) const
+							
+{
     //Bind window framebuffer
 
 	glViewport(0, 0, width, height);
@@ -133,6 +110,20 @@ void VoxelConeTracing::draw(float width, float height,  int shadowMapResolution 
     glm::mat4 WVP = glm::mat4(1.f);
 
     m_voxelConeTracing->use();
+
+
+	GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "octree");
+	glUniform1i(octreeUniform, 0);
+	// bind octree texture
+	nodePool.bind();
+
+	//Cone Tracing Uniforms
+	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
+	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
+	m_ambientOcclusion->updateUniform("maxSteps", maxSteps);
+	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
+	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
+
 
     //Light uniforms
     m_voxelConeTracing->updateUniform("LightPosition", scene->getLight().getPosition());
@@ -160,6 +151,13 @@ void VoxelConeTracing::draw(float width, float height,  int shadowMapResolution 
 
     //LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
+
+
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+	glUniform1i(brickPoolUniform, 2);
+	glActiveTexture(GL_TEXTURE2);
+	brickPool.bind();
+
 
     //Draw FullScreenQuad
     glBindVertexArray(ScreenQuad);
@@ -203,4 +201,68 @@ void VoxelConeTracing::RenderGBuffer(float width,float height){
 	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, 0 , width, height / 2.0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 	glDisable(GL_BLEND);
+}
+void VoxelConeTracing::ambientOcclusion(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool , const float volumeExtent){
+	//Bind window framebuffer
+
+	glViewport(0, 0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glEnable(GL_BLEND);
+	// glBlendEquation(GL_FUNC_ADD);
+	// glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
+
+	m_gbuffer->bindForReading();
+
+	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
+	//glClear(GL_COLOR_BUFFER_BIT);
+
+
+	glm::mat4 WVP = glm::mat4(1.f);
+
+	m_ambientOcclusion->use();
+
+	GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "octree");
+	glUniform1i(octreeUniform, 0);
+	// bind octree texture
+	nodePool.bind();
+
+	//m_ambientOcclusion->updateUniform("eyeVector", scene->getCamPos());
+
+	//other uniforms
+	m_ambientOcclusion->updateUniform("identity", WVP);
+	m_ambientOcclusion->updateUniform("screenSize", glm::vec2(width, height));
+	
+	//Cone Tracing Uniforms
+	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
+	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
+	m_ambientOcclusion->updateUniform("maxSteps", maxSteps);
+	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
+	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
+
+	//GBUFFER TEXTURES
+	m_ambientOcclusion->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+	m_ambientOcclusion->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));    m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
+	
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+	glUniform1i(brickPoolUniform, 2);
+	glActiveTexture(GL_TEXTURE2);
+	brickPool.bind();
+	
+	//Draw FullScreenQuad
+	glBindVertexArray(ScreenQuad);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+
+	m_ambientOcclusion->disable();
+
+	//Render little viewports into the main framebuffer that will be displayed onto the screen
+
+
+	glDisable(GL_BLEND);
+}
+
+void VoxelConeTracing::fillGui(){
+	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
+	ImGui::SliderInt("max steps cone tracing", &maxSteps, 50, 2000, "%.0f");
+	ImGui::SliderFloat("position begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 }

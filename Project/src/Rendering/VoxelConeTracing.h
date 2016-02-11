@@ -4,26 +4,38 @@
 #include "GBuffer.h"
 #include <glm/vec3.hpp>
 #include "SparseOctree/NodePool.h"
+#include "SparseOctree/BrickPool.h"
 #include "ShaderProgram.h"
 #include "Scene/Scene.h"
-class VoxelConeTracing
+class VoxelConeTracing : public Controllable
 {
 public:
-    VoxelConeTracing();
+    VoxelConeTracing(App* pApp);
     ~VoxelConeTracing();
     void init(float width,float height);
 	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene);
-	void draw(float width, float height, int shadowMapResolution, GLuint ScreenQuad, const GLuint lightViewMapTexture, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const float stepSize, bool drawGBuffer) const;
+	void draw(	float width, float height, int shadowMapResolution, 
+				GLuint ScreenQuad, const GLuint lightViewMapTexture, 
+				const std::unique_ptr<Scene>& scene, const NodePool& nodePool, 
+				BrickPool& brickPool, const float stepSize, bool drawGBuffer, const float volumeExtent) const;
+	void ambientOcclusion(	float width, float height,
+							GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, 
+							const NodePool& nodePool, const BrickPool& brickPool,
+							const float volumeExtent);
 	void RenderGBuffer(float width, float height);
 	std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
     glm::mat4 getProjectionMatrix() {return m_uniformProjection;}
 
 private:
-    void supplyFullScreenQuad();
     std::unique_ptr<ShaderProgram> m_geomPass;
     std::unique_ptr<ShaderProgram> m_voxelConeTracing;
+	std::unique_ptr<ShaderProgram> m_ambientOcclusion;
     std::unique_ptr<GBuffer> m_gbuffer;
     glm::mat4 m_uniformProjection;
-    GLuint vaoID;
+	GLuint vaoID;
+	float directionBeginScale;
+	float beginningVoxelSize;
+	int maxSteps;
+	void fillGui();
 };
 #endif //VOXELCONETRACING_H

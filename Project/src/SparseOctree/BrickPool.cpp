@@ -103,12 +103,12 @@ void BrickPool::unmapFromCUDA()
     cudaGraphicsUnmapResources(1, &m_brickPoolRessource, 0);
 }
 
-void BrickPool::bind()
+void BrickPool::bind() const
 {
     glBindTexture(GL_TEXTURE_3D, m_brickPoolID);
     //glBindImageTexture(2,m_brickPoolID,0,GL_TRUE,3,GL_READ_ONLY,GL_RGBA8);
 }
 
-const dim3& BrickPool::getResolution() {
+const dim3& BrickPool::getResolution() const  {
     return m_poolSize;
 }
