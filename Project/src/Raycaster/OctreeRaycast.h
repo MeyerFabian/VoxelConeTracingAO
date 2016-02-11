@@ -22,7 +22,8 @@ public:
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-        float volumeExtent) const;
+        float volumeExtent,
+        int maxLevel) const;
         void fillGui();
 
 private:

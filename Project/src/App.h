@@ -55,6 +55,7 @@ private:
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
 
+    int mMaxLevel;
     bool mVoxeliseEachFrame;
 };
 
