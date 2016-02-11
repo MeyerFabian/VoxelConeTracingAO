@@ -100,7 +100,6 @@ float calcDirectLightOcclusion(vec4 position,vec3 lightdirection,vec3 normal){
 	}
 	
 	return brightness;
-	
 }
 
 vec3 calcLight(vec4 position, vec4 normal){
@@ -117,6 +116,7 @@ vec3 calcLight(vec4 position, vec4 normal){
 	vec3 lightValue = clamp(ambientTerm + diffuseTerm,0.0,1.0) ;
 	return lightValue;
 }
+
 void main()
 {
     vec2 UVCoord = calcTexCoord();

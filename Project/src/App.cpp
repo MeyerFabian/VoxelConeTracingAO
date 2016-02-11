@@ -98,7 +98,9 @@ App::App() : Controllable("App")
 {
     int width = 1024;
     int height = 1024;
-    mVoxeliseEachFrame = false;
+	mVoxeliseEachFrame = false;
+	mShowGBuffer = false;
+
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -258,6 +260,8 @@ void App::run()
         glfwGetWindowSize(mpWindow, &width, &height);
         glViewport(0, 0, width, height);
 
+		m_LightViewMap->shadowMapPass(m_scene);
+
         m_VoxelConeTracing->geometryPass(width,height,m_scene);
 
         // Choose visualization TODO: make this available to user interface
@@ -275,29 +279,27 @@ void App::run()
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
             break;
         case Visualization::SHADOW_MAP:
-			m_LightViewMap->shadowMapPass(m_scene);
-			m_VoxelConeTracing->draw(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, false, VOLUME_EXTENT);
-			m_LightViewMap->shadowMapRender(150,150,width, height, m_FullScreenQuad->getvaoID());
-            break;
-        case Visualization::TRACINGGBUFFER:
-            m_LightViewMap->shadowMapPass(m_scene);
-			m_VoxelConeTracing->draw(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, true, VOLUME_EXTENT);
-			m_LightViewMap->shadowMapRender(150,150,width, height, m_FullScreenQuad->getvaoID());
+			mShowGBuffer = false;
+			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
             break;
         case Visualization::VOXEL_CONE_TRACING:
-			m_LightViewMap->shadowMapPass(m_scene);
-			m_VoxelConeTracing->draw(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, false, VOLUME_EXTENT);
+			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5,  VOLUME_EXTENT);
             break;
 		case Visualization::GBUFFER:
-			m_LightViewMap->shadowMapPass(m_scene);
-			m_VoxelConeTracing->RenderGBuffer(width, height);
+			mShowGBuffer = false;
+			m_VoxelConeTracing->drawGBuffer(width, height);
 			m_LightViewMap->shadowMapRender(width/2,height/2,width, height, m_FullScreenQuad->getvaoID());
 			break;
 		case Visualization::AMBIENT_OCCLUSION:
-			m_VoxelConeTracing->ambientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
 			break;
         }
 
+		if (mShowGBuffer){
+			m_LightViewMap->shadowMapRender(150, 150, width, height, m_FullScreenQuad->getvaoID());
+			m_VoxelConeTracing->drawGBufferPanels(width, height);
+		}
         // FUTURE STUFF
 
 
@@ -330,6 +332,7 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0TracingAndGBuffer\0VoxelConeTracing\0GBuffer\0Ambient-Occlusion\0");
+	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0VoxelConeTracing\0GBuffer\0Ambient-Occlusion\0");
+	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
 }
 

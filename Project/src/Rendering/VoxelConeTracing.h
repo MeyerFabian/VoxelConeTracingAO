@@ -14,15 +14,19 @@ public:
     ~VoxelConeTracing();
     void init(float width,float height);
 	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene);
-	void draw(	float width, float height, int shadowMapResolution, 
+	
+	void drawVoxelConeTracing(	float width, float height, int shadowMapResolution, 
 				GLuint ScreenQuad, const GLuint lightViewMapTexture, 
 				const std::unique_ptr<Scene>& scene, const NodePool& nodePool, 
-				BrickPool& brickPool, const float stepSize, bool drawGBuffer, const float volumeExtent) const;
-	void ambientOcclusion(	float width, float height,
+				BrickPool& brickPool, const float stepSize, const float volumeExtent) const;
+	
+	void drawAmbientOcclusion(	float width, float height,
 							GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, 
 							const NodePool& nodePool, const BrickPool& brickPool,
 							const float volumeExtent);
-	void RenderGBuffer(float width, float height);
+
+	void drawGBuffer(float width, float height);
+	void drawGBufferPanels(float width, float height);
 	std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
     glm::mat4 getProjectionMatrix() {return m_uniformProjection;}
 

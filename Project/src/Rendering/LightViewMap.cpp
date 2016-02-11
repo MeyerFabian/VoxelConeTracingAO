@@ -76,8 +76,6 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	}
 	m_shadowMapPass->disable();
 
-	glDepthMask(GL_FALSE);
-	glDisable(GL_DEPTH_TEST);
 }
 
 void LightViewMap::shadowMapRender(GLuint RenderWidth, GLuint  RenderHeight, float windowWidth, float windowHeight, GLuint ScreenQuad) const{
@@ -85,7 +83,7 @@ void LightViewMap::shadowMapRender(GLuint RenderWidth, GLuint  RenderHeight, flo
 	int res = determineShadowMapResolution(SHADOW_MAP_RESOLUTION);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glEnable(GL_BLEND);
+	glEnable(GL_BLEND);
 	//glBlendEquation(GL_FUNC_ADD);
 	//glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
 

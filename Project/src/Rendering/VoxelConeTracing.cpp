@@ -82,15 +82,15 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
     }
     m_geomPass->disable();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDepthMask(GL_FALSE);
 }
-void VoxelConeTracing::draw(float width, float height, 
+void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 							int shadowMapResolution, GLuint ScreenQuad, 
 							const GLuint lightViewMapTexture, 
 							const std::unique_ptr<Scene>& scene, 
 							const NodePool& nodePool, 
-							BrickPool& brickPool, const float stepSize, 
-							bool drawGBuffer, const float volumeExtent) const
+							BrickPool& brickPool, const float stepSize, const float volumeExtent) const
 							
 {
     //Bind window framebuffer
@@ -163,27 +163,11 @@ void VoxelConeTracing::draw(float width, float height,
     glBindVertexArray(ScreenQuad);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-
+	
     m_voxelConeTracing->disable();
-    
-    //Render little viewports into the main framebuffer that will be displayed onto the screen
-	if(drawGBuffer){
-    m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
-    glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 150, 0, 300, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-    m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
-	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 300, 0, 450, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-    m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
-	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-    m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD);
-	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	}
-
-    glDisable(GL_BLEND);
 }
-void VoxelConeTracing::RenderGBuffer(float width,float height){
+void VoxelConeTracing::drawGBuffer(float width, float height){
 	//Bind window framebuffer
 
 	glViewport(0, 0, width, height);
@@ -200,9 +184,29 @@ void VoxelConeTracing::RenderGBuffer(float width,float height){
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
 	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, 0 , width, height / 2.0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	glDisable(GL_BLEND);
 }
-void VoxelConeTracing::ambientOcclusion(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool , const float volumeExtent){
+
+
+void VoxelConeTracing::drawGBufferPanels(float width, float height){
+	//Bind window framebuffer
+
+	glViewport(0, 0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_gbuffer->bindForReading();
+
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 150, 0, 300, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 300, 0, 450, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+
+}
+void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool, const float volumeExtent){
 	//Bind window framebuffer
 
 	glViewport(0, 0, width, height);
@@ -255,10 +259,6 @@ void VoxelConeTracing::ambientOcclusion(float width, float height, GLuint Screen
 
 	m_ambientOcclusion->disable();
 
-	//Render little viewports into the main framebuffer that will be displayed onto the screen
-
-
-	glDisable(GL_BLEND);
 }
 
 void VoxelConeTracing::fillGui(){
