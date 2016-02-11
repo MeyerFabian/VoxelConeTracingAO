@@ -14,6 +14,10 @@ public:
 	void init(int width, int height);
 	void bindForWriting();
 	void bindForReading();
+	void clear();
+	void onResize(int width, int height);
+	int m_width;
+	int m_height;
 	GLuint getDepthTextureID();
 	GLuint m_fbo;
 	GLuint m_depthTexture;

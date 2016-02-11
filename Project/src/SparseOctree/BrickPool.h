@@ -26,8 +26,8 @@ public:
     void unregisterTextureForCUDA();
 	void mapToCUDA();
 	void unmapFromCUDA();
-	void bind();
-	const dim3& getResolution();
+	void bind() const;
+	const dim3& getResolution()const;
 
 	cudaArray *getBrickPoolArray();
 private:

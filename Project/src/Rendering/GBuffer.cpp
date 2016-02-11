@@ -4,34 +4,49 @@
 
 GBuffer::GBuffer()
 {
+	m_width = 0;
+	m_height = 0;
     m_fbo = 0;
-    m_depthTexture = 0;
+	m_depthTexture = 0;
+	// First create FBO
+	glGenFramebuffers(1, &m_fbo);
 }
 
 
 GBuffer::~GBuffer()
 {
-    if (m_fbo != 0) {
-        glDeleteFramebuffers(1, &m_fbo);
-    }
+	clear();
 
-
-    if (m_depthTexture != 0) {
-        glDeleteTextures(1, &m_depthTexture);
-    }
+	if (m_fbo != 0) {
+		glDeleteFramebuffers(1, &m_fbo);
+	}
 }
+void GBuffer::clear(){
+	
+	if (m_depthTexture != 0) {
+		glDeleteTextures(1, &m_depthTexture);
+	}
+	if (m_textures[0] != 0) {
+		glDeleteTextures(ARRAY_SIZE_IN_ELEMENTS(m_textures), m_textures);
+	}
 
+}
+void GBuffer::onResize(int width,int height){
+	if (m_width != width || m_height != height){
+		clear();
+		init(width, height);
+	}
+}
 void GBuffer::init(int width, int height)
 {
-
+	m_width = width;
+	m_height = height;
     //GL_COLOR_ATTACHMENT0 pos
     //GL_COLOR_ATTACHMENT1 dif
     //GL_COLOR_ATTACHMENT2 nor
     //GL_COLOR_ATTACHMENT3 tex
     //GL_DEPTH_ATTACHMENT depth
 
-    // First create FBO
-    glGenFramebuffers(1, &m_fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
 
     // Create GBuffer to store our geometry information textures

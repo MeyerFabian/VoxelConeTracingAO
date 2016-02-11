@@ -26,9 +26,9 @@ class App: public Controllable
 {
 public:
 
-    enum Visualization { RAYCASTING, POINT_CLOUD, SHADOW_MAP, GBUFFER,VOXEL_CONE_TRACING };
+	enum Visualization { RAYCASTING, POINT_CLOUD, SHADOW_MAP, VOXEL_CONE_TRACING, GBUFFER, AMBIENT_OCCLUSION };
 
-    // Some constants
+	 // Some constants
     float VOLUME_EXTENT = 384.f;
     int VISUALIZATION = Visualization::RAYCASTING;
 
@@ -36,7 +36,7 @@ public:
     virtual ~App(); // Virtual not necessary
     void run();
     void registerControllable(Controllable* pControllable);
-
+	
     void fillGui();
 
 private:
@@ -55,7 +55,8 @@ private:
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
 
-    bool mVoxeliseEachFrame;
+	bool mVoxeliseEachFrame; 
+	bool mShowGBuffer;
 };
 
 #endif // APP_H_

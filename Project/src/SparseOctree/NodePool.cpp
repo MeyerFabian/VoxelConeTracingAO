@@ -124,7 +124,7 @@ void NodePool::unmapFromCUDA()
     cudaErrorCheck(cudaGraphicsUnmapResources(1, &mNeighbourPoolResource, 0));
 }
 
-void NodePool::bind(GLuint textureUnit)
+void NodePool::bind(GLuint textureUnit) const
 {
     glActiveTexture(GL_TEXTURE0+textureUnit);
     glBindImageTexture(0,

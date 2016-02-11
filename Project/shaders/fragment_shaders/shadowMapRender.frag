@@ -11,6 +11,7 @@
 uniform sampler2D LightViewMapTex;
 
 uniform vec2 screenSize;
+uniform vec2 shadowToWindowRatio;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
@@ -19,7 +20,7 @@ layout(location = 0) out vec4 FragColor;
 // divide it by Screensize to get a value between 0..1 to sample our Framebuffer textures 
 
 vec2 calcTexCoord(){
-	return gl_FragCoord.xy / screenSize;
+	return gl_FragCoord.xy / screenSize * shadowToWindowRatio;
 }
 
 void main()
