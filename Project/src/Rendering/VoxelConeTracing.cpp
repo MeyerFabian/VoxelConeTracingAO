@@ -93,6 +93,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 							BrickPool& brickPool, const float stepSize, const float volumeExtent) const
 							
 {
+	glDisable(GL_DEPTH_TEST);
     //Bind window framebuffer
 
 	glViewport(0, 0, width, height);
@@ -170,6 +171,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 void VoxelConeTracing::drawGBuffer(float width, float height){
 	//Bind window framebuffer
 
+	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -190,6 +192,7 @@ void VoxelConeTracing::drawGBuffer(float width, float height){
 void VoxelConeTracing::drawGBufferPanels(float width, float height){
 	//Bind window framebuffer
 
+	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -209,6 +212,7 @@ void VoxelConeTracing::drawGBufferPanels(float width, float height){
 void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool, const float volumeExtent){
 	//Bind window framebuffer
 
+	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glEnable(GL_BLEND);

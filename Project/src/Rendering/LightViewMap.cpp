@@ -38,7 +38,7 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	int res = determineShadowMapResolution(SHADOW_MAP_RESOLUTION);
 	m_depthbuffer->onResize(res, res);
 
-	glDepthMask(true);
+	glDepthMask(GL_TRUE);
 
 	//Bind the GBuffer before enabling (and texture stuff) else it will fail
 	m_depthbuffer->bindForWriting();
@@ -76,6 +76,7 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 	}
 	m_shadowMapPass->disable();
 
+	glDepthMask(GL_FALSE);
 }
 
 void LightViewMap::shadowMapRender(GLuint RenderWidth, GLuint  RenderHeight, float windowWidth, float windowHeight, GLuint ScreenQuad) const{
