@@ -98,9 +98,10 @@ App::App() : Controllable("App")
 {
     int width = 1024;
     int height = 1024;
-	mVoxeliseEachFrame = false;
-	mShowGBuffer = false;
 
+	mShowGBuffer = false;
+    mVoxeliseEachFrame = false;
+    mMaxLevel = 8;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -273,7 +274,8 @@ void App::run()
                 m_svo->getNodePool(),
                 m_svo->getBrickPool(),
                 m_VoxelConeTracing->getGBuffer(),
-                VOLUME_EXTENT);
+                VOLUME_EXTENT,
+                mMaxLevel);
             break;
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
@@ -332,7 +334,8 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0VoxelConeTracing\0GBuffer\0Ambient-Occlusion\0");
 	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
+    ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
+    ImGui::SliderInt("MaxLevel", &mMaxLevel, 1, 8, "%.0f");
 }
 

@@ -55,8 +55,10 @@ private:
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
 
+
 	bool mVoxeliseEachFrame; 
 	bool mShowGBuffer;
+    int mMaxLevel;
 };
 
 #endif // APP_H_

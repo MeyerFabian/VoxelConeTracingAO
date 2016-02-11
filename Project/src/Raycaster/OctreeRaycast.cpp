@@ -42,12 +42,12 @@ OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Raycasting")
     glBindVertexArray(0);
 }
 
-void OctreeRaycast::draw(
-        glm::vec3 camPos,
+void OctreeRaycast::draw(glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-        float volumeExtent) const
+        float volumeExtent,
+        int maxLevel) const
 {
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
@@ -64,6 +64,7 @@ void OctreeRaycast::draw(
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
     mupOctreeRaycastShader->updateUniform("volumeExtent", volumeExtent);
     mupOctreeRaycastShader->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x-1));
+    mupOctreeRaycastShader->updateUniform("maxLevel", maxLevel);
 
     // Position texture as image
     glActiveTexture(GL_TEXTURE1);
