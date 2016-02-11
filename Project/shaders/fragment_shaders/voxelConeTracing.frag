@@ -9,11 +9,9 @@ layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
 layout(binding = 2) uniform sampler3D brickPool;
 
 //!< uniforms
-uniform sampler2D camDepthTex;
 uniform sampler2D positionTex;
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;
-uniform sampler2D uvTex;
 uniform sampler2D LightViewMapTex;
 
 // Cone Tracing Uniforms
@@ -123,11 +121,8 @@ void main()
 	vec4 color = texture(colorTex,UVCoord).rgba;
 	vec4 normal = texture(normalTex,UVCoord).rgba;
 	vec4 position = texture(positionTex,UVCoord).rgba;
-	vec4 uv = texture(uvTex,UVCoord).rgba;
-
-	float DepthFromCamera =  texture(camDepthTex,UVCoord).r;
     
-	Everything_else=beginningVoxelSize*maxSteps*volumeExtent*directionBeginScale* uv*color*normal*position*DepthFromCamera
+	Everything_else=beginningVoxelSize*maxSteps*volumeExtent*directionBeginScale* color*normal*position
 	*vec4(eyeVector,1.0) * LightDiffuseIntensity * vec4(LightPosition,1.0) *shininess;
 
     //Show depthmap from the camera

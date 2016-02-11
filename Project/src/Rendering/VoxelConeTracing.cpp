@@ -147,9 +147,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
     m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
     m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
-    m_voxelConeTracing->addTexture("uvTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TEXCOORD));
-    m_voxelConeTracing->addTexture("camDepthTex", m_gbuffer->getDepthTextureID());
-
+  
     //LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
 
