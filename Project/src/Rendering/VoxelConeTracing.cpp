@@ -34,7 +34,7 @@ void VoxelConeTracing::init(float width,float height) {
     m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
     m_voxelConeTracing = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
 	m_ambientOcclusion= make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/ambientOcclusion.frag");
-	m_phongShading = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/phong.frag");
+	//m_phongShading = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/phong.frag");
 
 
 	m_gbuffer->init(width, height);

@@ -284,7 +284,7 @@ void App::run()
 			m_VoxelConeTracing->drawGBuffer(width, height);
 			break;
 		case Visualization::PHONG:
-			m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
+			//m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
 			break;
 		case Visualization::AMBIENT_OCCLUSION:
 			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
