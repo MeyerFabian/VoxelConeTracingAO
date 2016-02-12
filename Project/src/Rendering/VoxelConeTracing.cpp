@@ -330,6 +330,6 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 
 void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
-	ImGui::SliderInt("max steps cone tracing", &maxSteps, 50, 2000, "%.0f");
+	ImGui::SliderInt("max steps cone tracing", &maxSteps, 5, 50, "%.0f");
 	ImGui::SliderFloat("position begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 }
