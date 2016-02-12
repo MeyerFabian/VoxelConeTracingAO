@@ -34,6 +34,7 @@ void VoxelConeTracing::init(float width,float height) {
     m_geomPass = make_unique<ShaderProgram>("/vertex_shaders/geom_pass.vert", "/fragment_shaders/geom_pass.frag");
     m_voxelConeTracing = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
 	m_ambientOcclusion= make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/ambientOcclusion.frag");
+	m_phongShading = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/phong.frag");
 
 
 	m_gbuffer->init(width, height);
@@ -85,6 +86,67 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDepthMask(GL_FALSE);
 }
+
+void VoxelConeTracing::drawSimplePhong(float width, float height,
+	int shadowMapResolution, GLuint ScreenQuad,
+	const GLuint lightViewMapTexture,
+	const std::unique_ptr<Scene>& scene) const
+
+{
+	glDisable(GL_DEPTH_TEST);
+
+	//Bind window framebuffer
+	glViewport(0, 0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
+	m_gbuffer->bindForReading();
+
+
+
+	glm::mat4 WVP = glm::mat4(1.f);
+
+	m_phongShading->use();
+
+
+
+	//Light uniforms
+	m_phongShading->updateUniform("LightPosition", scene->getLight().getPosition());
+	m_phongShading->updateUniform("LightColor", scene->getLight().getColor());
+	m_phongShading->updateUniform("LightAmbientIntensity", scene->getLight().getAmbientIntensity());
+	m_phongShading->updateUniform("LightDiffuseIntensity", scene->getLight().getDiffuseIntensity());
+
+	m_phongShading->updateUniform("LightModel", scene->getLight().getModelMatrix());
+	m_phongShading->updateUniform("LightView", scene->getLight().getViewMatrix());
+	m_phongShading->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
+	//Specular
+	//m_phongShading->updateUniform("shininess", 10.0);
+	//m_phongShading->updateUniform("eyeVector", scene->getCamPos());
+
+	//other uniforms
+	m_phongShading->updateUniform("identity", WVP);
+	m_phongShading->updateUniform("screenSize", glm::vec2(width, height));
+	m_phongShading->updateUniform("shadowToWindowRatio", glm::vec2(width / (float)shadowMapResolution, height / (float)shadowMapResolution));
+
+	//GBUFFER TEXTURES
+	m_phongShading->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+	m_phongShading->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
+	m_phongShading->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
+
+	//LIGHT VIEW MAP TEXTURE
+	m_phongShading->addTexture("LightViewMapTex", lightViewMapTexture);
+
+
+
+	//Draw FullScreenQuad
+	glBindVertexArray(ScreenQuad);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+
+	m_phongShading->disable();
+
+}
+
 void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 							int shadowMapResolution, GLuint ScreenQuad, 
 							const GLuint lightViewMapTexture, 
@@ -94,19 +156,14 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 							
 {
 	glDisable(GL_DEPTH_TEST);
-    //Bind window framebuffer
 
+    //Bind window framebuffer
 	glViewport(0, 0, width, height);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glEnable(GL_BLEND);
-   // glBlendEquation(GL_FUNC_ADD);
-   // glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
 
+	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
     m_gbuffer->bindForReading();
 
-    //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
-    //glClear(GL_COLOR_BUFFER_BIT);
-    
 
     glm::mat4 WVP = glm::mat4(1.f);
 

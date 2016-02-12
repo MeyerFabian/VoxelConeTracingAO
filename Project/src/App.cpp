@@ -279,21 +279,24 @@ void App::run()
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
             break;
-        case Visualization::SHADOW_MAP:
-			mShowGBuffer = false;
-			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
-			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
-            break;
-        case Visualization::VOXEL_CONE_TRACING:
-			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5,  VOLUME_EXTENT);
-            break;
 		case Visualization::GBUFFER:
 			mShowGBuffer = false;
 			m_VoxelConeTracing->drawGBuffer(width, height);
 			m_LightViewMap->shadowMapRender(width/2,height/2,width, height, m_FullScreenQuad->getvaoID());
 			break;
+		case Visualization::PHONG:
+			m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
+			break;
 		case Visualization::AMBIENT_OCCLUSION:
 			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+			break;
+		case Visualization::VOXEL_CONE_TRACING:
+			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+			break;
+		case Visualization::SHADOW_MAP:
+			mShowGBuffer = false;
+			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
 			break;
         }
 
@@ -333,7 +336,7 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0VoxelConeTracing\0GBuffer\0Ambient-Occlusion\0");
+	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
 	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
 }
 

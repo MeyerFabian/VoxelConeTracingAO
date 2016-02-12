@@ -14,7 +14,10 @@ public:
     ~VoxelConeTracing();
     void init(float width,float height);
 	void geometryPass(float width, float height, const std::unique_ptr<Scene>& scene);
-	
+	void drawSimplePhong(float width, float height, int shadowMapResolution,
+		GLuint ScreenQuad, const GLuint lightViewMapTexture,
+		const std::unique_ptr<Scene>& scene) const;
+
 	void drawVoxelConeTracing(	float width, float height, int shadowMapResolution, 
 				GLuint ScreenQuad, const GLuint lightViewMapTexture, 
 				const std::unique_ptr<Scene>& scene, const NodePool& nodePool, 
@@ -33,7 +36,8 @@ public:
 private:
     std::unique_ptr<ShaderProgram> m_geomPass;
     std::unique_ptr<ShaderProgram> m_voxelConeTracing;
-	std::unique_ptr<ShaderProgram> m_ambientOcclusion;
+	std::unique_ptr<ShaderProgram> m_ambientOcclusion; 
+	std::unique_ptr<ShaderProgram> m_phongShading;
     std::unique_ptr<GBuffer> m_gbuffer;
     glm::mat4 m_uniformProjection;
 	GLuint vaoID;
