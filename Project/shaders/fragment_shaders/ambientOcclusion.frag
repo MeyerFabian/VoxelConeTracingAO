@@ -8,6 +8,7 @@
 
 uniform sampler2D positionTex;
 uniform sampler2D normalTex;
+uniform sampler2D tangentTex;
 //!< uniforms
 layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
 layout(binding = 2) uniform sampler3D brickPool;
@@ -40,8 +41,9 @@ void main()
 
 	vec4 position = texture(positionTex,UVCoord).rgba;
 	vec4 normal = texture(normalTex,UVCoord).rgba;
+	vec4 tangent = texture(tangentTex,UVCoord).rgba;
 	
-	Everything_else=volumeRes *  normal* position*beginningVoxelSize*directionBeginScale*
+	Everything_else=tangent*volumeRes *  normal* position*beginningVoxelSize*directionBeginScale*
 	volumeExtent*maxSteps;
 
 	float finalColor = (1.0 - (abs(normal.x) +abs(normal.y) +abs(normal.z)) /3.0)*1.25 ;

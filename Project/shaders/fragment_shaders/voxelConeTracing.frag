@@ -12,6 +12,7 @@ layout(binding = 2) uniform sampler3D brickPool;
 uniform sampler2D positionTex;
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;
+uniform sampler2D tangentTex;
 uniform sampler2D LightViewMapTex;
 
 // Cone Tracing Uniforms
@@ -120,9 +121,10 @@ void main()
     vec2 UVCoord = calcTexCoord();
 	vec4 color = texture(colorTex,UVCoord).rgba;
 	vec4 normal = texture(normalTex,UVCoord).rgba;
+	vec4 tangent = texture(tangentTex,UVCoord).rgba;
 	vec4 position = texture(positionTex,UVCoord).rgba;
     
-	Everything_else=beginningVoxelSize*maxSteps*volumeExtent*directionBeginScale* color*normal*position
+	Everything_else=tangent*beginningVoxelSize*maxSteps*volumeExtent*directionBeginScale* color*normal*position
 	*vec4(eyeVector,1.0) * LightDiffuseIntensity * vec4(LightPosition,1.0) *shininess;
 
     //Show depthmap from the camera

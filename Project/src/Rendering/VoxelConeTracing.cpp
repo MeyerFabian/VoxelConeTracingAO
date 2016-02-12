@@ -204,7 +204,8 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
     m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
     m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
-  
+	m_ambientOcclusion->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));
+
     //LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
 
@@ -239,7 +240,10 @@ void VoxelConeTracing::drawGBuffer(float width, float height){
 	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, height / 2.0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
-	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, 0 , width, height / 2.0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 0, 0 , width/2.0, height / 2.0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, width / 2.0, 0, width, height / 2.0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 }
 
@@ -261,9 +265,12 @@ void VoxelConeTracing::drawGBufferPanels(float width, float height){
 
 	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL);
 	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 450, 0, 600, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
+	
+	m_gbuffer->setReadBuffer(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT);
+	glBlitFramebuffer(0, 0, (GLint)width, (GLint)height, 600, 0, 750, 150, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 }
+
 void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool, const float volumeExtent){
 	//Bind window framebuffer
 
@@ -304,8 +311,9 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 
 	//GBUFFER TEXTURES
 	m_ambientOcclusion->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
-	m_ambientOcclusion->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));    m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
-	
+	m_ambientOcclusion->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));    
+	m_ambientOcclusion->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));   
+
 	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
 	glUniform1i(brickPoolUniform, 2);
 	glActiveTexture(GL_TEXTURE2);

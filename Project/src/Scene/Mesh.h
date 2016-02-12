@@ -23,6 +23,7 @@ private:
     GLuint mVertexBuffer;
     GLuint mNormalBuffer;
     GLuint mIndexBuffer;
+	GLuint mTangentBuffer;
     GLuint mUVBuffer;
     GLuint mVertexArrayObject;
     int mElementCount;

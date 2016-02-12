@@ -282,7 +282,6 @@ void App::run()
 		case Visualization::GBUFFER:
 			mShowGBuffer = false;
 			m_VoxelConeTracing->drawGBuffer(width, height);
-			m_LightViewMap->shadowMapRender(width/2,height/2,width, height, m_FullScreenQuad->getvaoID());
 			break;
 		case Visualization::PHONG:
 			m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);

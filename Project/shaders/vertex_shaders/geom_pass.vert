@@ -8,6 +8,7 @@
 layout(location = 0) in vec4 positionAttribute;
 layout(location = 1) in vec2 uvCoordAttribute;
 layout(location = 2) in vec4 normalAttribute;
+layout(location = 3) in vec4 tangentAttribute;
 
 
 //!< uniforms
@@ -19,13 +20,13 @@ uniform mat4 projection;
 out vec3 passWorldPosition;
 out vec2 passUVCoord;
 out vec3 passWorldNormal;
-
+out vec3 passWorldTangent;
 void main(){
 	
     passUVCoord			= uvCoordAttribute;
     passWorldPosition	= (model * positionAttribute).xyz;
-    passWorldNormal		= normalize( ( transpose( inverse( model ) ) * normalAttribute).xyz );
-	
+    passWorldNormal		= (transpose( inverse( model ) ) * normalAttribute).xyz ;
+    passWorldTangent	= (model * tangentAttribute).xyz;
 	//needed for depth attachment
     gl_Position			= projection * view * model * positionAttribute;
 

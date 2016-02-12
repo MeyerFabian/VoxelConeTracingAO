@@ -9,6 +9,7 @@
 in vec3 passWorldPosition;
 in vec2 passUVCoord;
 in vec3 passWorldNormal;
+in vec3 passWorldTangent;
 
 //!< uniforms
 uniform vec4 color;
@@ -19,6 +20,7 @@ uniform sampler2D tex;
 layout(location = 0) out vec4 fragPosition;
 layout(location = 1) out vec4 fragColor;
 layout(location = 2) out vec4 fragNormal;
+layout(location = 3) out vec4 fragTangent;
 
 void main()
 {
@@ -31,5 +33,6 @@ void main()
 	
     fragColor = vec4(color.rgb, 1);
     fragPosition = vec4(passWorldPosition,1);
-    fragNormal = vec4(passWorldNormal,0);
+    fragNormal =  normalize(vec4(passWorldNormal,0));
+    fragTangent =  normalize(vec4(passWorldTangent,0));
 }

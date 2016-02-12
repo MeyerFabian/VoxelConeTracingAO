@@ -45,6 +45,7 @@ void GBuffer::init(int width, int height)
     //GL_COLOR_ATTACHMENT0 pos
     //GL_COLOR_ATTACHMENT1 dif
     //GL_COLOR_ATTACHMENT2 nor
+    //GL_COLOR_ATTACHMENT3 tan
     //GL_DEPTH_ATTACHMENT depth
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);

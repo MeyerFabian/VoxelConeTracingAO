@@ -63,6 +63,24 @@ Mesh::Mesh(aiMesh const * mesh)
 
     delete[] normals;
 
+	// Tangents
+	float *tangents = new float[mesh->mNumVertices * 3];
+	for (int i = 0; i < mesh->mNumVertices; i++)
+	{
+		tangents[i * 3] = mesh->mTangents[i].x;
+		tangents[i * 3 + 1] = mesh->mTangents[i].y;
+		tangents[i * 3 + 2] = mesh->mTangents[i].z;
+	}
+
+	glGenBuffers(1, &mTangentBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mTangentBuffer);
+	glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), tangents, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	delete[] tangents;
+
     // Indices
     unsigned int *indices = new unsigned int[mesh->mNumFaces * 3];
     for(int i = 0; i < mesh->mNumFaces; i++)
