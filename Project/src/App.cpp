@@ -273,6 +273,7 @@ void App::run()
                 m_svo->getNodePool(),
                 m_svo->getBrickPool(),
                 m_VoxelConeTracing->getGBuffer(),
+				m_FullScreenQuad->getvaoID(),
                 VOLUME_EXTENT);
             break;
         case Visualization::POINT_CLOUD:
