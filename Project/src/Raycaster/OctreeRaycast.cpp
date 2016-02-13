@@ -7,8 +7,9 @@
 OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Raycasting")
 {
     stepSize = 0.05f;
-    directionBeginScale=0.5f;
-    maxSteps=100;
+    directionBeginScale = 0.5f;
+    maxSteps = 100;
+    maxLevel = 8;
 
     mupOctreeRaycastShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/octreeRaycast.vert",
                                                                               "/fragment_shaders/octreeRaycast.frag"));
@@ -19,7 +20,7 @@ void OctreeRaycast::draw(glm::vec3 camPos,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
 		GLuint ScreenQuad,
-        float volumeExtent, int maxLevel) const
+        float volumeExtent) const
 {
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
@@ -70,4 +71,6 @@ void OctreeRaycast::fillGui(){
     ImGui::SliderFloat("step size", &stepSize, 0.001f, 1.0f, "%.3f");
     ImGui::SliderInt("max steps", &maxSteps, 50, 2000,"%.0f");
     ImGui::SliderFloat("ray begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
+    ImGui::SliderInt("max level", &maxLevel, 1, 8, "%.0f");
+
 }
