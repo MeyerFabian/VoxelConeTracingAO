@@ -1,6 +1,7 @@
 #include "Controllable.h"
-
 #include "App.h"
+
+#pragma GCC diagnostic ignored "-Wformat-security"
 
 Controllable::Controllable(App* pApp, std::string title)
 {
@@ -23,6 +24,7 @@ void Controllable::updateGui()
 {
     ImGui::BeginChild("");
     ImGui::TextColored(ImVec4(0,1,0,1), mTitle.c_str());
+
     fillGui();
     ImGui::EndChild();
 }
