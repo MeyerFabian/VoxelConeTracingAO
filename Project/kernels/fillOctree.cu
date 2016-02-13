@@ -474,7 +474,7 @@ cudaError_t buildSVO(node *nodePool,
 
     dim3 grid_dim(volumeResolution/block_dim.x,volumeResolution/block_dim.y,volumeResolution/block_dim.z);
 
-    int blockCount = fragmentListSize / threadsPerBlock+1;
+    int blockCount = fragmentListSize / threadsPerBlockFragmentList + 1;
 
     errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
 
@@ -494,7 +494,7 @@ cudaError_t buildSVO(node *nodePool,
         if(i!=0)
             LevelIntervalMap[i-1].start = reservedOld+1;
 
-        markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, fragmentListSize);
+        markNodeForSubdivision<<<blockCount, threadsPerBlockFragmentList>>>(nodePool, poolSize, i, positionDevPointer, fragmentListSize);
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
         int blockCountReserve = maxNodes;
@@ -524,8 +524,8 @@ cudaError_t buildSVO(node *nodePool,
     // copy the level interval map to constant memory
     errorCode = cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10);
 
-    //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
-    insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
+    //fillNeighbours <<< blockCount, threadsPerBlockFragmentList >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
+    insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 
     unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
     blockCountSpread = nodeCount;
@@ -541,7 +541,7 @@ cudaError_t buildSVO(node *nodePool,
     // filter the last level with an inverse gaussian kernel
     filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
-    unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
+    unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / threadsPerBlockCombineBorders;
     //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);
     cudaDeviceSynchronize();
 
