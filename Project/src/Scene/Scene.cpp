@@ -9,7 +9,7 @@
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
-Scene::Scene(App* pApp,std::string filepath) : Controllable(pApp, "Scene")
+Scene::Scene(App* pApp, std::string filepath) : Controllable(pApp, "Scene") 
 {
     // Prepare the one and only shader
    // mupShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/sponza.vert","/fragment_shaders/sponza.frag"));
@@ -112,6 +112,12 @@ void Scene::draw(float windowWidth, float windowHeight) const
 void Scene::fillGui()
 {
     std::string output = "Camera " + glm::to_string(mCamera.getPosition());
-    ImGui::Text(output.c_str());
+	ImGui::Text(output.c_str()); 
+	float& ambient = mLight.getAmbientIntensity();
+
+	float& diffuse = mLight.getDiffuseIntensity();
+
+	ImGui::SliderFloat("AmbientIntensity", &ambient, 0.0f, 1.0f, "%0.2f");
+	ImGui::SliderFloat("DiffuseIntensity", &diffuse, 0.0f, 2.0f, "%0.2f");
 }
 

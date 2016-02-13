@@ -3,8 +3,7 @@
 
 #include "externals/GLM/glm/glm.hpp"
 
-class Light
-{
+class Light{
 public:
 
 	Light();
@@ -20,7 +19,9 @@ public:
 	float getDiffuseIntensity() const;
 	void setProjectionMatrix(float width, float height);
 	glm::mat4 getProjectionMatrix() const;
-	const glm::mat4& getModelMatrix() const;
+	const glm::mat4& getModelMatrix() const; 
+	float& getAmbientIntensity();
+	float& getDiffuseIntensity();
 private:
 	float m_width;
 	float m_height;

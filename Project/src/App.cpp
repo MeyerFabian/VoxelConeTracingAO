@@ -98,7 +98,9 @@ App::App() : Controllable("App")
 {
     int width = 1024;
     int height = 1024;
-    mVoxeliseEachFrame = false;
+	mVoxeliseEachFrame = false;
+	mShowGBuffer = false;
+
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -137,6 +139,9 @@ App::App() : Controllable("App")
     // Variables for the loop
     mPrevTime = (GLfloat)glfwGetTime();
 
+    // Register app as controllable
+    this->registerControllable(this);
+
     // Scene (load polygon scene)
     m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
 
@@ -155,23 +160,19 @@ App::App() : Controllable("App")
 
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
 
-    m_LightViewMap = make_unique<LightViewMap>();
-
-    m_LightViewMap->init(width, height);
-    m_VoxelConeTracing = make_unique<VoxelConeTracing>();
+	m_LightViewMap = make_unique<LightViewMap>(this);
+	m_LightViewMap->init();
+    m_VoxelConeTracing = make_unique<VoxelConeTracing>(this);
 
     m_VoxelConeTracing->init(width, height);
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
-    this->registerControllable(this);
-
 
     // create octree from static geometrie
     // Voxelization (create fragment voxels)
     m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
-
 
     // Testing fragment list
     //
@@ -259,7 +260,9 @@ void App::run()
         glfwGetWindowSize(mpWindow, &width, &height);
         glViewport(0, 0, width, height);
 
-        m_VoxelConeTracing->geometryPass(m_scene);
+		m_LightViewMap->shadowMapPass(m_scene);
+
+        m_VoxelConeTracing->geometryPass(width,height,m_scene);
 
         // Choose visualization TODO: make this available to user interface
         switch(VISUALIZATION)
@@ -270,27 +273,36 @@ void App::run()
                 m_svo->getNodePool(),
                 m_svo->getBrickPool(),
                 m_VoxelConeTracing->getGBuffer(),
+				m_FullScreenQuad->getvaoID(),
                 VOLUME_EXTENT);
             break;
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
             break;
-        case Visualization::SHADOW_MAP:
-            m_LightViewMap->shadowMapPass(m_scene);
-            m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5,false);
-            m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
-            break;
-        case Visualization::GBUFFER:
-            m_LightViewMap->shadowMapPass(m_scene);
-            m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5,true);
-            m_LightViewMap->shadowMapRender(m_FullScreenQuad->getvaoID());
-            break;
-        case Visualization::VOXEL_CONE_TRACING:
-            m_LightViewMap->shadowMapPass(m_scene);
-            m_VoxelConeTracing->draw(m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), 5,false);
-            break;
+		case Visualization::GBUFFER:
+			mShowGBuffer = false;
+			m_VoxelConeTracing->drawGBuffer(width, height);
+			break;
+		case Visualization::PHONG:
+			//m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
+			break;
+		case Visualization::AMBIENT_OCCLUSION:
+			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+			break;
+		case Visualization::VOXEL_CONE_TRACING:
+			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+			break;
+		case Visualization::SHADOW_MAP:
+			mShowGBuffer = false;
+			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
+			break;
         }
 
+		if (mShowGBuffer){
+			m_LightViewMap->shadowMapRender(150, 150, width, height, m_FullScreenQuad->getvaoID());
+			m_VoxelConeTracing->drawGBufferPanels(width, height);
+		}
         // FUTURE STUFF
 
 
@@ -323,6 +335,7 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-    ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
+	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
+	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
 }
 

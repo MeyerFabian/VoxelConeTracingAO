@@ -14,13 +14,15 @@ public:
 		GBUFFER_TEXTURE_TYPE_POSITION,
 		GBUFFER_TEXTURE_TYPE_DIFFUSE,
 		GBUFFER_TEXTURE_TYPE_NORMAL,
-		GBUFFER_TEXTURE_TYPE_TEXCOORD,
+		GBUFFER_TEXTURE_TYPE_TANGENT,
 		GBUFFER_NUM_TEXTURES
 	};
 	GBuffer();
 	~GBuffer();
 
 	void init(int width, int height);
+	void clear();
+	void onResize(int width, int height);
 	void bindForWriting();
 	void bindForReading();
 	void setReadBuffer(GBUFFER_TEXTURE_TYPE tt);
@@ -28,6 +30,8 @@ public:
 	GLuint getTextureID(GBUFFER_TEXTURE_TYPE tt); 
 	GLuint getDepthTextureID();
 	GLuint m_fbo;
+	int m_width;
+	int m_height;
 	GLuint m_textures[GBUFFER_NUM_TEXTURES];
 	GLuint m_depthTexture;
 };

@@ -45,7 +45,7 @@ public:
 
     void mapToCUDA();
     void unmapFromCUDA();
-    void bind(GLuint textureUnit = 1);
+    void bind(GLuint textureUnit = 1) const;
     void bindNeighbourPool(GLuint textureUnit = 2);
 
     int getPoolSize();
