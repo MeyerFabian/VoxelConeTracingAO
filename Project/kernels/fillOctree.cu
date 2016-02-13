@@ -47,15 +47,15 @@ __device__ void makeBrickWhite(const uint3 &brickCoords)
     surf3Dwrite(make_uchar4(255,255,255,255), colorBrickPool, brickCoords.x*sizeof(uchar4), brickCoords.y, brickCoords.z);
 }
 
-__global__ void filterBrickCornersFast(node* nodePool, unsigned int level, unsigned int startAdress, unsigned int endAdress)
+__global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // make sure our index matches the node-adresses in a given octree level
     __syncthreads();
-    index += (startAdress);
+    index += (constLevelIntervalMap[level].start*8);
 
-    if(index > endAdress)
+    if(index >= constLevelIntervalMap[level].end*8)
         return;
 
     // load the target node that should be filled by mipmapping
@@ -136,7 +136,6 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     unsigned int offset=0;
     unsigned int nodeTile = 0;
     unsigned int value = 0;
-    bool test = false;
 
     for (int i = 0; i < maxLevel; i++)
     {
@@ -155,9 +154,7 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
         nodeTile = nodePool[offset].nodeTilePointer;
         __syncthreads();
-        //if(getBit(nodeTile,32) == 1) {
-            childPointer = nodeTile & 0x3fffffff;
-       // }
+        childPointer = nodeTile & 0x3fffffff;
 
         if(i!=0)
         {
@@ -172,7 +169,8 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
     // we have a valid brick => fill it
     fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
-    setBit(value,31);
+    setBit(value, 31);
+
     __syncthreads();
     nodePool[offset].value = value;
 }
@@ -474,13 +472,10 @@ cudaError_t buildSVO(node *nodePool,
     int maxLevel = static_cast<int>(log((volumeResolution*volumeResolution*volumeResolution))/log(8));
     // note that we dont calculate +1 as we store 8 voxels per brick
 
-    dim3 block_dim(8,8,8);
     dim3 grid_dim(volumeResolution/block_dim.x,volumeResolution/block_dim.y,volumeResolution/block_dim.z);
 
-    int threadsPerBlock = 512;
     int blockCount = fragmentListSize / threadsPerBlock+1;
 
-    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc( 8, 8, 8, 8, cudaChannelFormatKindUnsigned );
     errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
 
     unsigned int *h_counter = new unsigned int[1];
@@ -497,12 +492,11 @@ cudaError_t buildSVO(node *nodePool,
     {
         // todo: this is silly :D
         if(i!=0)
-            LevelIntervalMap[i-1].start = reservedOld;
+            LevelIntervalMap[i-1].start = reservedOld+1;
 
         markNodeForSubdivision<<<blockCount, threadsPerBlock>>>(nodePool, poolSize, i, positionDevPointer, fragmentListSize);
         unsigned int maxNodes = static_cast<unsigned int>(pow(8,i));
 
-        const unsigned int threadPerBlockReserve = 512;
         int blockCountReserve = maxNodes;
 
         if(maxNodes >= threadPerBlockReserve)
@@ -512,10 +506,8 @@ cudaError_t buildSVO(node *nodePool,
             lastLevel = 1;
 
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        //reserveMemoryForNodes <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, maxNodes, i, d_counter, volumeResolution, 3, lastLevel);
         reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
 
-       // printf("reserveOLD:%d\n",reservedOld);
         // remember counter
         reservedOld = *h_counter;
 
@@ -523,47 +515,35 @@ cudaError_t buildSVO(node *nodePool,
         if(i!=0)
             LevelIntervalMap[i-1].end = reservedOld-1;
     }
-    //printf("reserveOLD:%d\n",reservedOld);
 
     // make sure we fill the interval map complete
     cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    LevelIntervalMap[maxLevel-1].start = LevelIntervalMap[maxLevel-2].end;
+    LevelIntervalMap[maxLevel-1].start = LevelIntervalMap[maxLevel-2].end+1;
     LevelIntervalMap[maxLevel-1].end = *h_counter-1;
-
-
-   // for(int i=0;i<= maxLevel;i++)
-     //   printf("start: %d end:%d level:%d\n",LevelIntervalMap[i].start, LevelIntervalMap[i].end, i);
-
 
     // copy the level interval map to constant memory
     errorCode = cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10);
 
     //fillNeighbours <<< blockCount, threadsPerBlock >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlock>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
-    const unsigned int threadPerBlockSpread = 512;
-    unsigned int blockCountSpread;
-    unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
 
+    unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
     blockCountSpread = nodeCount;
 
     if(nodeCount >= threadPerBlockSpread)
         blockCountSpread = nodeCount / threadPerBlockSpread;
 
-    // filter the last level with an inverse gaussian kernel
     cudaDeviceSynchronize();
-    //filterBrickCorners<<<blockCountSpread, threadPerBlockSpread>>>(nodePool, nodeCount, maxLevel);
 
     int level = 6;
     unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
 
-    //printf("tmpBlock:%d start:%d end:%d\n",tmpBlock,LevelIntervalMap[level].start,LevelIntervalMap[level].end);
-    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level,LevelIntervalMap[level].start*8,LevelIntervalMap[level].end*8);
-    const unsigned int combineThreadCount = 1024;
-    unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
+    // filter the last level with an inverse gaussian kernel
+    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
+    unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / combineThreadCount;
     //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);
     cudaDeviceSynchronize();
-    const unsigned int threadsPerBlockMipMap = 256;
 
     // MIPMAP we have some crap with the 0 level. therefore we subtract 3 :)
     for(int i=maxLevel-3;i>=0;i--)
@@ -574,7 +554,6 @@ cudaError_t buildSVO(node *nodePool,
         if(threadsPerBlockMipMap < intervalWidth)
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
-       // printf("blockCount: %d intervalWidth: %d start:%d end:%d level:%d\n", blockCountMipMap, intervalWidth,LevelIntervalMap[i].start,LevelIntervalMap[i].end,i);
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
     }
 
@@ -586,13 +565,13 @@ cudaError_t buildSVO(node *nodePool,
 cudaError_t clearNodePoolCuda(node *nodePool, neighbours* neighbourPool, int poolSize)
 {
     cudaError_t errorCode = cudaSuccess;
-    int threadsPerBlock = 256;
-    int blockCount = (poolSize*2) / threadsPerBlock;
-    int neighbourPoolBlockCount = (poolSize*6) / threadsPerBlock;
+
+    int blockCount = (poolSize*2) / threadsPerBlockClear;
+    int neighbourPoolBlockCount = (poolSize*6) / threadsPerBlockClear;
 
     // clear the nodepool
-    clearNodePoolKernel<<<neighbourPoolBlockCount, threadsPerBlock>>>(reinterpret_cast<unsigned int*>(neighbourPool), poolSize*6);
-    clearNodePoolKernel<<<blockCount, threadsPerBlock>>>(reinterpret_cast<unsigned int*>(nodePool), poolSize*2);
+    clearNodePoolKernel<<<neighbourPoolBlockCount, threadsPerBlockClear>>>(reinterpret_cast<unsigned int*>(neighbourPool), poolSize*6);
+    clearNodePoolKernel<<<blockCount, threadsPerBlockClear>>>(reinterpret_cast<unsigned int*>(nodePool), poolSize*2);
 
     return errorCode;
 }

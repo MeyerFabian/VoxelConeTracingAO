@@ -9,45 +9,17 @@ OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Raycasting")
     stepSize = 0.05f;
     directionBeginScale=0.5f;
     maxSteps=100;
-    glGenVertexArrays(1, &vaoID);
-    glBindVertexArray(vaoID);
 
     mupOctreeRaycastShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/octreeRaycast.vert",
                                                                               "/fragment_shaders/octreeRaycast.frag"));
-    mupOctreeRaycastShader->use();
-
-    //*/
-    const GLfloat plane_vert_data[] = {
-            -1.0f, -1.0f,
-            +1.0f, -1.0f,
-            -1.0f, +1.0f,
-            +1.0f, +1.0f,
-    };
-    /*/
-    const GLfloat plane_vert_data[] = {
-            -0.5f, -0.5f,
-            +0.5f, -0.5f,
-            -0.5f, +0.5f,
-            +0.5f, +0.5f,
-    };
-    //*/
-    GLuint mBufferID;
-    glGenBuffers(1, &mBufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, mBufferID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vert_data), plane_vert_data, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-    glBindVertexArray(0);
 }
 
 void OctreeRaycast::draw(glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-        float volumeExtent,
-        int maxLevel) const
+		GLuint ScreenQuad,
+        float volumeExtent, int maxLevel) const
 {
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
@@ -87,7 +59,7 @@ void OctreeRaycast::draw(glm::vec3 camPos,
     mupOctreeRaycastShader->use();
 
     // draw voxel
-    glBindVertexArray(vaoID);
+	glBindVertexArray(ScreenQuad);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 

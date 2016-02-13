@@ -41,10 +41,11 @@ void GBuffer::init(int width, int height)
 {
 	m_width = width;
 	m_height = height;
+
     //GL_COLOR_ATTACHMENT0 pos
     //GL_COLOR_ATTACHMENT1 dif
     //GL_COLOR_ATTACHMENT2 nor
-    //GL_COLOR_ATTACHMENT3 tex
+    //GL_COLOR_ATTACHMENT3 tan
     //GL_DEPTH_ATTACHMENT depth
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
@@ -52,9 +53,9 @@ void GBuffer::init(int width, int height)
     // Create GBuffer to store our geometry information textures
     glGenTextures(ARRAY_SIZE_IN_ELEMENTS(m_textures), m_textures);
     glGenTextures(1, &m_depthTexture);
+
     for (unsigned int i = 0; i < ARRAY_SIZE_IN_ELEMENTS(m_textures); i++)
     {
-        // TODO: only position in 32bit
         glBindTexture(GL_TEXTURE_2D, m_textures[i]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

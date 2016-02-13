@@ -21,9 +21,10 @@ public:
         glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
-        std::unique_ptr<GBuffer>& gbuffer,
-        float volumeExtent,
-        int maxLevel) const;
+		std::unique_ptr<GBuffer>& gbuffer, 
+		GLuint ScreenQuad,
+        float volumeExtent, int maxLevel) const;
+
         void fillGui();
 
 private:
