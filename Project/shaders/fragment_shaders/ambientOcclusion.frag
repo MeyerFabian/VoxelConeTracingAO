@@ -82,36 +82,36 @@ float aperture[NUM_CONES]={
 	60.0};
 
 /*	
-*	@param	distance			Distance from the apex
-*	@param	coneAperture		Aperture of the given cone in degree(angle)
-*	@return voxelsize			corresponding to the distance
+*	@param	distance                    Distance from the apex
+*	@param	coneAperture                Aperture of the given cone in degree(angle)
+*	@return voxelsize                   corresponding to the distance
 *	Calculates the voxel size we will be looking up 
 *	by the distance of that voxel from the apex
 */
 float voxelSizeByDistance(float distance, float coneAperture){
 	float halfAperture = coneAperture /2.0;
-	float voxelSize = tan(halfAperture) * distance;
+        float voxelSize = tan(halfAperture) * distance * 2.0;
 	return voxelSize;
 }
 
 /*
-*	@param	coneAperture		Aperture of the given cone in Degree(angle)
-*	@param	voxelsize			corresponding to the distance
-*	@return distance			corresponding to the voxelsize
+*	@param	coneAperture                Aperture of the given cone in Degree(angle)
+*	@param	voxelsize                   corresponding to the distance
+*	@return distance                    corresponding to the voxelsize
 *	Calculates the initial distance for a given voxel size
 *	Used initially to find the first voxel on the maximum resolution
 *	that can be looked up in the octree.
 */
 float DistancebyVoxelSize(float coneAperture, float voxelSize){
 	float halfAperture = coneAperture /2.0;
-	float distance = voxelSize / tan(halfAperture);
+        float distance = voxelSize / 2.0 / tan(halfAperture);
 	return distance;
 }
 
 /*
-*	@param alpha				alpha-value of the accumulated color before correcting
-*	@param oldSamplingDistance	Sampling Distance we sampled with before
-*	@param newSamplingDistance	Sampling Distance we use in this step
+*	@param alpha                        alpha-value of the accumulated color before correcting
+*	@param oldSamplingDistance          Sampling Distance we sampled with before
+*	@param newSamplingDistance          Sampling Distance we use in this step
 *	Corrects the alpha-value when using adaptive Sampling
 */
 void alphaCorrection(	inout float alpha, 
