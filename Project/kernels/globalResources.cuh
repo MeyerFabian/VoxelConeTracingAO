@@ -3,7 +3,7 @@
 
 #include <SparseOctree/NodePool.h>
 
-int volumeResolution = 384;
+unsigned int volumeResolution = 384;
 
 struct LevelInterval
 {
