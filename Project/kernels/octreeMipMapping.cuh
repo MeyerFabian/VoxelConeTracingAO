@@ -28,7 +28,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     } myChilds[8]; // 8 children with 27 color-values each
 
     uint3 coords, tmpCoords;
-    coords = make_uint3(0,0,0);
     //load colors YAY pragma unroll works here :D
     #pragma unroll 8
     for(int i=0;i<8;i++)
@@ -168,6 +167,8 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     centerColor.z /= 2.0;
     centerColor.w /= 2.0;
 
+    //centerColor = make_float4(127,127,127,255);
+
     // MIPMAP CORNERS
     float4 leftTopNear = make_float4(0,0,0,0);
 
@@ -214,6 +215,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftTopNear.z /= 0.85;
     leftTopNear.w /= 0.85;
 
+    //leftTopNear = make_float4(255,0,0,255);
 
     float4 leftBottomNear = make_float4(0,0,0,0);
 
@@ -261,10 +263,11 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftBottomNear.z /= 0.85;
     leftBottomNear.w /= 0.85;
 
+    //leftBottomNear = make_float4(255,0,255,255);
+
     float4 leftTopFar = make_float4(0,0,0,0);
 
     // needed 002, 102, 001, 012, 011, 112, 101, 111
-
     leftTopFar.x += (0.25*myChilds[4].childColors[2].x
                          + 0.125*myChilds[4].childColors[11].x
                          + 0.125*myChilds[4].childColors[1].x
@@ -274,38 +277,40 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                          + 0.0625*myChilds[4].childColors[10].x
                          + 0.03125*myChilds[4].childColors[13].x);
 
-    leftTopFar.y += (0.25*myChilds[4].childColors[2].x
-                     + 0.125*myChilds[4].childColors[11].x
-                     + 0.125*myChilds[4].childColors[1].x
-                     + 0.125*myChilds[4].childColors[5].x
-                     + 0.0625*myChilds[4].childColors[4].x
-                     + 0.0625*myChilds[4].childColors[14].x
-                     + 0.0625*myChilds[4].childColors[10].x
-                     + 0.03125*myChilds[4].childColors[13].x);
+    leftTopFar.y += (0.25*myChilds[4].childColors[2].y
+                     + 0.125*myChilds[4].childColors[11].y
+                     + 0.125*myChilds[4].childColors[1].y
+                     + 0.125*myChilds[4].childColors[5].y
+                     + 0.0625*myChilds[4].childColors[4].y
+                     + 0.0625*myChilds[4].childColors[14].y
+                     + 0.0625*myChilds[4].childColors[10].y
+                     + 0.03125*myChilds[4].childColors[13].y);
 
-    leftTopFar.z += (0.25*myChilds[4].childColors[2].x
-                     + 0.125*myChilds[4].childColors[11].x
-                     + 0.125*myChilds[4].childColors[1].x
-                     + 0.125*myChilds[4].childColors[5].x
-                     + 0.0625*myChilds[4].childColors[4].x
-                     + 0.0625*myChilds[4].childColors[14].x
-                     + 0.0625*myChilds[4].childColors[10].x
-                     + 0.03125*myChilds[4].childColors[13].x);
+    leftTopFar.z += (0.25*myChilds[4].childColors[2].z
+                     + 0.125*myChilds[4].childColors[11].z
+                     + 0.125*myChilds[4].childColors[1].z
+                     + 0.125*myChilds[4].childColors[5].z
+                     + 0.0625*myChilds[4].childColors[4].z
+                     + 0.0625*myChilds[4].childColors[14].z
+                     + 0.0625*myChilds[4].childColors[10].z
+                     + 0.03125*myChilds[4].childColors[13].z);
 
-    leftTopFar.w += (0.25*myChilds[4].childColors[2].x
-                     + 0.125*myChilds[4].childColors[11].x
-                     + 0.125*myChilds[4].childColors[1].x
-                     + 0.125*myChilds[4].childColors[5].x
-                     + 0.0625*myChilds[4].childColors[4].x
-                     + 0.0625*myChilds[4].childColors[14].x
-                     + 0.0625*myChilds[4].childColors[10].x
-                     + 0.03125*myChilds[4].childColors[13].x);
+    leftTopFar.w += (0.25*myChilds[4].childColors[2].w
+                     + 0.125*myChilds[4].childColors[11].w
+                     + 0.125*myChilds[4].childColors[1].w
+                     + 0.125*myChilds[4].childColors[5].w
+                     + 0.0625*myChilds[4].childColors[4].w
+                     + 0.0625*myChilds[4].childColors[14].w
+                     + 0.0625*myChilds[4].childColors[10].w
+                     + 0.03125*myChilds[4].childColors[13].w);
 
 
     leftTopFar.x /= 0.85;
     leftTopFar.y /= 0.85;
     leftTopFar.z /= 0.85;
     leftTopFar.w /= 0.85;
+
+    //leftTopFar = make_float4(255,0,0,255);
 
     float4 leftBottomFar = make_float4(0,0,0,0);
 
@@ -354,6 +359,8 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftBottomFar.z /= 0.85;
     leftBottomFar.w /= 0.85;
 
+   // leftBottomFar = make_float4(255,255,0,255);
+
     float4 rightTopNear = make_float4(0,0,0,0);
 
     // needed 200, 100, 201, 101,   210, 110, 211, 111
@@ -399,6 +406,8 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightTopNear.y /= 0.85;
     rightTopNear.z /= 0.85;
     rightTopNear.w /= 0.85;
+
+    //rightTopNear = make_float4(0,0,255,255);
 
     float4 rightBottomNear = make_float4(0,0,0,0);
 
@@ -446,6 +455,8 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightBottomNear.z /= 0.85;
     rightBottomNear.w /= 0.85;
 
+    //rightBottomNear = make_float4(0,255,0,255);
+
     float4 rightTopFar = make_float4(0,0,0,0);
 
     // needed 202, 102, 201, 101, 212, 112, 211 ,111
@@ -459,7 +470,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                           + 0.0625*myChilds[5].childColors[22].x
                           + 0.03125*myChilds[5].childColors[13].x);
 
-    rightTopFar.y+= (0.25*myChilds[5].childColors[20].y
+    rightTopFar.y += (0.25*myChilds[5].childColors[20].y
                       + 0.125*myChilds[5].childColors[11].y
                       + 0.125*myChilds[5].childColors[19].y
                       + 0.125*myChilds[5].childColors[23].y
@@ -493,11 +504,13 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightTopFar.z /= 0.85;
     rightTopFar.w /= 0.85;
 
+    //rightTopFar = make_float4(255,0,0,255);
+
     float4 rightBottomFar = make_float4(0,0,0,0);
 
     // needed 222, 122, 221, 121, 212, 112, 211 ,111
 
-    rightBottomFar.x += (0.25*myChilds[7].childColors[25].x
+    rightBottomFar.x += (0.25*myChilds[7].childColors[26].x
                       + 0.125*myChilds[7].childColors[17].x
                       + 0.125*myChilds[7].childColors[25].x
                       + 0.125*myChilds[7].childColors[23].x
@@ -506,7 +519,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                       + 0.0625*myChilds[7].childColors[22].x
                       + 0.03125*myChilds[7].childColors[13].x);
 
-    rightBottomFar.y += (0.25*myChilds[7].childColors[25].y
+    rightBottomFar.y += (0.25*myChilds[7].childColors[26].y
                          + 0.125*myChilds[7].childColors[17].y
                          + 0.125*myChilds[7].childColors[25].y
                          + 0.125*myChilds[7].childColors[23].y
@@ -515,7 +528,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                          + 0.0625*myChilds[7].childColors[22].y
                          + 0.03125*myChilds[7].childColors[13].y);
 
-    rightBottomFar.z += (0.25*myChilds[7].childColors[25].z
+    rightBottomFar.z += (0.25*myChilds[7].childColors[26].z
                          + 0.125*myChilds[7].childColors[17].z
                          + 0.125*myChilds[7].childColors[25].z
                          + 0.125*myChilds[7].childColors[23].z
@@ -524,7 +537,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                          + 0.0625*myChilds[7].childColors[22].z
                          + 0.03125*myChilds[7].childColors[13].z);
 
-    rightBottomFar.w += (0.25*myChilds[7].childColors[25].w
+    rightBottomFar.w += (0.25*myChilds[7].childColors[26].w
                          + 0.125*myChilds[7].childColors[17].w
                          + 0.125*myChilds[7].childColors[25].w
                          + 0.125*myChilds[7].childColors[23].w
@@ -540,7 +553,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightBottomFar.z /= 0.85;
     rightBottomFar.w /= 0.85;
 
-
     // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
@@ -548,7 +560,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y + 1,
                 targetBrick.z + 1);
 
-    //0,0,0
+    //0,0,0 leftTopNear // seems ok
     surf3Dwrite(make_uchar4(leftTopNear.x,leftTopNear.y,leftTopNear.z,leftTopNear.w),
                 colorBrickPool,
                 (targetBrick.x) * sizeof(uchar4),
@@ -562,7 +574,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y,
                 targetBrick.z+1);
 
-    // 0,0,2
+    // 0,0,2 leftTopFar // seems to work
     surf3Dwrite(make_uchar4(leftTopFar.x,leftTopFar.y,leftTopFar.z,leftTopFar.w),
                 colorBrickPool,
                 (targetBrick.x) * sizeof(uchar4),
@@ -590,7 +602,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+1,
                 targetBrick.z+2);
 
-    // 0,2,0
+    // 0,2,0 leftBottomNear // seems to work
     surf3Dwrite(make_uchar4(leftBottomNear.x,leftBottomNear.y,leftBottomNear.z,leftBottomNear.w),
                 colorBrickPool,
                 (targetBrick.x) * sizeof(uchar4),
@@ -604,7 +616,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+2,
                 targetBrick.z+1);
 
-    // 0,2,2
+    // 0,2,2 leftBottomFar // seems to work
     surf3Dwrite(make_uchar4(leftBottomFar.x,leftBottomFar.y,leftBottomFar.z,leftBottomFar.w),
                 colorBrickPool,
                 (targetBrick.x) * sizeof(uchar4),
@@ -666,7 +678,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+2,
                 targetBrick.z+2);
 
-    // 2,0,0
+    // 2,0,0 rightTopNear // seems to work
     surf3Dwrite(make_uchar4(rightTopNear.x,rightTopNear.y,rightTopNear.z,rightTopNear.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -680,7 +692,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y,
                 targetBrick.z+1);
 
-    // 2,0,2
+    // 2,0,2 rightTopFar // might be empty?
     surf3Dwrite(make_uchar4(rightTopFar.x,rightTopFar.y,rightTopFar.z,rightTopFar.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -708,7 +720,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+1,
                 targetBrick.z+2);
 
-    // 2,2,0
+    // 2,2,0 rightBottomNear // seems to work
     surf3Dwrite(make_uchar4(rightBottomNear.x,rightBottomNear.y,rightBottomNear.z,rightBottomNear.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -722,7 +734,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+2,
                 targetBrick.z+1);
 
-    // 2,2,2
+    // 2,2,2 rightBottomFar // we have a winner it does not work
     surf3Dwrite(make_uchar4(rightBottomFar.x,rightBottomFar.y,rightBottomFar.z,rightBottomFar.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -1037,7 +1049,7 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
     // make sure our index matches the node-adresses in a given octree level
     index += (constLevelIntervalMap[level].start)*8;
     // make sure we dont load invalid adresses
-    if(index >= constLevelIntervalMap[level].end*8)
+    if(index >= (constLevelIntervalMap[level].end)*8)
         return;
 
     // load the target node that should be filled by mipmapping

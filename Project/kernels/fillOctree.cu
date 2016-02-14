@@ -55,7 +55,7 @@ __global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
     __syncthreads();
     index += ((constLevelIntervalMap[level].start)*8);
 
-    if(index >= constLevelIntervalMap[level].end*8)
+    if((index >= constLevelIntervalMap[level].end)*8)
         return;
 
     // load the target node that should be filled by mipmapping
@@ -528,15 +528,11 @@ cudaError_t buildSVO(node *nodePool,
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 
     unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
-    blockCountSpread = nodeCount;
-
-    if(nodeCount >= threadPerBlockSpread)
-        blockCountSpread = nodeCount / threadPerBlockSpread;
 
     cudaDeviceSynchronize();
 
     int level = 6;
-    unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
+    unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 2;
 
     // filter the last level with an inverse gaussian kernel
     filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
