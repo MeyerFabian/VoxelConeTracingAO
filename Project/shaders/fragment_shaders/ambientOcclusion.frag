@@ -21,7 +21,7 @@ uniform vec2 screenSize;
 uniform float beginningVoxelSize;
 uniform float directionBeginScale;
 uniform float volumeExtent;
-uniform int maxSteps;
+uniform int maxDistance;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
@@ -102,9 +102,9 @@ float voxelSizeByDistance(float distance, float coneAperture){
 *	Used initially to find the first voxel on the maximum resolution
 *	that can be looked up in the octree.
 */
-float DistancebyVoxelSize(float coneAperture, float voxelSize){
+float distanceByVoxelSize(float coneAperture, float voxelSize){
 	float halfAperture = coneAperture /2.0;
-        float distance = voxelSize / 2.0 / tan(halfAperture);
+    float distance = voxelSize / 2.0 / tan(radians(halfAperture));
 	return distance;
 }
 
@@ -124,9 +124,20 @@ void alphaCorrection(	inout float alpha,
 }
 
 // perimeterDirection seems to be calulcated right :)
-vec3 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture){
-
-	return perimeterDirection;
+vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture){
+    float voxelSizeOnLowestLevel = volumeExtent / (pow2[maxLevel]);
+    float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLowestLevel);
+	float samplingRate= voxelSizeOnLowestLevel;
+	float distance = samplingRate/2.0;
+	vec3 rayPosition = vec3(0.0);
+	vec4 color = vec4(0.0,0.0,0.0,1.0);
+	while(distance < distanceTillMainLoop){
+		rayPosition = perimeterStart.xyz + distance * perimeterDirection;
+		//vec4 interpolatedColor = rayCastOctree(rayPosition);
+		distance += samplingRate;
+		color += vec4(perimeterDirection,0.0);
+	}
+	return color;
 }
 
 /*
@@ -150,7 +161,7 @@ void main()
 	// accordingly to the given normal
 	mat3 OutOfTangentSpace = mat3(tangent,normal,bitangent);
 
-	vec3 finalColor = vec3(0.0);
+	vec4 finalColor = vec4(0.0);
 	
 	//consider loop unrolling
 	for(int i = 0 ; i < NUM_CONES;i++){
@@ -161,8 +172,8 @@ void main()
 	}
 
 	Everything_else=vec4(tangent,1.0) * vec4(normal,1.0)*volumeRes *  position*beginningVoxelSize*directionBeginScale*
-	volumeExtent*maxSteps;
+	volumeExtent*maxDistance;
 
-	FragColor = vec4(finalColor,1.0); 
+	FragColor = vec4(finalColor); 
 
 }

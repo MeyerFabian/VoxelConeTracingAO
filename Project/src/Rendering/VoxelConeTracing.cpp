@@ -22,7 +22,7 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
     m_gbuffer = make_unique<GBuffer>();
 	beginningVoxelSize = 0.05f;
 	directionBeginScale = 0.5f;
-	maxSteps = 100;
+	maxDistance = 5.0f;
 }
 
 
@@ -178,7 +178,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 	//Cone Tracing Uniforms
 	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
 	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
-	m_ambientOcclusion->updateUniform("maxSteps", maxSteps);
+	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
 	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
 	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
 
@@ -305,7 +305,7 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 	//Cone Tracing Uniforms
 	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
 	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
-	m_ambientOcclusion->updateUniform("maxSteps", maxSteps);
+	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
 	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
 	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
 
@@ -330,6 +330,6 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 
 void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
-	ImGui::SliderInt("max steps cone tracing", &maxSteps, 5, 50, "%.0f");
+	ImGui::SliderFloat("max steps cone tracing", &maxDistance, 0.5f, 20.0f , "%.2f");
 	ImGui::SliderFloat("position begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 }
