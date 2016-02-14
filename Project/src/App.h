@@ -58,7 +58,6 @@ private:
 
 	bool mVoxeliseEachFrame; 
 	bool mShowGBuffer;
-    int mMaxLevel;
 };
 
 #endif // APP_H_

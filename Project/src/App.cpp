@@ -101,7 +101,6 @@ App::App() : Controllable("App")
 
 	mShowGBuffer = false;
     mVoxeliseEachFrame = false;
-    mMaxLevel = 8;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -275,7 +274,7 @@ void App::run()
                     m_svo->getBrickPool(),
                     m_VoxelConeTracing->getGBuffer(),
                     m_FullScreenQuad->getvaoID(),
-                    VOLUME_EXTENT,mMaxLevel);
+                    VOLUME_EXTENT);
             break;
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
@@ -339,6 +338,5 @@ void App::fillGui()
 	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
 	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
    // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
-    ImGui::SliderInt("MaxLevel", &mMaxLevel, 1, 8, "%.0f");
 }
 
