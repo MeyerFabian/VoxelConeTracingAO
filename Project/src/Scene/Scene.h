@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include "Light.h"
+#include "Utilities/enums.h"
 
 // TODO
 /*
@@ -23,9 +24,11 @@ public:
     Scene(App* pApp, std::string filepath);
     virtual ~Scene();
 
-    void updateCamera(float movement, float deltaCameraYaw, float deltaCameraPitch);
-    void updateLight(float movement, float deltaCameraYaw, float deltaCameraPitch);
+    void updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch);
+    void updateLight(float deltaCameraYaw, float deltaCameraPitch);
     void draw(float windowWidth,float windowHeight) const;
+    void setCameraSpeed(float speed) { mCamera.setSpeed(speed); }
+
 
     glm::vec3 getCamPos() { return mCamera.getPosition(); }
 

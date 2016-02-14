@@ -21,6 +21,7 @@
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
 #include "PointCloud/PointCloud.h"
+#include "Utilities/enums.h"
 
 class App: public Controllable
 {
@@ -36,7 +37,8 @@ public:
     virtual ~App(); // Virtual not necessary
     void run();
     void registerControllable(Controllable* pControllable);
-	
+    void handleCamera(GLfloat deltaTime, GLint width, GLint height);
+
     void fillGui();
 
 private:

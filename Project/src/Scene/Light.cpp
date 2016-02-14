@@ -21,7 +21,7 @@ Light::~Light()
     // Nothing to do
 }
 
-void Light::update(float movement, float deltaRotationYaw, float deltaRotationPitch)
+void Light::update(float deltaRotationYaw, float deltaRotationPitch)
 {
 	float speed = 0.25;
 	mDirection = glm::rotate(mDirection, deltaRotationYaw*speed, glm::vec3(1, 0, 0));
