@@ -135,7 +135,7 @@ void main()
                     brickCoords += insertPositions[offset]*2;
 
                     // Accumulate color
-                    vec4 src = texture(brickPool, brickCoords/volumeRes);
+                    vec4 src = texture(brickPool, brickCoords/(volumeRes) + (1.0/256.0)/2.0);
                     //outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
                     //outputColor.a += (1.0 - outputColor.a) * src.a;
 
