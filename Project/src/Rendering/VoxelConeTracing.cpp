@@ -175,6 +175,11 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 	// bind octree texture
 	nodePool.bind();
 
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+	glUniform1i(brickPoolUniform, 5);
+	glActiveTexture(GL_TEXTURE5);
+	brickPool.bind();
+
 	//Cone Tracing Uniforms
 	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
 	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
@@ -210,10 +215,6 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
 
 
-	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
-	glUniform1i(brickPoolUniform, 2);
-	glActiveTexture(GL_TEXTURE2);
-	brickPool.bind();
 
 
     //Draw FullScreenQuad
@@ -296,6 +297,10 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 	// bind octree texture
 	nodePool.bind();
 
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+	glUniform1i(brickPoolUniform, 5);
+	glActiveTexture(GL_TEXTURE5);
+	brickPool.bind();
 	//m_ambientOcclusion->updateUniform("eyeVector", scene->getCamPos());
 
 	//other uniforms
@@ -314,10 +319,7 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 	m_ambientOcclusion->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));    
 	m_ambientOcclusion->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));   
 
-	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
-	glUniform1i(brickPoolUniform, 2);
-	glActiveTexture(GL_TEXTURE2);
-	brickPool.bind();
+
 	
 	//Draw FullScreenQuad
 	glBindVertexArray(ScreenQuad);
@@ -330,6 +332,6 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 
 void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
-	ImGui::SliderFloat("max steps cone tracing", &maxDistance, 0.5f, 20.0f , "%.2f");
+	ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");
 	ImGui::SliderFloat("position begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 }
