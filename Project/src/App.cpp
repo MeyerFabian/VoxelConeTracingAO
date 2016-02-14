@@ -140,6 +140,12 @@ static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 // GLFW callback for mouse buttons
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    // Check whether ImGui is handling this
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureMouse)
+    {
+        return;
+    }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {        
         rotateCamera = true;
