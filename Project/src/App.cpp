@@ -15,6 +15,7 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 
 // Ugly static variables
 GLint width, height;
+int VISUALIZATION = Visualization::RAYCASTING;
 int mouseX, mouseY = 0;
 int deltaCameraYaw = 0;
 int deltaCameraPitch = 0;
@@ -49,7 +50,7 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     {
         glfwSetWindowShouldClose(window, true);
     }
-
+    // Camera Handling
     // Cam turbo
     if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
     {
@@ -119,14 +120,48 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     {
         moveDownwards = false;
     }
+
+    // Visualitation Handling
+    // Voxel cone tracing
+    if(key == GLFW_KEY_1& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::VOXEL_CONE_TRACING;
+    }
+    //  Raycasting
+    if(key == GLFW_KEY_2& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::RAYCASTING;
+    }
+    //  Point Cloud
+    if(key == GLFW_KEY_3& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::POINT_CLOUD;
+    }
+    //  Gbuffer
+    if(key == GLFW_KEY_4& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::GBUFFER;
+    }
+    //  Phong
+    if(key == GLFW_KEY_5& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::PHONG;
+    }
+    //  Ambient occlusion
+    if(key == GLFW_KEY_6& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::AMBIENT_OCCLUSION;
+    }
+    //  Shadow Map
+    if(key == GLFW_KEY_7& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::SHADOW_MAP;
+    }
 }
 
 // GLFW callback for cursor position
 static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    deltaCameraYaw = 5 * (width/2 - xpos);
-    deltaCameraPitch = 5 * (height/2 - ypos);
-
     // Check whether ImGui is handling this
     ImGuiIO& io = ImGui::GetIO();
     if(io.WantCaptureMouse)
@@ -134,6 +169,11 @@ static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
         deltaCameraYaw = 0;
         deltaCameraPitch = 0;
         return;
+    }
+    else
+    {
+        deltaCameraYaw = 5 * (width/2 - xpos);
+        deltaCameraPitch = 5 * (height/2 - ypos);
     }
 }
 
@@ -147,11 +187,13 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         return;
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    {        
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         rotateCamera = true;
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         rotateCamera = false;
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
@@ -400,89 +442,29 @@ void App::handleCamera(GLfloat deltaTime, GLint width, GLint height)
     }
     if(moveForwards)
     {
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(FORWARDS, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-            deltaCameraPitch = 0;
-            deltaCameraYaw = 0;
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-        }
-        else
-        {
-            m_scene->updateCamera(FORWARDS, 0, 0);
-        }
+        m_scene->updateCamera(FORWARDS, 0, 0);
     }
     if(moveBackwards)
     {
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(BACKWARDS, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-            deltaCameraPitch = 0;
-            deltaCameraYaw = 0;
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-        }
-        else
-        {
-            m_scene->updateCamera(BACKWARDS, 0, 0);
-        }
+        m_scene->updateCamera(BACKWARDS, 0, 0);
     }
     if(strafeLeft)
     {
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(LEFT, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-            deltaCameraPitch = 0;
-            deltaCameraYaw = 0;
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-        }
-        else
-        {
-            m_scene->updateCamera(LEFT, 0, 0);
-        }
+        m_scene->updateCamera(LEFT, 0, 0);
     }
     if(strafeRight)
     {
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(RIGHT, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-            deltaCameraPitch = 0;
-            deltaCameraYaw = 0;
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-        }
-        else
-        {
-            m_scene->updateCamera(RIGHT, 0, 0);
-        }
+        m_scene->updateCamera(RIGHT, 0, 0);
     }
     if(moveUpwards)
     {
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(UP, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-            deltaCameraPitch = 0;
-            deltaCameraYaw = 0;
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-        }
-        else
-        {
-            m_scene->updateCamera(UP, 0, 0);
-        }
+        m_scene->updateCamera(UP, 0, 0);
     }
     if(moveDownwards)
     {
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(DOWN, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-            deltaCameraPitch = 0;
-            deltaCameraYaw = 0;
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-        }
-        else
-        {
-            m_scene->updateCamera(DOWN, 0, 0);
-        }
+        m_scene->updateCamera(DOWN, 0, 0);
     }
-    if(!moveForwards && !moveBackwards && !strafeLeft && !strafeRight && rotateCamera)
+    if(rotateCamera)
     {
         glfwSetCursorPos(mpWindow, width/2, height/2);
         m_scene->updateCamera(NONE, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
@@ -503,6 +485,7 @@ void App::fillGui()
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
 	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
 	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
+    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map");
    // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
 }
 
