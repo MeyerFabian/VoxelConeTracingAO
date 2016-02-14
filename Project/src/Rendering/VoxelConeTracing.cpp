@@ -185,7 +185,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
 	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
 	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
-	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
+	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
 
 
     //Light uniforms
@@ -312,7 +312,7 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
 	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
 	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
-	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x - 1));
+	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
 
 	//GBUFFER TEXTURES
 	m_ambientOcclusion->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));

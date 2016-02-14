@@ -179,7 +179,7 @@ vec4 rayCastOctree(vec3 rayPosition){
 
 
             // Accumulate color
-            vec4 src = texture(brickPool, brickCoords/volumeRes);
+            vec4 src = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
 
             outputColor = src;
 
