@@ -170,23 +170,19 @@ vec4 rayCastOctree(vec3 rayPosition){
             uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
             vec3 brickCoords = decodeBrickCoords(brickTile);
 
-            // Just a check, whether brick is there
-            if(getBit(brickTile, 31) == 1)
-            {
-                // Here we should intersect our brick seperately
-                // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-                brickCoords.x += 2 * roundEven( innerOctreePosition.x);
-                brickCoords.y += 2 * roundEven( innerOctreePosition.y);
-                brickCoords.z += 2 * roundEven( innerOctreePosition.z);
+            
+            // Here we should intersect our brick seperately
+            // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+            brickCoords.x += 2 * innerOctreePosition.x;
+            brickCoords.y += 2 * innerOctreePosition.y;
+            brickCoords.z += 2 * innerOctreePosition.z;
 
-				//brickCoords +=vec3(0.0,0.0,0.0);
 
-                // Accumulate color
-                vec4 src = texture(brickPool, brickCoords/volumeRes);
+            // Accumulate color
+            vec4 src = texture(brickPool, brickCoords/volumeRes);
 
-                outputColor = src;
+            outputColor = src;
 
-            }
 
             // Break inner loop
             break;
@@ -210,11 +206,12 @@ vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture)
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	while(distance < distanceTillMainLoop){
-		rayPosition = perimeterStart.xyz + distance * perimeterDirection;
+		rayPosition = perimeterStart.xyz + 0.0f * distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
 		color += interpolatedColor;
 	}
+	/*
 	while(distance < maxDistance){
 		rayPosition = perimeterStart.xyz + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
@@ -222,6 +219,7 @@ vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture)
 		//voxelSize = voxelSizeByDistance(distance,coneAperture);
 		color += interpolatedColor;
 	}
+	*/
 	return color;
 }
 
