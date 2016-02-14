@@ -53,7 +53,7 @@ __global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
 
     // make sure our index matches the node-adresses in a given octree level
     __syncthreads();
-    index += (constLevelIntervalMap[level].start*8);
+    index += ((constLevelIntervalMap[level].start)*8);
 
     if(index >= constLevelIntervalMap[level].end*8)
         return;
