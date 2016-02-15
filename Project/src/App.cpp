@@ -451,11 +451,11 @@ void App::handleCamera(GLfloat deltaTime)
 {
     if(camTurbo)
     {
-        m_scene->setCameraSpeed(.7f);
+        m_scene->setCameraSpeed(50.f*deltaTime);
     }
     else
     {
-        m_scene->setCameraSpeed(.3f);
+        m_scene->setCameraSpeed(25.f*deltaTime);
     }
     if(moveForwards)
     {
