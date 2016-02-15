@@ -67,7 +67,7 @@ __global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
             //   decodeBrickCoords(targetNode.value).z, targetNode.nodeTilePointer & 0x3fffffff, startAdress, endAdress);
 
         filterBrick(decodeBrickCoords(nodePool[index].value));
-       // makeBrickWhite(decodeBrickCoords(nodePool[index].value)); // upper left corner. just for debugging
+        //makeBrickWhite(decodeBrickCoords(nodePool[index].value)); // upper left corner. just for debugging
     //}
 
     __syncthreads();
@@ -535,7 +535,8 @@ cudaError_t buildSVO(node *nodePool,
 
     printf("threads: %d blöcke: %d start: %d end:%d \n", threadPerBlockSpread, tmpBlock, LevelIntervalMap[level].start, LevelIntervalMap[level].end);
     // filter the last level with an inverse gaussian kernel
-    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
+	
+	filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / threadsPerBlockCombineBorders;
     //combineBrickBorders<<<blockCount, threadsPerBlock>>>(nodePool, neighbourPool, positionDevPointer, maxLevel, fragmentListSize);

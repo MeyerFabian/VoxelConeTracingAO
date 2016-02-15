@@ -206,7 +206,6 @@ vec4 rayCastOctree(vec3 rayPosition){
             childPointer = nodeTile & uint(0x3fffffff);
         }
     }
-
 	return outputColor;
 }
 
