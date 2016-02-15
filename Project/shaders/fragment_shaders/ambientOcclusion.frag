@@ -191,8 +191,6 @@ vec4 rayCastOctree(vec3 rayPosition){
             brickCoords.x += 2 * innerOctreePosition.x;
             brickCoords.y += 2 * innerOctreePosition.y;
             brickCoords.z += 2 * innerOctreePosition.z;
-
-
             // Accumulate color
             vec4 src = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
 

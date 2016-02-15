@@ -189,7 +189,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // left side: 0, 2, 4, 5
+    // left side: 0, 2, 4, 6
     tmp = make_float4(0,0,0,0);
     tmp.x += static_cast<unsigned int>(colors[0].x);
     tmp.y += static_cast<unsigned int>(colors[0].y);
@@ -206,10 +206,10 @@ __device__ void filterBrick(const uint3 &brickCoords)
     tmp.z += static_cast<unsigned int>(colors[4].z);
     tmp.w += static_cast<unsigned int>(colors[4].w);
 
-    tmp.x += static_cast<unsigned int>(colors[5].x);
-    tmp.y += static_cast<unsigned int>(colors[5].y);
-    tmp.z += static_cast<unsigned int>(colors[5].z);
-    tmp.w += static_cast<unsigned int>(colors[5].w);
+    tmp.x += static_cast<unsigned int>(colors[6].x);
+    tmp.y += static_cast<unsigned int>(colors[6].y);
+    tmp.z += static_cast<unsigned int>(colors[6].z);
+    tmp.w += static_cast<unsigned int>(colors[6].w);
 
     tmp.x *= 0.25f;
     tmp.y *= 0.25f;
