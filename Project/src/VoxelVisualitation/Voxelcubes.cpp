@@ -1,6 +1,6 @@
 #include "Voxelcubes.h"
 
-VoxelCubes::VoxelCubes(FragmentList& fragmentList)
+VoxelCubes::VoxelCubes()
 {
 
 }
