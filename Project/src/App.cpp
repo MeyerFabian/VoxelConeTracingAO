@@ -177,6 +177,20 @@ static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     }
 }
 
+// ugly workaround for broken CURSOR_HIDDEN
+GLFWcursor* BlankCursor()
+{
+    int w=1;//16;
+    int h=1;//16;
+    unsigned char pixels[w * h * 4];
+    memset(pixels, 0x00, sizeof(pixels));
+    GLFWimage image;
+    image.width = w;
+    image.height = h;
+    image.pixels = pixels;
+    return glfwCreateCursor(&image, 0, 0);
+}
+
 // GLFW callback for mouse buttons
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -188,12 +202,14 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        deltaCameraPitch = 0;
+        deltaCameraYaw = 0;
+        glfwSetCursor(window, BlankCursor());
         rotateCamera = true;
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetCursor(window, NULL);
         rotateCamera = false;
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
@@ -327,13 +343,14 @@ void App::run()
 
         //Get window resolution
         glfwGetWindowSize(mpWindow, &width, &height);
+
         // Update camera
-        handleCamera(deltaTime, width, height);
+        handleCamera(deltaTime);
 
         // Update light
         if (rotateLight)
         {
-            m_scene->updateLight(0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+            m_scene->updateLight(0.001f * deltaCameraYaw * deltaTime, 0.001f * deltaCameraPitch * deltaTime);
         }
         else
         {
@@ -430,7 +447,7 @@ void App::run()
     }
 }
 
-void App::handleCamera(GLfloat deltaTime, GLint width, GLint height)
+void App::handleCamera(GLfloat deltaTime)
 {
     if(camTurbo)
     {
@@ -488,4 +505,3 @@ void App::fillGui()
     ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map");
    // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
 }
-

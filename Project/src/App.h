@@ -35,7 +35,7 @@ public:
     virtual ~App(); // Virtual not necessary
     void run();
     void registerControllable(Controllable* pControllable);
-    void handleCamera(GLfloat deltaTime, GLint width, GLint height);
+    void handleCamera(GLfloat deltaTime);
 
     void fillGui();
 
