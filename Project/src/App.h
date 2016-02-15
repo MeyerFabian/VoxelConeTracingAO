@@ -21,22 +21,22 @@
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
 #include "PointCloud/PointCloud.h"
+#include "Utilities/enums.h"
+
+enum Visualization { RAYCASTING, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP };
 
 class App: public Controllable
 {
 public:
-
-	enum Visualization { RAYCASTING, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP };
-
 	 // Some constants
     float VOLUME_EXTENT = 384.f;
-    int VISUALIZATION = Visualization::RAYCASTING;
 
     App();
     virtual ~App(); // Virtual not necessary
     void run();
     void registerControllable(Controllable* pControllable);
-	
+    void handleCamera(GLfloat deltaTime);
+
     void fillGui();
 
 private:
@@ -54,6 +54,7 @@ private:
     std::unique_ptr<LightViewMap> m_LightViewMap;
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
+
 
 	bool mVoxeliseEachFrame; 
 	bool mShowGBuffer;

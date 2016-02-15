@@ -43,7 +43,7 @@ private:
 	GLuint vaoID;
 	float directionBeginScale;
 	float beginningVoxelSize;
-	int maxSteps;
+	float maxDistance;
 	void fillGui();
 };
 #endif //VOXELCONETRACING_H

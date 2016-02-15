@@ -33,7 +33,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     for(int i=0;i<8;i++)
     {
         coords = sourceBricks[i];
-        for(int j=0;j<3;j++)
+        for(int j=0;j<27;j++)
         {
             //TODO: lookup table
             tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j].x;//coords.x + j / 9;
@@ -41,54 +41,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
             tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j].z;//j % 3;
 
             surf3Dread(&myChilds[i].childColors[j], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+3].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+3].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+3].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+3], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+6].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+6].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+6].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+6], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+9].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+9].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+9].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+9], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+12].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+12].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+12].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+12], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+15].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+15].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+15].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+15], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+18].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+18].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+18].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+18], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+21].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+21].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+21].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+21], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
-
-            tmpCoords.x = coords.x + constLookUp1Dto3DIndex[j+24].x;//coords.x + j / 9;
-            tmpCoords.y = coords.y + constLookUp1Dto3DIndex[j+24].y;//(j / 3) % 3;
-            tmpCoords.z = coords.z + constLookUp1Dto3DIndex[j+24].z;//j % 3;
-
-            surf3Dread(&myChilds[i].childColors[j+24], colorBrickPool, (tmpCoords.x) * sizeof(uchar4), tmpCoords.y, tmpCoords.z);
         }
     }
 
@@ -215,11 +167,580 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     centerColor.z /= 2.0;
     centerColor.w /= 2.0;
 
+    //centerColor = make_float4(127,127,127,255);
+
+    // MIPMAP CORNERS
+    float4 leftTopNear = make_float4(0,0,0,0);
+
+    // needed 000, 100, 001, 101, 010, 110, 011, 111
+
+    leftTopNear.x += (0.25*myChilds[0].childColors[0].x
+                     + 0.125*myChilds[0].childColors[9].x
+                     + 0.125*myChilds[0].childColors[1].x
+                     + 0.125*myChilds[0].childColors[3].x
+                     + 0.0625*myChilds[0].childColors[10].x
+                     + 0.0625*myChilds[0].childColors[12].x
+                     + 0.0625*myChilds[0].childColors[4].x
+                     + 0.03125*myChilds[0].childColors[13].x);
+
+    leftTopNear.y += (0.25*myChilds[0].childColors[0].y
+                     + 0.125*myChilds[0].childColors[9].y
+                     + 0.125*myChilds[0].childColors[1].y
+                     + 0.125*myChilds[0].childColors[3].y
+                     + 0.0625*myChilds[0].childColors[10].y
+                     + 0.0625*myChilds[0].childColors[12].y
+                     + 0.0625*myChilds[0].childColors[4].y
+                     + 0.03125*myChilds[0].childColors[13].y);
+
+    leftTopNear.z += (0.25*myChilds[0].childColors[0].z
+                     + 0.125*myChilds[0].childColors[9].z
+                     + 0.125*myChilds[0].childColors[1].z
+                     + 0.125*myChilds[0].childColors[3].z
+                     + 0.0625*myChilds[0].childColors[10].z
+                     + 0.0625*myChilds[0].childColors[12].z
+                     + 0.0625*myChilds[0].childColors[4].z
+                     + 0.03125*myChilds[0].childColors[13].z);
+
+    leftTopNear.w += (0.25*myChilds[0].childColors[0].w
+                     + 0.125*myChilds[0].childColors[9].w
+                     + 0.125*myChilds[0].childColors[1].w
+                     + 0.125*myChilds[0].childColors[3].w
+                     + 0.0625*myChilds[0].childColors[10].w
+                     + 0.0625*myChilds[0].childColors[12].w
+                     + 0.0625*myChilds[0].childColors[4].w
+                     + 0.03125*myChilds[0].childColors[13].w);
+
+    leftTopNear.x /= 0.85;
+    leftTopNear.y /= 0.85;
+    leftTopNear.z /= 0.85;
+    leftTopNear.w /= 0.85;
+
+    //leftTopNear = make_float4(255,0,0,255);
+
+    float4 leftBottomNear = make_float4(0,0,0,0);
+
+    // needed 020, 120, 021, 121, 010, 110, 011, 111
+
+    leftBottomNear.x += (0.25*myChilds[2].childColors[6].x
+                      + 0.125*myChilds[2].childColors[15].x
+                      + 0.125*myChilds[2].childColors[7].x
+                      + 0.125*myChilds[2].childColors[3].x
+                      + 0.0625*myChilds[2].childColors[16].x
+                      + 0.0625*myChilds[2].childColors[12].x
+                      + 0.0625*myChilds[2].childColors[4].x
+                      + 0.03125*myChilds[2].childColors[13].x);
+
+    leftBottomNear.y += (0.25*myChilds[2].childColors[6].y
+                         + 0.125*myChilds[2].childColors[15].y
+                         + 0.125*myChilds[2].childColors[7].y
+                         + 0.125*myChilds[2].childColors[3].y
+                         + 0.0625*myChilds[2].childColors[16].y
+                         + 0.0625*myChilds[2].childColors[12].y
+                         + 0.0625*myChilds[2].childColors[4].y
+                         + 0.03125*myChilds[2].childColors[13].y);
+
+    leftBottomNear.z += (0.25*myChilds[2].childColors[6].z
+                         + 0.125*myChilds[2].childColors[15].z
+                         + 0.125*myChilds[2].childColors[7].z
+                         + 0.125*myChilds[2].childColors[3].z
+                         + 0.0625*myChilds[2].childColors[16].z
+                         + 0.0625*myChilds[2].childColors[12].z
+                         + 0.0625*myChilds[2].childColors[4].z
+                         + 0.03125*myChilds[2].childColors[13].z);
+
+    leftBottomNear.w += (0.25*myChilds[2].childColors[6].w
+                         + 0.125*myChilds[2].childColors[15].w
+                         + 0.125*myChilds[2].childColors[7].w
+                         + 0.125*myChilds[2].childColors[3].w
+                         + 0.0625*myChilds[2].childColors[16].w
+                         + 0.0625*myChilds[2].childColors[12].w
+                         + 0.0625*myChilds[2].childColors[4].w
+                         + 0.03125*myChilds[2].childColors[13].w);
+
+
+    leftBottomNear.x /= 0.85;
+    leftBottomNear.y /= 0.85;
+    leftBottomNear.z /= 0.85;
+    leftBottomNear.w /= 0.85;
+
+    //leftBottomNear = make_float4(255,0,255,255);
+
+    float4 leftTopFar = make_float4(0,0,0,0);
+
+    // needed 002, 102, 001, 012, 011, 112, 101, 111
+    leftTopFar.x += (0.25*myChilds[4].childColors[2].x
+                         + 0.125*myChilds[4].childColors[11].x
+                         + 0.125*myChilds[4].childColors[1].x
+                         + 0.125*myChilds[4].childColors[5].x
+                         + 0.0625*myChilds[4].childColors[4].x
+                         + 0.0625*myChilds[4].childColors[14].x
+                         + 0.0625*myChilds[4].childColors[10].x
+                         + 0.03125*myChilds[4].childColors[13].x);
+
+    leftTopFar.y += (0.25*myChilds[4].childColors[2].y
+                     + 0.125*myChilds[4].childColors[11].y
+                     + 0.125*myChilds[4].childColors[1].y
+                     + 0.125*myChilds[4].childColors[5].y
+                     + 0.0625*myChilds[4].childColors[4].y
+                     + 0.0625*myChilds[4].childColors[14].y
+                     + 0.0625*myChilds[4].childColors[10].y
+                     + 0.03125*myChilds[4].childColors[13].y);
+
+    leftTopFar.z += (0.25*myChilds[4].childColors[2].z
+                     + 0.125*myChilds[4].childColors[11].z
+                     + 0.125*myChilds[4].childColors[1].z
+                     + 0.125*myChilds[4].childColors[5].z
+                     + 0.0625*myChilds[4].childColors[4].z
+                     + 0.0625*myChilds[4].childColors[14].z
+                     + 0.0625*myChilds[4].childColors[10].z
+                     + 0.03125*myChilds[4].childColors[13].z);
+
+    leftTopFar.w += (0.25*myChilds[4].childColors[2].w
+                     + 0.125*myChilds[4].childColors[11].w
+                     + 0.125*myChilds[4].childColors[1].w
+                     + 0.125*myChilds[4].childColors[5].w
+                     + 0.0625*myChilds[4].childColors[4].w
+                     + 0.0625*myChilds[4].childColors[14].w
+                     + 0.0625*myChilds[4].childColors[10].w
+                     + 0.03125*myChilds[4].childColors[13].w);
+
+
+    leftTopFar.x /= 0.85;
+    leftTopFar.y /= 0.85;
+    leftTopFar.z /= 0.85;
+    leftTopFar.w /= 0.85;
+
+    //leftTopFar = make_float4(255,0,0,255);
+
+    float4 leftBottomFar = make_float4(0,0,0,0);
+
+    // needed 022, 122, 021, 012, 011, 112, 121, 111
+
+    leftBottomFar.x += (0.25*myChilds[6].childColors[8].x
+                     + 0.125*myChilds[6].childColors[17].x
+                     + 0.125*myChilds[6].childColors[7].x
+                     + 0.125*myChilds[6].childColors[5].x
+                     + 0.0625*myChilds[6].childColors[4].x
+                     + 0.0625*myChilds[6].childColors[14].x
+                     + 0.0625*myChilds[6].childColors[16].x
+                     + 0.03125*myChilds[6].childColors[13].x);
+
+    leftBottomFar.y += (0.25*myChilds[6].childColors[8].y
+                        + 0.125*myChilds[6].childColors[17].y
+                        + 0.125*myChilds[6].childColors[7].y
+                        + 0.125*myChilds[6].childColors[5].y
+                        + 0.0625*myChilds[6].childColors[4].y
+                        + 0.0625*myChilds[6].childColors[14].y
+                        + 0.0625*myChilds[6].childColors[16].y
+                        + 0.03125*myChilds[6].childColors[13].y);
+
+    leftBottomFar.z += (0.25*myChilds[6].childColors[8].z
+                        + 0.125*myChilds[6].childColors[17].z
+                        + 0.125*myChilds[6].childColors[7].z
+                        + 0.125*myChilds[6].childColors[5].z
+                        + 0.0625*myChilds[6].childColors[4].z
+                        + 0.0625*myChilds[6].childColors[14].z
+                        + 0.0625*myChilds[6].childColors[16].z
+                        + 0.03125*myChilds[6].childColors[13].z);
+
+    leftBottomFar.w += (0.25*myChilds[6].childColors[8].w
+                        + 0.125*myChilds[6].childColors[17].w
+                        + 0.125*myChilds[6].childColors[7].w
+                        + 0.125*myChilds[6].childColors[5].w
+                        + 0.0625*myChilds[6].childColors[4].w
+                        + 0.0625*myChilds[6].childColors[14].w
+                        + 0.0625*myChilds[6].childColors[16].w
+                        + 0.03125*myChilds[6].childColors[13].w);
+
+
+
+    leftBottomFar.x /= 0.85;
+    leftBottomFar.y /= 0.85;
+    leftBottomFar.z /= 0.85;
+    leftBottomFar.w /= 0.85;
+
+   // leftBottomFar = make_float4(255,255,0,255);
+
+    float4 rightTopNear = make_float4(0,0,0,0);
+
+    // needed 200, 100, 201, 101,   210, 110, 211, 111
+
+    rightTopNear.x += (0.25*myChilds[1].childColors[18].x
+                        + 0.125*myChilds[1].childColors[9].x
+                        + 0.125*myChilds[1].childColors[19].x
+                        + 0.125*myChilds[1].childColors[21].x
+                        + 0.0625*myChilds[1].childColors[10].x
+                        + 0.0625*myChilds[1].childColors[12].x
+                        + 0.0625*myChilds[1].childColors[22].x
+                        + 0.03125*myChilds[1].childColors[13].x);
+
+    rightTopNear.y += (0.25*myChilds[1].childColors[18].y
+                       + 0.125*myChilds[1].childColors[9].y
+                       + 0.125*myChilds[1].childColors[19].y
+                       + 0.125*myChilds[1].childColors[21].y
+                       + 0.0625*myChilds[1].childColors[10].y
+                       + 0.0625*myChilds[1].childColors[12].y
+                       + 0.0625*myChilds[1].childColors[22].y
+                       + 0.03125*myChilds[1].childColors[13].y);
+
+    rightTopNear.z += (0.25*myChilds[1].childColors[18].z
+                       + 0.125*myChilds[1].childColors[9].z
+                       + 0.125*myChilds[1].childColors[19].z
+                       + 0.125*myChilds[1].childColors[21].z
+                       + 0.0625*myChilds[1].childColors[10].z
+                       + 0.0625*myChilds[1].childColors[12].z
+                       + 0.0625*myChilds[1].childColors[22].z
+                       + 0.03125*myChilds[1].childColors[13].z);
+
+    rightTopNear.w += (0.25*myChilds[1].childColors[18].w
+                       + 0.125*myChilds[1].childColors[9].w
+                       + 0.125*myChilds[1].childColors[19].w
+                       + 0.125*myChilds[1].childColors[21].w
+                       + 0.0625*myChilds[1].childColors[10].w
+                       + 0.0625*myChilds[1].childColors[12].w
+                       + 0.0625*myChilds[1].childColors[22].w
+                       + 0.03125*myChilds[1].childColors[13].w);
+
+
+    rightTopNear.x /= 0.85;
+    rightTopNear.y /= 0.85;
+    rightTopNear.z /= 0.85;
+    rightTopNear.w /= 0.85;
+
+    //rightTopNear = make_float4(0,0,255,255);
+
+    float4 rightBottomNear = make_float4(0,0,0,0);
+
+    // needed 220, 120, 221, 121,   210, 110, 211, 111
+
+    rightBottomNear.x += (0.25*myChilds[3].childColors[24].x
+                       + 0.125*myChilds[3].childColors[15].x
+                       + 0.125*myChilds[3].childColors[25].x
+                       + 0.125*myChilds[3].childColors[21].x
+                       + 0.0625*myChilds[3].childColors[16].x
+                       + 0.0625*myChilds[3].childColors[12].x
+                       + 0.0625*myChilds[3].childColors[22].x
+                       + 0.03125*myChilds[3].childColors[13].x);
+
+    rightBottomNear.y += (0.25*myChilds[3].childColors[24].y
+                          + 0.125*myChilds[3].childColors[15].y
+                          + 0.125*myChilds[3].childColors[25].y
+                          + 0.125*myChilds[3].childColors[21].y
+                          + 0.0625*myChilds[3].childColors[16].y
+                          + 0.0625*myChilds[3].childColors[12].y
+                          + 0.0625*myChilds[3].childColors[22].y
+                          + 0.03125*myChilds[3].childColors[13].y);
+
+    rightBottomNear.z += (0.25*myChilds[3].childColors[24].z
+                          + 0.125*myChilds[3].childColors[15].z
+                          + 0.125*myChilds[3].childColors[25].z
+                          + 0.125*myChilds[3].childColors[21].z
+                          + 0.0625*myChilds[3].childColors[16].z
+                          + 0.0625*myChilds[3].childColors[12].z
+                          + 0.0625*myChilds[3].childColors[22].z
+                          + 0.03125*myChilds[3].childColors[13].z);
+
+    rightBottomNear.w += (0.25*myChilds[3].childColors[24].w
+                          + 0.125*myChilds[3].childColors[15].w
+                          + 0.125*myChilds[3].childColors[25].w
+                          + 0.125*myChilds[3].childColors[21].w
+                          + 0.0625*myChilds[3].childColors[16].w
+                          + 0.0625*myChilds[3].childColors[12].w
+                          + 0.0625*myChilds[3].childColors[22].w
+                          + 0.03125*myChilds[3].childColors[13].w);
+
+
+    rightBottomNear.x /= 0.85;
+    rightBottomNear.y /= 0.85;
+    rightBottomNear.z /= 0.85;
+    rightBottomNear.w /= 0.85;
+
+    //rightBottomNear = make_float4(0,255,0,255);
+
+    float4 rightTopFar = make_float4(0,0,0,0);
+
+    // needed 202, 102, 201, 101, 212, 112, 211 ,111
+
+    rightTopFar.x += (0.25*myChilds[5].childColors[20].x
+                          + 0.125*myChilds[5].childColors[11].x
+                          + 0.125*myChilds[5].childColors[19].x
+                          + 0.125*myChilds[5].childColors[23].x
+                          + 0.0625*myChilds[5].childColors[10].x
+                          + 0.0625*myChilds[5].childColors[14].x
+                          + 0.0625*myChilds[5].childColors[22].x
+                          + 0.03125*myChilds[5].childColors[13].x);
+
+    rightTopFar.y += (0.25*myChilds[5].childColors[20].y
+                      + 0.125*myChilds[5].childColors[11].y
+                      + 0.125*myChilds[5].childColors[19].y
+                      + 0.125*myChilds[5].childColors[23].y
+                      + 0.0625*myChilds[5].childColors[10].y
+                      + 0.0625*myChilds[5].childColors[14].y
+                      + 0.0625*myChilds[5].childColors[22].y
+                      + 0.03125*myChilds[5].childColors[13].y);
+
+    rightTopFar.z += (0.25*myChilds[5].childColors[20].z
+                      + 0.125*myChilds[5].childColors[11].z
+                      + 0.125*myChilds[5].childColors[19].z
+                      + 0.125*myChilds[5].childColors[23].z
+                      + 0.0625*myChilds[5].childColors[10].z
+                      + 0.0625*myChilds[5].childColors[14].z
+                      + 0.0625*myChilds[5].childColors[22].z
+                      + 0.03125*myChilds[5].childColors[13].z);
+
+    rightTopFar.w += (0.25*myChilds[5].childColors[20].w
+                      + 0.125*myChilds[5].childColors[11].w
+                      + 0.125*myChilds[5].childColors[19].w
+                      + 0.125*myChilds[5].childColors[23].w
+                      + 0.0625*myChilds[5].childColors[10].w
+                      + 0.0625*myChilds[5].childColors[14].w
+                      + 0.0625*myChilds[5].childColors[22].w
+                      + 0.03125*myChilds[5].childColors[13].w);
+
+
+
+    rightTopFar.x /= 0.85;
+    rightTopFar.y /= 0.85;
+    rightTopFar.z /= 0.85;
+    rightTopFar.w /= 0.85;
+
+    //rightTopFar = make_float4(255,0,0,255);
+
+    float4 rightBottomFar = make_float4(0,0,0,0);
+
+    // needed 222, 122, 221, 121, 212, 112, 211 ,111
+
+    rightBottomFar.x += (0.25*myChilds[7].childColors[26].x
+                      + 0.125*myChilds[7].childColors[17].x
+                      + 0.125*myChilds[7].childColors[25].x
+                      + 0.125*myChilds[7].childColors[23].x
+                      + 0.0625*myChilds[7].childColors[16].x
+                      + 0.0625*myChilds[7].childColors[14].x
+                      + 0.0625*myChilds[7].childColors[22].x
+                      + 0.03125*myChilds[7].childColors[13].x);
+
+    rightBottomFar.y += (0.25*myChilds[7].childColors[26].y
+                         + 0.125*myChilds[7].childColors[17].y
+                         + 0.125*myChilds[7].childColors[25].y
+                         + 0.125*myChilds[7].childColors[23].y
+                         + 0.0625*myChilds[7].childColors[16].y
+                         + 0.0625*myChilds[7].childColors[14].y
+                         + 0.0625*myChilds[7].childColors[22].y
+                         + 0.03125*myChilds[7].childColors[13].y);
+
+    rightBottomFar.z += (0.25*myChilds[7].childColors[26].z
+                         + 0.125*myChilds[7].childColors[17].z
+                         + 0.125*myChilds[7].childColors[25].z
+                         + 0.125*myChilds[7].childColors[23].z
+                         + 0.0625*myChilds[7].childColors[16].z
+                         + 0.0625*myChilds[7].childColors[14].z
+                         + 0.0625*myChilds[7].childColors[22].z
+                         + 0.03125*myChilds[7].childColors[13].z);
+
+    rightBottomFar.w += (0.25*myChilds[7].childColors[26].w
+                         + 0.125*myChilds[7].childColors[17].w
+                         + 0.125*myChilds[7].childColors[25].w
+                         + 0.125*myChilds[7].childColors[23].w
+                         + 0.0625*myChilds[7].childColors[16].w
+                         + 0.0625*myChilds[7].childColors[14].w
+                         + 0.0625*myChilds[7].childColors[22].w
+                         + 0.03125*myChilds[7].childColors[13].w);
+
+
+
+    rightBottomFar.x /= 0.85;
+    rightBottomFar.y /= 0.85;
+    rightBottomFar.z /= 0.85;
+    rightBottomFar.w /= 0.85;
+
+    // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
                 (targetBrick.x + 1) * sizeof(uchar4),
                 targetBrick.y + 1,
                 targetBrick.z + 1);
+
+    //0,0,0 leftTopNear // seems ok
+    surf3Dwrite(make_uchar4(leftTopNear.x,leftTopNear.y,leftTopNear.z,leftTopNear.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z);
+
+    // 0,0,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+1);
+
+    // 0,0,2 leftTopFar // seems to work
+    surf3Dwrite(make_uchar4(leftTopFar.x,leftTopFar.y,leftTopFar.z,leftTopFar.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+2);
+
+    // 0,1,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z);
+
+    // 0,1,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+1);
+
+    // 0,1,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+2);
+
+    // 0,2,0 leftBottomNear // seems to work
+    surf3Dwrite(make_uchar4(leftBottomNear.x,leftBottomNear.y,leftBottomNear.z,leftBottomNear.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z);
+
+    // 0,2,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+1);
+
+    // 0,2,2 leftBottomFar // seems to work
+    surf3Dwrite(make_uchar4(leftBottomFar.x,leftBottomFar.y,leftBottomFar.z,leftBottomFar.w),
+                colorBrickPool,
+                (targetBrick.x) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+2);
+
+    // 1,0,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z);
+    // 1,0,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+1);
+
+    // 1,0,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+2);
+
+    // 1,1,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z);
+
+    // 1,1,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+2);
+
+    // 1,2,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z);
+
+    // 1,2,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+1);
+
+    // 1,2,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+1) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+2);
+
+    // 2,0,0 rightTopNear // seems to work
+    surf3Dwrite(make_uchar4(rightTopNear.x,rightTopNear.y,rightTopNear.z,rightTopNear.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z);
+
+    // 2,0,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+1);
+
+    // 2,0,2 rightTopFar // might be empty?
+    surf3Dwrite(make_uchar4(rightTopFar.x,rightTopFar.y,rightTopFar.z,rightTopFar.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y,
+                targetBrick.z+2);
+
+    // 2,1,0
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z);
+
+    // 2,1,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+1);
+
+    // 2,1,2
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+1,
+                targetBrick.z+2);
+
+    // 2,2,0 rightBottomNear // seems to work
+    surf3Dwrite(make_uchar4(rightBottomNear.x,rightBottomNear.y,rightBottomNear.z,rightBottomNear.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z);
+
+    // 2,2,1
+    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+1);
+
+    // 2,2,2 rightBottomFar // we have a winner it does not work
+    surf3Dwrite(make_uchar4(rightBottomFar.x,rightBottomFar.y,rightBottomFar.z,rightBottomFar.w),
+                colorBrickPool,
+                (targetBrick.x+2) * sizeof(uchar4),
+                targetBrick.y+2,
+                targetBrick.z+2);
+
 }
 
 __global__
@@ -526,9 +1047,9 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // make sure our index matches the node-adresses in a given octree level
-    index += constLevelIntervalMap[level].start*8;
+    index += (constLevelIntervalMap[level].start)*8;
     // make sure we dont load invalid adresses
-    if(index > constLevelIntervalMap[level].end*8)
+    if(index >= (constLevelIntervalMap[level].end)*8)
         return;
 
     // load the target node that should be filled by mipmapping
@@ -548,11 +1069,12 @@ void mipMapOctreeLevel(node *nodePool, unsigned int level)
         for(int i=0;i<8;i++)
         {
             // we have 8 associated nodes in a nodetile
-            brickCoords[i] = decodeBrickCoords(nodePool[childPointer+i].value);
+            brickCoords[i] = decodeBrickCoords(nodePool[childPointer*8+i].value);
         }
 
         // finally mipmap our node
         mipMapIsotropic(targetBrick,brickCoords);
+        setBit(nodePool[index].value,31);
     }
 }
 

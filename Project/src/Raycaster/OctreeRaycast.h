@@ -17,13 +17,13 @@
 class OctreeRaycast : public Controllable{
 public:
     OctreeRaycast(App* pApp);
-    void draw(
-        glm::vec3 camPos,
+    void draw(glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
-		std::unique_ptr<GBuffer>& gbuffer, 
-		GLuint ScreenQuad,
+        std::unique_ptr<GBuffer>& gbuffer,
+        GLuint ScreenQuad,
         float volumeExtent) const;
+
         void fillGui();
 
 private:
@@ -32,6 +32,7 @@ private:
     float stepSize;
     float directionBeginScale;
     int maxSteps;
+    int maxLevel;
 };
 
 

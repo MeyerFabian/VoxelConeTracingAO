@@ -3,7 +3,7 @@
 
 #include <SparseOctree/NodePool.h>
 
-int volumeResolution = 384;
+unsigned int volumeResolution = 384;
 
 struct LevelInterval
 {
@@ -25,5 +25,16 @@ unsigned int *d_counter;
 
 surface<void, cudaSurfaceType3D> colorBrickPool; // the surface representation of our colorBrickPool (surface is needed for write access)
 surface<void, cudaSurfaceType3D> normalBrickPool; // same as above, but for normals
+
+// threadcounts
+const unsigned int threadsPerBlockMipMap = 256;
+const unsigned int threadPerBlockSpread = 512;
+const unsigned int threadPerBlockReserve = 512;
+const unsigned int threadsPerBlockFragmentList = 512;
+const unsigned int threadsPerBlockClear = 256;
+const unsigned int threadsPerBlockCombineBorders = 1024;
+const dim3 block_dim(8,8,8);
+
+unsigned int blockCountSpread;
 
 #endif

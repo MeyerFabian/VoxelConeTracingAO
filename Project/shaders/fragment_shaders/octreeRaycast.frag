@@ -13,9 +13,9 @@ uniform float volumeExtent;
 uniform float directionBeginScale;
 uniform float volumeRes;
 uniform int maxSteps;
+uniform int maxLevel;
 
 // Defines
-const int maxLevel = 8;
 const uint pow2[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
 const uvec3 insertPositions[] = {
     uvec3(0, 0, 0),
@@ -110,7 +110,7 @@ void main()
             // 1 means has children
             // 0 means does not have children
             // Only read from brick, if we are at aimed level in octree
-            if(getBit(nodeTile, 32) == 0 && j == maxLevel-1)
+            if(/*getBit(nodeTile, 32) == 0 &&*/ j == maxLevel-1)
             {
                 // Output the reached level as color
                 //float level = float(j) / maxLevel;
@@ -135,12 +135,12 @@ void main()
                     brickCoords += insertPositions[offset]*2;
 
                     // Accumulate color
-                    vec4 src = texture(brickPool, brickCoords/volumeRes);
-                    outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
-                    outputColor.a += (1.0 - outputColor.a) * src.a;
+                    outputColor = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
+                    //outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
+                    //outputColor.a += (1.0 - outputColor.a) * src.a;
 
                     // More or less: if you hit something, exit
-                    if(outputColor.a >= 0.5)
+                    if(outputColor.a >= 0.001)
                     {
                         //outputColor = src;
                         finished = true;

@@ -14,12 +14,21 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 #endif
 
 // Ugly static variables
+GLint width, height;
+int VISUALIZATION = Visualization::RAYCASTING;
 int mouseX, mouseY = 0;
 int deltaCameraYaw = 0;
 int deltaCameraPitch = 0;
-float cameraMovement = 0;
+bool camTurbo = false;
+bool moveForwards = false;
+bool moveBackwards = false;
+bool strafeLeft = false;
+bool strafeRight = false;
+bool moveUpwards = false;
+bool moveDownwards = false;
 bool rotateCamera = false;
 bool rotateLight = false;
+
 
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
@@ -41,28 +50,118 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     {
         glfwSetWindowShouldClose(window, true);
     }
-    if(key == GLFW_KEY_UP && action == GLFW_PRESS)
+    // Camera Handling
+    // Cam turbo
+    if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
     {
-        cameraMovement += 2;
+        camTurbo = true;
     }
-    if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+    if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE)
     {
-        cameraMovement -= 2;
+        camTurbo = false;
     }
-    if(key == GLFW_KEY_END && action == GLFW_PRESS)
+
+    // Move foreward
+    if(key == GLFW_KEY_W && action == GLFW_PRESS)
     {
-        cameraMovement = 0;
+        moveForwards = true;
+    }
+    if(key == GLFW_KEY_W && action == GLFW_RELEASE)
+    {
+        moveForwards = false;
+    }
+
+    // Strafe Left
+    if(key == GLFW_KEY_A&& action == GLFW_PRESS)
+    {
+        strafeLeft = true;
+    }
+    if(key == GLFW_KEY_A&& action == GLFW_RELEASE)
+    {
+        strafeLeft = false;
+    }
+
+    // Move Backwards
+    if(key == GLFW_KEY_S&& action == GLFW_PRESS)
+    {
+        moveBackwards = true;
+    }
+    if(key == GLFW_KEY_S&& action == GLFW_RELEASE)
+    {
+        moveBackwards = false;
+    }
+
+    // Strafe Right
+    if(key == GLFW_KEY_D&& action == GLFW_PRESS)
+    {
+        strafeRight = true;
+    }
+    if(key == GLFW_KEY_D&& action == GLFW_RELEASE)
+    {
+        strafeRight = false;
+    }
+
+    // Move Up
+    if(key == GLFW_KEY_E&& action == GLFW_PRESS)
+    {
+        moveUpwards = true;
+    }
+    if(key == GLFW_KEY_E&& action == GLFW_RELEASE)
+    {
+        moveUpwards = false;
+    }
+
+    // Move Down
+    if(key == GLFW_KEY_Q&& action == GLFW_PRESS)
+    {
+        moveDownwards = true;
+    }
+    if(key == GLFW_KEY_Q&& action == GLFW_RELEASE)
+    {
+        moveDownwards = false;
+    }
+
+    // Visualitation Handling
+    // Voxel cone tracing
+    if(key == GLFW_KEY_1& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::VOXEL_CONE_TRACING;
+    }
+    //  Raycasting
+    if(key == GLFW_KEY_2& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::RAYCASTING;
+    }
+    //  Point Cloud
+    if(key == GLFW_KEY_3& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::POINT_CLOUD;
+    }
+    //  Gbuffer
+    if(key == GLFW_KEY_4& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::GBUFFER;
+    }
+    //  Phong
+    if(key == GLFW_KEY_5& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::PHONG;
+    }
+    //  Ambient occlusion
+    if(key == GLFW_KEY_6& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::AMBIENT_OCCLUSION;
+    }
+    //  Shadow Map
+    if(key == GLFW_KEY_7& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::SHADOW_MAP;
     }
 }
 
 // GLFW callback for cursor position
 static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    deltaCameraYaw = 10 * (mouseX - xpos);
-    deltaCameraPitch = 10 * (mouseY - ypos);
-    mouseX = xpos;
-    mouseY = ypos;
-
     // Check whether ImGui is handling this
     ImGuiIO& io = ImGui::GetIO();
     if(io.WantCaptureMouse)
@@ -71,17 +170,46 @@ static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
         deltaCameraPitch = 0;
         return;
     }
+    else
+    {
+        deltaCameraYaw = 5 * (width/2 - xpos);
+        deltaCameraPitch = 5 * (height/2 - ypos);
+    }
+}
+
+// ugly workaround for broken CURSOR_HIDDEN
+GLFWcursor* BlankCursor()
+{
+    const int w=1;//16;
+    const int h=1;//16;
+    unsigned char pixels[w * h * 4];
+    memset(pixels, 0x00, sizeof(pixels));
+    GLFWimage image;
+    image.width = w;
+    image.height = h;
+    image.pixels = pixels;
+    return glfwCreateCursor(&image, 0, 0);
 }
 
 // GLFW callback for mouse buttons
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    // Check whether ImGui is handling this
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureMouse)
+    {
+        return;
+    }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
+        deltaCameraPitch = 0;
+        deltaCameraYaw = 0;
+        glfwSetCursor(window, BlankCursor());
         rotateCamera = true;
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
+        glfwSetCursor(window, NULL);
         rotateCamera = false;
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
@@ -96,11 +224,11 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
 App::App() : Controllable("App")
 {
-    int width = 1024;
-    int height = 1024;
-	mVoxeliseEachFrame = false;
-	mShowGBuffer = false;
+    width = 1024;
+    height = 1024;
 
+	mShowGBuffer = false;
+    mVoxeliseEachFrame = false;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -213,24 +341,20 @@ void App::run()
         // ImGui new frame
         ImGui_ImplGlfwGL3_NewFrame();
 
+        //Get window resolution
+        glfwGetWindowSize(mpWindow, &width, &height);
+
         // Update camera
-        if(rotateCamera)
-        {
-            m_scene->updateCamera(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
-        }
-        else
-        {
-            m_scene->updateCamera(cameraMovement * deltaTime, 0, 0);
-        }
+        handleCamera(deltaTime);
 
         // Update light
         if (rotateLight)
         {
-            m_scene->updateLight(cameraMovement * deltaTime, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+            m_scene->updateLight(0.001f * deltaCameraYaw * deltaTime, 0.001f * deltaCameraPitch * deltaTime);
         }
         else
         {
-            m_scene->updateLight(cameraMovement * deltaTime, 0, 0);
+            m_scene->updateLight(0, 0);
         }
 
         // Voxelization of scene
@@ -255,9 +379,7 @@ void App::run()
             mFragmentList->unmapFromCUDA();
         }
 
-        // Get window resolution and set viewport for scene rendering
-        GLint width, height;
-        glfwGetWindowSize(mpWindow, &width, &height);
+        // Set viewport for scene rendering
         glViewport(0, 0, width, height);
 
 		m_LightViewMap->shadowMapPass(m_scene);
@@ -269,12 +391,12 @@ void App::run()
         {
         case Visualization::RAYCASTING:
             mupOctreeRaycast->draw(
-                m_scene->getCamPos(),
-                m_svo->getNodePool(),
-                m_svo->getBrickPool(),
-                m_VoxelConeTracing->getGBuffer(),
-				m_FullScreenQuad->getvaoID(),
-                VOLUME_EXTENT);
+                    m_scene->getCamPos(),
+                    m_svo->getNodePool(),
+                    m_svo->getBrickPool(),
+                    m_VoxelConeTracing->getGBuffer(),
+                    m_FullScreenQuad->getvaoID(),
+                    VOLUME_EXTENT);
             break;
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
@@ -284,7 +406,7 @@ void App::run()
 			m_VoxelConeTracing->drawGBuffer(width, height);
 			break;
 		case Visualization::PHONG:
-			m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
+			//m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
 			break;
 		case Visualization::AMBIENT_OCCLUSION:
 			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
@@ -325,6 +447,49 @@ void App::run()
     }
 }
 
+void App::handleCamera(GLfloat deltaTime)
+{
+    if(camTurbo)
+    {
+        m_scene->setCameraSpeed(.7f);
+    }
+    else
+    {
+        m_scene->setCameraSpeed(.3f);
+    }
+    if(moveForwards)
+    {
+        m_scene->updateCamera(FORWARDS, 0, 0);
+    }
+    if(moveBackwards)
+    {
+        m_scene->updateCamera(BACKWARDS, 0, 0);
+    }
+    if(strafeLeft)
+    {
+        m_scene->updateCamera(LEFT, 0, 0);
+    }
+    if(strafeRight)
+    {
+        m_scene->updateCamera(RIGHT, 0, 0);
+    }
+    if(moveUpwards)
+    {
+        m_scene->updateCamera(UP, 0, 0);
+    }
+    if(moveDownwards)
+    {
+        m_scene->updateCamera(DOWN, 0, 0);
+    }
+    if(rotateCamera)
+    {
+        glfwSetCursorPos(mpWindow, width/2, height/2);
+        m_scene->updateCamera(NONE, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+        deltaCameraPitch = 0;
+        deltaCameraYaw = 0;
+    }
+}
+
 void App::registerControllable(Controllable* pControllable)
 {
     mControllables.push_back(pControllable);
@@ -337,5 +502,6 @@ void App::fillGui()
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
 	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
 	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
+    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map");
+   // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
 }
-

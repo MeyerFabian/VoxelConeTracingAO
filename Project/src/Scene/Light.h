@@ -9,7 +9,7 @@ public:
 	Light();
 	virtual ~Light();
 
-    void update(float movement, float deltaRotationPitch, float deltaRotationYaw);
+    void update(float deltaRotationPitch, float deltaRotationYaw);
 
     glm::mat4 getViewMatrix() const;
 

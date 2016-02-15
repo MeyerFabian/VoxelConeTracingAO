@@ -7,15 +7,15 @@
 OctreeRaycast::OctreeRaycast(App* pApp) : Controllable(pApp, "Raycasting")
 {
     stepSize = 0.05f;
-    directionBeginScale=0.5f;
-    maxSteps=100;
+    directionBeginScale = 0.5f;
+    maxSteps = 100;
+    maxLevel = 8;
 
     mupOctreeRaycastShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/octreeRaycast.vert",
                                                                               "/fragment_shaders/octreeRaycast.frag"));
 }
 
-void OctreeRaycast::draw(
-        glm::vec3 camPos,
+void OctreeRaycast::draw(glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
@@ -36,7 +36,8 @@ void OctreeRaycast::draw(
     mupOctreeRaycastShader->updateUniform("maxSteps", maxSteps);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
     mupOctreeRaycastShader->updateUniform("volumeExtent", volumeExtent);
-    mupOctreeRaycastShader->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x-1));
+    mupOctreeRaycastShader->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
+    mupOctreeRaycastShader->updateUniform("maxLevel", maxLevel);
 
     // Position texture as image
     glActiveTexture(GL_TEXTURE1);
@@ -69,5 +70,7 @@ void OctreeRaycast::draw(
 void OctreeRaycast::fillGui(){
     ImGui::SliderFloat("step size", &stepSize, 0.001f, 1.0f, "%.3f");
     ImGui::SliderInt("max steps", &maxSteps, 50, 2000,"%.0f");
-    ImGui::SliderFloat("ray begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
+    ImGui::SliderFloat("ray begin", &directionBeginScale, 0.0f, 30.0f, "%.1f");
+    ImGui::SliderInt("max level", &maxLevel, 1, 8, "%.0f");
+
 }
