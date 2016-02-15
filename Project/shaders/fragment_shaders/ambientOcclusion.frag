@@ -6,12 +6,13 @@
 */
 
 
+//!< uniforms
+layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
+layout(binding = 3) uniform sampler3D brickPool;
+
 uniform sampler2D positionTex;
 uniform sampler2D normalTex;
 uniform sampler2D tangentTex;
-//!< uniforms
-layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
-layout(binding = 2) uniform sampler3D brickPool;
 
 
 //other uniforms
@@ -21,7 +22,7 @@ uniform vec2 screenSize;
 uniform float beginningVoxelSize;
 uniform float directionBeginScale;
 uniform float volumeExtent;
-uniform int maxSteps;
+uniform float maxDistance;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
@@ -102,9 +103,9 @@ float voxelSizeByDistance(float distance, float coneAperture){
 *	Used initially to find the first voxel on the maximum resolution
 *	that can be looked up in the octree.
 */
-float DistancebyVoxelSize(float coneAperture, float voxelSize){
+float distanceByVoxelSize(float coneAperture, float voxelSize){
 	float halfAperture = coneAperture /2.0;
-        float distance = voxelSize / 2.0 / tan(halfAperture);
+    float distance = voxelSize / 2.0 / tan(radians(halfAperture));
 	return distance;
 }
 
@@ -123,10 +124,103 @@ void alphaCorrection(	inout float alpha,
 										);
 }
 
-// perimeterDirection seems to be calulcated right :)
-vec3 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture){
+vec4 rayCastOctree(vec3 rayPosition){
+	vec4 outputColor = vec4(0,0,0,0);
 
-	return perimeterDirection;
+    // Octree reading preparation
+    uint nodeOffset = 0;
+    uint childPointer = 0;
+    uint nodeTile;
+
+    // Get first child pointer
+    nodeTile = imageLoad(octree, int(0)).x;
+    uint firstChildPointer = nodeTile & uint(0x3fffffff);
+
+	
+    vec3 innerOctreePosition = getVolumePos(rayPosition);
+    // Reset child pointer
+    childPointer = firstChildPointer;
+
+    // Go through octree
+    for(int j = 1; j < maxLevel; j++)
+    {
+        // Determine, in which octant the searched position is
+        uvec3 nextOctant = uvec3(0, 0, 0);
+        nextOctant.x = uint(2 * innerOctreePosition.x);
+        nextOctant.y = uint(2 * innerOctreePosition.y);
+        nextOctant.z = uint(2 * innerOctreePosition.z);
+
+        // Make the octant position 1D for the linear memory
+        nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+        nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
+
+        // Update position in volume
+        innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
+        innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
+        innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
+
+        // The 32nd bit indicates whether the node has children:
+        // 1 means has children
+        // 0 means does not have children
+        // Only read from brick, if we are at aimed level in octree
+        if(getBit(nodeTile, 32) == 0)
+        {
+
+            // Brick coordinates
+            uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
+            vec3 brickCoords = decodeBrickCoords(brickTile);
+
+            
+            // Here we should intersect our brick seperately
+            // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+            brickCoords.x += 2 * innerOctreePosition.x;
+            brickCoords.y += 2 * innerOctreePosition.y;
+            brickCoords.z += 2 * innerOctreePosition.z;
+
+
+            // Accumulate color
+            vec4 src = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
+
+            outputColor = src;
+
+
+            // Break inner loop
+            break;
+        }
+        else
+        {
+            // If the node has children we read the pointer to the next nodetile
+            childPointer = nodeTile & uint(0x3fffffff);
+        }
+    }
+
+	return outputColor;
+}
+
+// perimeterDirection seems to be calulcated right :)
+vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture){
+    float voxelSizeOnLowestLevel = volumeExtent / (pow2[maxLevel]);
+    float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLowestLevel);
+	float samplingRate= voxelSizeOnLowestLevel;
+	float distance = samplingRate/2.0;
+	vec3 rayPosition = vec3(0.0);
+	vec4 color = vec4(0.0,0.0,0.0,0.0);
+	while(distance < distanceTillMainLoop){
+		rayPosition = perimeterStart.xyz + 0.0f * distance * perimeterDirection;
+		vec4 interpolatedColor = rayCastOctree(rayPosition);
+		distance += samplingRate;
+		color += interpolatedColor;
+	}
+	/*
+	while(distance < maxDistance){
+		rayPosition = perimeterStart.xyz + distance * perimeterDirection;
+		vec4 interpolatedColor = rayCastOctree(rayPosition);
+		distance += samplingRate;
+		//voxelSize = voxelSizeByDistance(distance,coneAperture);
+		color += interpolatedColor;
+	}
+	*/
+	return color;
 }
 
 /*
@@ -150,7 +244,7 @@ void main()
 	// accordingly to the given normal
 	mat3 OutOfTangentSpace = mat3(tangent,normal,bitangent);
 
-	vec3 finalColor = vec3(0.0);
+	vec4 finalColor = vec4(0.0,0.0,0.0,0.0);
 	
 	//consider loop unrolling
 	for(int i = 0 ; i < NUM_CONES;i++){
@@ -161,8 +255,8 @@ void main()
 	}
 
 	Everything_else=vec4(tangent,1.0) * vec4(normal,1.0)*volumeRes *  position*beginningVoxelSize*directionBeginScale*
-	volumeExtent*maxSteps;
+	volumeExtent*maxDistance;
 
-	FragColor = vec4(finalColor,1.0); 
+	FragColor = vec4(finalColor); 
 
 }

@@ -52,7 +52,6 @@ __global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     // make sure our index matches the node-adresses in a given octree level
-    __syncthreads();
     index += (constLevelIntervalMap[level].start*8);
 
     if(index >= constLevelIntervalMap[level].end*8)
@@ -61,15 +60,15 @@ __global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
     // load the target node that should be filled by mipmapping
     node targetNode = nodePool[index];
     __syncthreads();
-    if(getBit(targetNode.value,31) != 0)
-    {
+  //  if(getBit(targetNode.value,31) != 0)
+   // {
         //printf("index:%d x:%d y:%d z:%d, brickValue:%d startadress:%d end:%d\n", index,
           //     decodeBrickCoords(targetNode.value).x, decodeBrickCoords(targetNode.value).y,
             //   decodeBrickCoords(targetNode.value).z, targetNode.nodeTilePointer & 0x3fffffff, startAdress, endAdress);
 
         filterBrick(decodeBrickCoords(nodePool[index].value));
-        //makeBrickWhite(decodeBrickCoords(nodePool[index].value)); // upper left corner. just for debugging
-    }
+       // makeBrickWhite(decodeBrickCoords(nodePool[index].value)); // upper left corner. just for debugging
+    //}
 
     __syncthreads();
 }
@@ -528,16 +527,13 @@ cudaError_t buildSVO(node *nodePool,
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 
     unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
-    blockCountSpread = nodeCount;
-
-    if(nodeCount >= threadPerBlockSpread)
-        blockCountSpread = nodeCount / threadPerBlockSpread;
 
     cudaDeviceSynchronize();
 
-    int level = 6;
+    const int level = 6;
     unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
 
+    printf("threads: %d blöcke: %d start: %d end:%d \n", threadPerBlockSpread, tmpBlock, LevelIntervalMap[level].start, LevelIntervalMap[level].end);
     // filter the last level with an inverse gaussian kernel
     filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 

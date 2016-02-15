@@ -36,7 +36,7 @@ void OctreeRaycast::draw(glm::vec3 camPos,
     mupOctreeRaycastShader->updateUniform("maxSteps", maxSteps);
     mupOctreeRaycastShader->updateUniform("camPos", camPos);
     mupOctreeRaycastShader->updateUniform("volumeExtent", volumeExtent);
-    mupOctreeRaycastShader->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x-1));
+    mupOctreeRaycastShader->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
     mupOctreeRaycastShader->updateUniform("maxLevel", maxLevel);
 
     // Position texture as image
@@ -70,7 +70,7 @@ void OctreeRaycast::draw(glm::vec3 camPos,
 void OctreeRaycast::fillGui(){
     ImGui::SliderFloat("step size", &stepSize, 0.001f, 1.0f, "%.3f");
     ImGui::SliderInt("max steps", &maxSteps, 50, 2000,"%.0f");
-    ImGui::SliderFloat("ray begin", &directionBeginScale, 0.0f, 5.0f, "%.1f");
+    ImGui::SliderFloat("ray begin", &directionBeginScale, 0.0f, 30.0f, "%.1f");
     ImGui::SliderInt("max level", &maxLevel, 1, 8, "%.0f");
 
 }

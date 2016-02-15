@@ -6,7 +6,7 @@
 */
 
 layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
-layout(binding = 2) uniform sampler3D brickPool;
+layout(binding = 1) uniform sampler3D brickPool;
 
 //!< uniforms
 uniform sampler2D positionTex;
