@@ -221,12 +221,12 @@ vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture)
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	while(distance < distanceTillMainLoop){
-		rayPosition = perimeterStart.xyz + 0.0f * distance * perimeterDirection;
+		rayPosition = perimeterStart.xyz + 0.0 * distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
 		color += interpolatedColor;
 	}
-	/*
+	
 	while(distance < maxDistance){
 		rayPosition = perimeterStart.xyz + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
@@ -234,7 +234,7 @@ vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture)
 		//voxelSize = voxelSizeByDistance(distance,coneAperture);
 		color += interpolatedColor;
 	}
-	*/
+	
 	return color;
 }
 
