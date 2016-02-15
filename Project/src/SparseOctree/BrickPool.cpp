@@ -40,7 +40,6 @@ void BrickPool::init(int width, int height, int depth)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     glTexImage3D(GL_TEXTURE_3D,0,GL_RGBA8,width,height,depth,0,GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
     GLenum error = glGetError();
 
     switch (error)
@@ -63,6 +62,11 @@ void BrickPool::init(int width, int height, int depth)
         case GL_NO_ERROR:
             break;
     }
+
+	GLuint clearColor = 0xFFFFFF00;
+	glClearTexImage(m_brickPoolID, 0, GL_RGBA, GL_UNSIGNED_BYTE, &clearColor);
+
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 
