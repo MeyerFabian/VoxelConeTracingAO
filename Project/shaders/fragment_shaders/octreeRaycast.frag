@@ -135,11 +135,10 @@ void main()
                     brickCoords += insertPositions[offset]*2;
 
                     // Accumulate color
-                    vec4 src = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
+                    outputColor = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
                     //outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
                     //outputColor.a += (1.0 - outputColor.a) * src.a;
 
-                    outputColor = src;
                     // More or less: if you hit something, exit
                     if(outputColor.a >= 0.001)
                     {
