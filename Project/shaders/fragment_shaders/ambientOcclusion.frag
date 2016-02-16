@@ -202,7 +202,9 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
             // Here we should intersect our brick seperately
             // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
             parentBrickCoords+= 2 * parentInnerOctreePosition;
-            // read texture
+
+            // read texture  
+			// TODO: im not sure about the volumeRes offset
             vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes+ (1.0/volumeRes)/2.0);
 
 			// CHILD BRICK SAMPLING
@@ -239,14 +241,14 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture)
 	float samplingRate = voxelSizeOnLevel[maxLevel];
 	float distance = samplingRate/2.0;
 	vec3 rayPosition = vec3(0.0);
-	vec4 color = vec4(0.0,0.0,0.0,0.0);
+	vec4 color = vec4(1.0,1.0,1.0,1.0);
 	float voxelSize = voxelSizeOnLevel[maxLevel];
 	
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
 		distance += samplingRate;
-		color += interpolatedColor;
+		color -= 1.0/distance*vec4(interpolatedColor.w, interpolatedColor.w,interpolatedColor.w,1.0);
 	}
 	
 	while(distance < maxDistance){
@@ -256,7 +258,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture)
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
 		distance += samplingRate/2.0;
-		color += interpolatedColor;
+		color -= 1.0/distance * vec4(interpolatedColor.w, interpolatedColor.w,interpolatedColor.w,1.0);
 	}
 	
 	return color;
