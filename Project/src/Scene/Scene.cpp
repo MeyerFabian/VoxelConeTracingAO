@@ -14,7 +14,9 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
     // Create instance of assimp
     Assimp::Importer importer;
 
-    // Import
+    // ### AREA ###
+
+    // Import area
     const aiScene* scene = importer.ReadFile(std::string(MESHES_PATH) + "/" + areaName + ".obj",
         aiProcess_GenNormals			 |
         aiProcess_CalcTangentSpace       |
@@ -28,7 +30,7 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
         ErrorHandler::log(importer.GetErrorString());
     }
 
-    // Iterate first over materials in scene
+    // Iterate first over materials in area
     for(int i = 0; i < scene->mNumMaterials; i++)
     {
         // Fetch pointer to assimp structure
@@ -41,7 +43,7 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
         mMaterials.push_back(std::move(upMaterial));
     }
 
-    // Iterate then over meshes in scene
+    // Iterate then over meshes in area
     for(int i = 0; i < scene->mNumMeshes; i++)
     {
         // Fetch pointer to assimp structure
@@ -57,6 +59,28 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
         // Register in render bucket
         mRenderBuckets[mMaterials[mesh->mMaterialIndex].get()].push_back(pMesh);
     }
+
+    // ### DYNAMIC OBJECT ###
+
+    // Import dynamic object
+    scene = importer.ReadFile(std::string(MESHES_PATH) + "/teapot.obj",
+        aiProcess_GenNormals			 |
+        aiProcess_CalcTangentSpace       |
+        aiProcess_Triangulate            |
+        aiProcess_JoinIdenticalVertices  |
+        aiProcess_SortByPType);
+
+    // Fetch pointer to one and only material
+    aiMaterial* material = scene->mMaterials[0];
+
+    // Create material from assimp data
+    mupDynamicMeshMaterial = std::unique_ptr<Material>(new Material("teapot", material));
+
+    // Fetch pointer to assimp structure
+    aiMesh* mesh = scene->mMeshes[0];
+
+    // Create mesh from assimp data
+    mupDynamicMesh = std::unique_ptr<Mesh>(new Mesh(mesh));
 }
 
 Scene::~Scene()
@@ -64,46 +88,22 @@ Scene::~Scene()
     // Nothing to do
 }
 
+void Scene::drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const
+{
+    mupDynamicMeshMaterial->bind(pShaderProgram);
+    mupDynamicMesh->draw();
+}
+
 void Scene::updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch)
 {
     // Update camera
     mCamera.update(dir, deltaCameraYaw, deltaCameraPitch);
 }
+
 void Scene::updateLight(float deltaCameraYaw, float deltaCameraPitch)
 {
     // Update camera
     mLight.update(deltaCameraYaw, deltaCameraPitch);
-}
-void Scene::draw(float windowWidth, float windowHeight) const
-{
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    // Use the one and only shader
-    mupShader->use();
-
-    // Create uniforms used by shader
-    glm::mat4 uniformProjection = glm::perspective(glm::radians(35.0f), windowWidth / windowHeight, 0.1f, 300.f);
-    glm::mat4 uniformModel = glm::mat4(1.f);
-
-    // Fill uniforms to shader
-    mupShader->updateUniform("projection", uniformProjection);
-    mupShader->updateUniform("view", mCamera.getViewMatrix());
-    mupShader->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
-
-    // Render all the buckets' content
-    for(auto& bucket : mRenderBuckets)
-    {
-        // Bind material of bucket (which binds its uniforms and textures)
-        bucket.first->bind(mupShader.get());
-
-        // Draw all meshes in that bucket
-        for(Mesh const * pMesh : bucket.second)
-        {
-            pMesh->draw();
-        }
-    }
-    mupShader->disable();
 }
 
 void Scene::fillGui()
