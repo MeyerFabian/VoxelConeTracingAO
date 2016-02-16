@@ -126,7 +126,6 @@ void NodePool::unmapFromCUDA()
 
 void NodePool::bind(GLuint textureUnit) const
 {
-    glActiveTexture(GL_TEXTURE0+textureUnit);
     glBindImageTexture(0,
                        mNodePoolOutputTexture,
                        0,
@@ -153,7 +152,6 @@ int NodePool::getNodePoolBufferID()
 
 void NodePool::bindNeighbourPool(GLuint textureUnit)
 {
-    glActiveTexture(GL_TEXTURE+textureUnit);
     glBindImageTexture(1,
                        mNeighbourPoolTexture,
                        0,
