@@ -553,6 +553,97 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightBottomFar.z /= 0.85;
     rightBottomFar.w /= 0.85;
 
+    //mipmap FACES
+    // FRONT FACE
+    float4 frontFace = make_float4(0,0,0,0);
+
+    // needed in child 0: 110 210 120 220 111 211 121 221
+    // needed in child 2: 110 210 111 211
+    // needed in child 1: 110 120 111 121
+    // needed in child 3: 110 111
+    // keep in mind that the backface need less lookups as the faces intersect
+    frontFace.x += 0.25*myChilds[0].childColors[24].x
+                   + 0.125*myChilds[0].childColors[21].x
+                   + 0.125*myChilds[0].childColors[15].x
+                   + 0.125*myChilds[0].childColors[25].x
+                   + 0.125*myChilds[1].childColors[15].x
+                   + 0.125*myChilds[2].childColors[21].x
+                   + 0.0625*myChilds[0].childColors[12].x
+                   + 0.0625*myChilds[0].childColors[16].x
+                   + 0.0625*myChilds[0].childColors[22].x
+                   + 0.0625*myChilds[1].childColors[12].x
+                   + 0.0625*myChilds[1].childColors[16].x
+                   + 0.0625*myChilds[3].childColors[12].x
+                   + 0.0625*myChilds[2].childColors[12].x
+                   + 0.0625*myChilds[2].childColors[22].x
+                   + 0.03125*myChilds[0].childColors[13].x
+                   + 0.03125*myChilds[1].childColors[13].x
+                   + 0.03125*myChilds[3].childColors[13].x
+                   + 0.03125*myChilds[2].childColors[13].x;
+
+    frontFace.y += 0.25*myChilds[0].childColors[24].y
+                   + 0.125*myChilds[0].childColors[21].y
+                   + 0.125*myChilds[0].childColors[15].y
+                   + 0.125*myChilds[0].childColors[25].y
+                   + 0.125*myChilds[1].childColors[15].y
+                   + 0.125*myChilds[2].childColors[21].y
+                   + 0.0625*myChilds[0].childColors[12].y
+                   + 0.0625*myChilds[0].childColors[16].y
+                   + 0.0625*myChilds[0].childColors[22].y
+                   + 0.0625*myChilds[1].childColors[12].y
+                   + 0.0625*myChilds[1].childColors[16].y
+                   + 0.0625*myChilds[3].childColors[12].y
+                   + 0.0625*myChilds[2].childColors[12].y
+                   + 0.0625*myChilds[2].childColors[22].y
+                   + 0.03125*myChilds[0].childColors[13].y
+                   + 0.03125*myChilds[1].childColors[13].y
+                   + 0.03125*myChilds[3].childColors[13].y
+                   + 0.03125*myChilds[2].childColors[13].y;
+
+    frontFace.z += 0.25*myChilds[0].childColors[24].z
+                   + 0.125*myChilds[0].childColors[21].z
+                   + 0.125*myChilds[0].childColors[15].z
+                   + 0.125*myChilds[0].childColors[25].z
+                   + 0.125*myChilds[1].childColors[15].z
+                   + 0.125*myChilds[2].childColors[21].z
+                   + 0.0625*myChilds[0].childColors[12].z
+                   + 0.0625*myChilds[0].childColors[16].z
+                   + 0.0625*myChilds[0].childColors[22].z
+                   + 0.0625*myChilds[1].childColors[12].z
+                   + 0.0625*myChilds[1].childColors[16].z
+                   + 0.0625*myChilds[3].childColors[12].z
+                   + 0.0625*myChilds[2].childColors[12].z
+                   + 0.0625*myChilds[2].childColors[22].z
+                   + 0.03125*myChilds[0].childColors[13].z
+                   + 0.03125*myChilds[1].childColors[13].z
+                   + 0.03125*myChilds[3].childColors[13].z
+                   + 0.03125*myChilds[2].childColors[13].z;
+
+    frontFace.w += 0.25*myChilds[0].childColors[24].w
+                   + 0.125*myChilds[0].childColors[21].w
+                   + 0.125*myChilds[0].childColors[15].w
+                   + 0.125*myChilds[0].childColors[25].w
+                   + 0.125*myChilds[1].childColors[15].w
+                   + 0.125*myChilds[2].childColors[21].w
+                   + 0.0625*myChilds[0].childColors[12].w
+                   + 0.0625*myChilds[0].childColors[16].w
+                   + 0.0625*myChilds[0].childColors[22].w
+                   + 0.0625*myChilds[1].childColors[12].w
+                   + 0.0625*myChilds[1].childColors[16].w
+                   + 0.0625*myChilds[3].childColors[12].w
+                   + 0.0625*myChilds[2].childColors[12].w
+                   + 0.0625*myChilds[2].childColors[22].w
+                   + 0.03125*myChilds[0].childColors[13].w
+                   + 0.03125*myChilds[1].childColors[13].w
+                   + 0.03125*myChilds[3].childColors[13].w
+                   + 0.03125*myChilds[2].childColors[13].w;
+
+    frontFace.x /= 1.5;
+    frontFace.y /= 1.5;
+    frontFace.z /= 1.5;
+    frontFace.w /= 1.5;
+
+
     // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
@@ -644,7 +735,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z+2);
 
     // 1,1,0
-    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+    surf3Dwrite(make_uchar4(frontFace.x,frontFace.y,frontFace.z,frontFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
                 targetBrick.y+1,
