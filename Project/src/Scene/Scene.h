@@ -25,6 +25,8 @@ public:
     virtual ~Scene();
 
     void drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const;
+
+    void updateDynamicObject(glm::vec3 deltaMovement) {mDynamicObjectPosition += deltaMovement;}
     void updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch);
     void updateLight(float deltaCameraYaw, float deltaCameraPitch);
     void setCameraSpeed(float speed) { mCamera.setSpeed(speed); }
@@ -36,6 +38,8 @@ public:
 
     const Camera& getCamera() const{ return mCamera;}
     Light& getLight() { return mLight; }
+
+    glm::vec3 getDynamicObjectPosition() const {return mDynamicObjectPosition;}
 
 private:
 
@@ -49,6 +53,7 @@ private:
     std::map<Material const *, std::vector<Mesh const *> > mRenderBuckets;
     std::unique_ptr<Mesh> mupDynamicMesh;
     std::unique_ptr<Material> mupDynamicMeshMaterial;
+    glm::vec3 mDynamicObjectPosition;
 };
 
 #endif // SCENE_H_

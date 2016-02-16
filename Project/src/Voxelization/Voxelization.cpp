@@ -57,6 +57,9 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList *fr
     // Bind fragment list with output textures / buffers
     fragmentList->bindWriteonly();
 
+    // Fill model matrix
+    mVoxelizationShader->updateUniform("model", glm::mat4(1.0));
+
     // Draw scene with voxelization shader
     for (auto& bucket : pScene->getRenderBuckets())
     {
@@ -69,6 +72,9 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList *fr
             pMesh->draw();
         }
     }
+
+    // Set model matrix for dynamic object
+    mVoxelizationShader->updateUniform("model", glm::translate(glm::mat4(1.0f), pScene->getDynamicObjectPosition()));
 
     // Draw dynamic object
     pScene->drawDynamicObjectWithCustomShader(mVoxelizationShader.get());

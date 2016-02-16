@@ -1,5 +1,5 @@
 #version 330
- 
+
  /**
  * Shader passes out Depth Map of the Lights View.
  */
@@ -11,9 +11,10 @@ layout(location = 0) in vec4 positionAttribute;
 //!< uniforms
 uniform mat4 LightView;
 uniform mat4 LightProjection;
+uniform mat4 model;
 
 void main(){
 
-    gl_Position =  LightProjection * LightView * positionAttribute;
+    gl_Position =  LightProjection * LightView * model * positionAttribute;
 
 }

@@ -28,7 +28,7 @@ bool moveUpwards = false;
 bool moveDownwards = false;
 bool rotateCamera = false;
 bool rotateLight = false;
-
+glm::vec3 dynamicObjectDelta;
 
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
@@ -168,6 +168,56 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     if (key == GLFW_KEY_8& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::VOXEL_GLOW;
+    }
+
+    // Dynamic object control
+    if (key == GLFW_KEY_I & action == GLFW_PRESS)
+    {
+        dynamicObjectDelta.x = 1;
+    }
+    if (key == GLFW_KEY_K & action == GLFW_PRESS)
+    {
+        dynamicObjectDelta.x = -1;
+    }
+    if (key == GLFW_KEY_J & action == GLFW_PRESS)
+    {
+        dynamicObjectDelta.z = 1;
+    }
+    if (key == GLFW_KEY_L & action == GLFW_PRESS)
+    {
+        dynamicObjectDelta.z = -1;
+    }
+    if (key == GLFW_KEY_O & action == GLFW_PRESS)
+    {
+        dynamicObjectDelta.y = 1;
+    }
+    if (key == GLFW_KEY_U & action == GLFW_PRESS)
+    {
+        dynamicObjectDelta.y = -1;
+    }
+    if (key == GLFW_KEY_I & action == GLFW_RELEASE)
+    {
+        dynamicObjectDelta.x = 0;
+    }
+    if (key == GLFW_KEY_K & action == GLFW_RELEASE)
+    {
+        dynamicObjectDelta.x = 0;
+    }
+    if (key == GLFW_KEY_J & action == GLFW_RELEASE)
+    {
+        dynamicObjectDelta.z = 0;
+    }
+    if (key == GLFW_KEY_L & action == GLFW_RELEASE)
+    {
+        dynamicObjectDelta.z = 0;
+    }
+    if (key == GLFW_KEY_O & action == GLFW_RELEASE)
+    {
+        dynamicObjectDelta.y = 0;
+    }
+    if (key == GLFW_KEY_U & action == GLFW_RELEASE)
+    {
+        dynamicObjectDelta.y = 0;
     }
 }
 
@@ -374,6 +424,9 @@ void App::run()
             m_scene->updateLight(0, 0);
         }
 
+        // Update dynamic object
+        m_scene->updateDynamicObject(dynamicObjectDelta * deltaTime * DYNAMIC_OBJECT_SPEED);
+
         // Voxelization of scene
         if(mVoxeliseEachFrame)
         {
@@ -418,27 +471,27 @@ void App::run()
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
             break;
-		case Visualization::GBUFFER:
-			mShowGBuffer = false;
-			m_VoxelConeTracing->drawGBuffer(width, height);
-			break;
-		case Visualization::PHONG:
-			m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
-			break;
-		case Visualization::AMBIENT_OCCLUSION:
-			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
-			break;
-		case Visualization::VOXEL_CONE_TRACING:
-			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
-			break;
-		case Visualization::SHADOW_MAP:
-			mShowGBuffer = false;
-			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
-			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
-			break;
-		case Visualization::VOXEL_GLOW:
-			m_VoxelConeTracing->drawVoxelGlow(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
-			break;
+        case Visualization::GBUFFER:
+            mShowGBuffer = false;
+            m_VoxelConeTracing->drawGBuffer(width, height);
+            break;
+        case Visualization::PHONG:
+            m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
+            break;
+        case Visualization::AMBIENT_OCCLUSION:
+            m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+            break;
+        case Visualization::VOXEL_CONE_TRACING:
+            m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+            break;
+        case Visualization::SHADOW_MAP:
+            mShowGBuffer = false;
+            m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+            m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
+            break;
+        case Visualization::VOXEL_GLOW:
+            m_VoxelConeTracing->drawVoxelGlow(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+            break;
         }
 
         if (mShowGBuffer){

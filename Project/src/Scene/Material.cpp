@@ -9,8 +9,6 @@ Material::Material(std::string areaName, aiMaterial const * material)
     material->Get(AI_MATKEY_NAME,name);
     mName = std::string(name.C_Str());
 
-    std::cout << mName << std::endl;
-
     // Prepare texture reading
     aiString texturePath;
 
