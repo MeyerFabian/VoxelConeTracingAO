@@ -22,8 +22,10 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
     m_gbuffer = make_unique<GBuffer>();
 	beginningVoxelSize = 0.05f;
 	directionBeginScale = 1.0f;
+	ambientOcclusionScale = 0.5f;
 	maxDistance = 5.0f; 
 	lambda = 0.5f;
+	colorBleeding = 0.0f;
 }
 
 
@@ -167,32 +169,33 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
-    m_gbuffer->bindForReading();
 
+	m_gbuffer->bindForReading();
 
-    glm::mat4 WVP = glm::mat4(1.f);
+	glm::mat4 WVP = glm::mat4(1.f);
 
-    m_voxelConeTracing->use();
+	m_voxelConeTracing->use();
 
+	GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "octree");
+	glUniform1i(octreeUniform, 0);
+	// bind octree texture
+	nodePool.bind();
 
-    GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "octree");
-    glUniform1i(octreeUniform, 0);
-    // bind octree texture
-    nodePool.bind();
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+	glUniform1i(brickPoolUniform, 5);
+	glActiveTexture(GL_TEXTURE5);
+	brickPool.bind();
 
-    GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
-    glUniform1i(brickPoolUniform, 5);
-    glActiveTexture(GL_TEXTURE5);
-    brickPool.bind();
 
     //Cone Tracing Uniforms
-    m_voxelConeTracing->updateUniform("beginningVoxelSize", beginningVoxelSize);
+    //m_voxelConeTracing->updateUniform("beginningVoxelSize", beginningVoxelSize);
     m_voxelConeTracing->updateUniform("directionBeginScale", directionBeginScale);
-    m_voxelConeTracing->updateUniform("maxDistance", maxDistance);
-    m_voxelConeTracing->updateUniform("volumeExtent", volumeExtent);
-    m_voxelConeTracing->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
-
-
+	m_voxelConeTracing->updateUniform("maxDistance", maxDistance);
+	m_voxelConeTracing->updateUniform("volumeExtent", volumeExtent);
+	m_voxelConeTracing->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
+	m_voxelConeTracing->updateUniform("lambda", lambda);
+	m_voxelConeTracing->updateUniform("ambientOcclusionScale", ambientOcclusionScale);
+	m_voxelConeTracing->updateUniform("colorBleeding", colorBleeding);
     //Light uniforms
     m_voxelConeTracing->updateUniform("LightPosition", scene->getLight().getPosition());
     m_voxelConeTracing->updateUniform("LightColor", scene->getLight().getColor());
@@ -202,8 +205,8 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->updateUniform("LightModel", scene->getLight().getModelMatrix());
     m_voxelConeTracing->updateUniform("LightView", scene->getLight().getViewMatrix());
     m_voxelConeTracing->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
-    m_voxelConeTracing->updateUniform("shininess", 10.0);
-    m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
+    //m_voxelConeTracing->updateUniform("shininess", 10.0);
+	// m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
 
     //other uniforms
     m_voxelConeTracing->updateUniform("identity", WVP);
@@ -283,15 +286,8 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
     glDisable(GL_DEPTH_TEST);
     glViewport(0, 0, width, height);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glEnable(GL_BLEND);
-    // glBlendEquation(GL_FUNC_ADD);
-    // glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
 
     m_gbuffer->bindForReading();
-
-    //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
-    //glClear(GL_COLOR_BUFFER_BIT);
-
 
     glm::mat4 WVP = glm::mat4(1.f);
 
@@ -312,12 +308,7 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
     m_ambientOcclusion->updateUniform("identity", WVP);
     m_ambientOcclusion->updateUniform("screenSize", glm::vec2(width, height));
 
-	//other uniforms
-	m_ambientOcclusion->updateUniform("identity", WVP);
-	m_ambientOcclusion->updateUniform("screenSize", glm::vec2(width, height));
-	
 	//Cone Tracing Uniforms
-	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
 	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
 	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
 	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
@@ -379,7 +370,7 @@ void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQua
     //Cone Tracing Uniforms
     m_voxelGlow->updateUniform("beginningVoxelSize", beginningVoxelSize);
     m_voxelGlow->updateUniform("directionBeginScale", directionBeginScale);
-    m_voxelGlow->updateUniform("maxDistance", maxDistance);
+	m_voxelGlow->updateUniform("maxDistance", maxDistance);
     m_voxelGlow->updateUniform("volumeExtent", volumeExtent);
     m_voxelGlow->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
 
@@ -403,5 +394,6 @@ void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");
 	ImGui::SliderFloat("Pushed out PerimeterStart in VoxelSize", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 	ImGui::SliderFloat("AO lambda", &lambda, 0.0f, 2.0f, "%.3f");
-
+	ImGui::SliderFloat("AO scale VoxelConeTracing", &ambientOcclusionScale, 0.0f, 1.0f, "%.3f");
+	ImGui::SliderFloat("Color Bleeding", &colorBleeding, 0.0f, 5.0f, "%.2f");
 }

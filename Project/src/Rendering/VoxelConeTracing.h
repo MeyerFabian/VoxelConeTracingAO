@@ -44,6 +44,8 @@ private:
 	GLuint vaoID;
 	float directionBeginScale;
 	float beginningVoxelSize;
+	float ambientOcclusionScale;
+	float colorBleeding;
 	float maxDistance;
 	float lambda;
 	void fillGui();

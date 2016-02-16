@@ -23,7 +23,6 @@ uniform sampler2D tangentTex;
 //uniform vec3 eyeVector;
 uniform float volumeRes;
 uniform vec2 screenSize;
-uniform float beginningVoxelSize;
 uniform float directionBeginScale;
 uniform float volumeExtent;
 uniform float maxDistance;
@@ -31,7 +30,6 @@ uniform float lambda;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 Everything_else;
 
 // gl_FragCoord is built in for input Fragment Coordinate (in Pixels),
 // divide it by Screensize to get a value between 0..1 to sample our Framebuffer textures 
@@ -261,7 +259,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 		color =  (1.0 - color.a) * premultipliedColor + color;
 	}
 	
-	while(distance < maxDistance){
+	while(distance < maxDistance && color.w <0.9){
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
 		oldSamplingRate = samplingRate;
 		samplingRate = voxelSize;
@@ -324,8 +322,6 @@ void main()
 		finalColor -= coneTracing(coneStart, coneDirection,coneAperture,cosWeight) / (NUM_CONES);
 	}
 
-	Everything_else=vec4(tangent,1.0) * vec4(normal,1.0)*volumeRes *  position*beginningVoxelSize*directionBeginScale*
-	volumeExtent*maxDistance;
 
 	FragColor =  vec4(finalColor); 
 
