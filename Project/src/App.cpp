@@ -43,6 +43,14 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     ImGuiIO& io = ImGui::GetIO();
     if(io.WantCaptureKeyboard)
     {
+        camTurbo = false;
+        moveForwards = false;
+        moveBackwards = false;
+        strafeLeft = false;
+        strafeRight = false;
+        moveUpwards = false;
+        moveDownwards = false;
+        rotateCamera = false;
         return;
     }
 
@@ -214,10 +222,14 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
+        deltaCameraPitch = 0;
+        deltaCameraYaw = 0;
+        glfwSetCursor(window, BlankCursor());
         rotateLight = true;
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
     {
+        glfwSetCursor(window, NULL);
         rotateLight = false;
     }
 }
@@ -350,7 +362,8 @@ void App::run()
         // Update light
         if (rotateLight)
         {
-            m_scene->updateLight(0.001f * deltaCameraYaw * deltaTime, 0.001f * deltaCameraPitch * deltaTime);
+            glfwSetCursorPos(mpWindow, width/2, height/2);
+            m_scene->updateLight(0.01f * deltaCameraYaw * deltaTime, 0.01f * deltaCameraPitch * deltaTime);
         }
         else
         {
