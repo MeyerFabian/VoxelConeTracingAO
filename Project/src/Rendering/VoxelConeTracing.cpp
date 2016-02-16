@@ -35,7 +35,7 @@ void VoxelConeTracing::init(float width,float height) {
     m_voxelConeTracing = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelConeTracing.frag");
 	m_ambientOcclusion= make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/ambientOcclusion.frag");
 	m_phongShading = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/phong.frag");
-
+	m_voxelGlow = make_unique<ShaderProgram>("/vertex_shaders/voxelConeTracing.vert", "/fragment_shaders/voxelGlow.frag");
 
 	m_gbuffer->init(width, height);
 
@@ -181,11 +181,11 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 	brickPool.bind();
 
 	//Cone Tracing Uniforms
-	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
-	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
-	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
-	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
-	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
+	m_voxelConeTracing->updateUniform("beginningVoxelSize", beginningVoxelSize);
+	m_voxelConeTracing->updateUniform("directionBeginScale", directionBeginScale);
+	m_voxelConeTracing->updateUniform("maxDistance", maxDistance);
+	m_voxelConeTracing->updateUniform("volumeExtent", volumeExtent);
+	m_voxelConeTracing->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
 
 
     //Light uniforms
@@ -209,7 +209,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
     m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
     m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
-	m_ambientOcclusion->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));
+	m_voxelConeTracing->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));
 
     //LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
@@ -330,6 +330,63 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 
 }
 
+void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool, const float volumeExtent){
+	//Bind window framebuffer
+
+	glDisable(GL_DEPTH_TEST);
+	glViewport(0, 0, width, height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glEnable(GL_BLEND);
+	// glBlendEquation(GL_FUNC_ADD);
+	// glBlendFunc(GL_ONE, GL_ONE); //BLEND_FUNCTION BY OPENGL MAY USE (GL_SRC_ALPHA/GL_ONE_MINUS_SRC_ALPHA) for transparency
+
+	m_gbuffer->bindForReading();
+
+	//Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
+	//glClear(GL_COLOR_BUFFER_BIT);
+
+
+	glm::mat4 WVP = glm::mat4(1.f);
+
+	m_voxelGlow->use();
+
+	GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_voxelGlow->getShaderProgramHandle()), "octree");
+	glUniform1i(octreeUniform, 0);
+	// bind octree texture
+	nodePool.bind();
+
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_voxelGlow->getShaderProgramHandle()), "brickPool");
+	glUniform1i(brickPoolUniform, 5);
+	glActiveTexture(GL_TEXTURE5);
+	brickPool.bind();
+	//m_ambientOcclusion->updateUniform("eyeVector", scene->getCamPos());
+
+	//other uniforms
+	m_voxelGlow->updateUniform("identity", WVP);
+	m_voxelGlow->updateUniform("screenSize", glm::vec2(width, height));
+
+	//Cone Tracing Uniforms
+	m_voxelGlow->updateUniform("beginningVoxelSize", beginningVoxelSize);
+	m_voxelGlow->updateUniform("directionBeginScale", directionBeginScale);
+	m_voxelGlow->updateUniform("maxDistance", maxDistance);
+	m_voxelGlow->updateUniform("volumeExtent", volumeExtent);
+	m_voxelGlow->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
+
+	//GBUFFER TEXTURES
+	m_voxelGlow->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
+	m_voxelGlow->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
+	m_voxelGlow->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));
+
+
+
+	//Draw FullScreenQuad
+	glBindVertexArray(ScreenQuad);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+
+	m_voxelGlow->disable();
+
+}
 void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
 	ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");

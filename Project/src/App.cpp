@@ -43,6 +43,14 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     ImGuiIO& io = ImGui::GetIO();
     if(io.WantCaptureKeyboard)
     {
+        camTurbo = false;
+        moveForwards = false;
+        moveBackwards = false;
+        strafeLeft = false;
+        strafeRight = false;
+        moveUpwards = false;
+        moveDownwards = false;
+        rotateCamera = false;
         return;
     }
 
@@ -153,9 +161,13 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         VISUALIZATION = Visualization::AMBIENT_OCCLUSION;
     }
     //  Shadow Map
-    if(key == GLFW_KEY_7& action == GLFW_PRESS)
+    if (key == GLFW_KEY_7& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::SHADOW_MAP;
+    }
+    if (key == GLFW_KEY_8& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::VOXEL_GLOW;
     }
 }
 
@@ -214,10 +226,14 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
+        deltaCameraPitch = 0;
+        deltaCameraYaw = 0;
+        glfwSetCursor(window, BlankCursor());
         rotateLight = true;
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
     {
+        glfwSetCursor(window, NULL);
         rotateLight = false;
     }
 }
@@ -227,7 +243,7 @@ App::App() : Controllable("App")
     width = 1024;
     height = 1024;
 
-	mShowGBuffer = false;
+    mShowGBuffer = false;
     mVoxeliseEachFrame = false;
 
     // Initialize GLFW and OpenGL
@@ -271,7 +287,7 @@ App::App() : Controllable("App")
     this->registerControllable(this);
 
     // Scene (load polygon scene)
-    m_scene = std::unique_ptr<Scene>(new Scene(this, std::string(MESHES_PATH) + "/sponza.obj"));
+    m_scene = std::unique_ptr<Scene>(new Scene(this, "sponza"));
 
     // Voxelization
     m_voxelization = std::unique_ptr<Voxelization>(
@@ -288,8 +304,8 @@ App::App() : Controllable("App")
 
     mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
 
-	m_LightViewMap = make_unique<LightViewMap>(this);
-	m_LightViewMap->init();
+    m_LightViewMap = make_unique<LightViewMap>(this);
+    m_LightViewMap->init();
     m_VoxelConeTracing = make_unique<VoxelConeTracing>(this);
 
     m_VoxelConeTracing->init(width, height);
@@ -350,7 +366,8 @@ void App::run()
         // Update light
         if (rotateLight)
         {
-            m_scene->updateLight(0.001f * deltaCameraYaw * deltaTime, 0.001f * deltaCameraPitch * deltaTime);
+            glfwSetCursorPos(mpWindow, width/2, height/2);
+            m_scene->updateLight(0.01f * deltaCameraYaw * deltaTime, 0.01f * deltaCameraPitch * deltaTime);
         }
         else
         {
@@ -382,7 +399,7 @@ void App::run()
         // Set viewport for scene rendering
         glViewport(0, 0, width, height);
 
-		m_LightViewMap->shadowMapPass(m_scene);
+        m_LightViewMap->shadowMapPass(m_scene);
 
         m_VoxelConeTracing->geometryPass(width,height,m_scene);
 
@@ -419,12 +436,15 @@ void App::run()
 			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
 			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
 			break;
+		case Visualization::VOXEL_GLOW:
+			m_VoxelConeTracing->drawVoxelGlow(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+			break;
         }
 
-		if (mShowGBuffer){
-			m_LightViewMap->shadowMapRender(150, 150, width, height, m_FullScreenQuad->getvaoID());
-			m_VoxelConeTracing->drawGBufferPanels(width, height);
-		}
+        if (mShowGBuffer){
+            m_LightViewMap->shadowMapRender(150, 150, width, height, m_FullScreenQuad->getvaoID());
+            m_VoxelConeTracing->drawGBufferPanels(width, height);
+        }
         // FUTURE STUFF
 
 
@@ -500,8 +520,8 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
-	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
-    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map");
+    ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0Voxel-Glow\0");
+    ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
+    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map \n8: Voxel Glow");
    // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
 }

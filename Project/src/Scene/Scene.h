@@ -21,7 +21,7 @@ class Scene : public Controllable
 {
 public:
 
-    Scene(App* pApp, std::string filepath);
+    Scene(App* pApp, std::string areaName);
     virtual ~Scene();
 
     void updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch);

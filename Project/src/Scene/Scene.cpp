@@ -9,16 +9,13 @@
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
-Scene::Scene(App* pApp, std::string filepath) : Controllable(pApp, "Scene") 
+Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
 {
-    // Prepare the one and only shader
-   // mupShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/sponza.vert","/fragment_shaders/sponza.frag"));
-
     // Create instance of assimp
     Assimp::Importer importer;
 
     // Import
-    const aiScene* scene = importer.ReadFile(filepath,
+    const aiScene* scene = importer.ReadFile(std::string(MESHES_PATH) + "/" + areaName + ".obj",
         aiProcess_GenNormals			 |
         aiProcess_CalcTangentSpace       |
         aiProcess_Triangulate            |
@@ -38,7 +35,7 @@ Scene::Scene(App* pApp, std::string filepath) : Controllable(pApp, "Scene")
         aiMaterial* material = scene->mMaterials[i];
 
         // Create material from assimp data
-        std::unique_ptr<Material> upMaterial = std::unique_ptr<Material>(new Material(material));
+        std::unique_ptr<Material> upMaterial = std::unique_ptr<Material>(new Material(areaName, material));
 
         // Move to materials
         mMaterials.push_back(std::move(upMaterial));
@@ -112,12 +109,12 @@ void Scene::draw(float windowWidth, float windowHeight) const
 void Scene::fillGui()
 {
     std::string output = "Camera " + glm::to_string(mCamera.getPosition());
-	ImGui::Text(output.c_str()); 
-	float& ambient = mLight.getAmbientIntensity();
+    ImGui::Text(output.c_str());
+    float& ambient = mLight.getAmbientIntensity();
 
-	float& diffuse = mLight.getDiffuseIntensity();
+    float& diffuse = mLight.getDiffuseIntensity();
 
-	ImGui::SliderFloat("AmbientIntensity", &ambient, 0.0f, 1.0f, "%0.2f");
-	ImGui::SliderFloat("DiffuseIntensity", &diffuse, 0.0f, 2.0f, "%0.2f");
+    ImGui::SliderFloat("AmbientIntensity", &ambient, 0.0f, 1.0f, "%0.2f");
+    ImGui::SliderFloat("DiffuseIntensity", &diffuse, 0.0f, 2.0f, "%0.2f");
 }
 

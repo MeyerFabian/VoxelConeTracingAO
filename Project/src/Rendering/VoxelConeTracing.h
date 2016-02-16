@@ -27,7 +27,7 @@ public:
 							GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, 
 							const NodePool& nodePool, const BrickPool& brickPool,
 							const float volumeExtent);
-
+	void drawVoxelGlow(float width, float height, GLuint ScreenQuad, const std::unique_ptr<Scene>& scene, const NodePool& nodePool, const BrickPool& brickPool, const float volumeExtent);
 	void drawGBuffer(float width, float height);
 	void drawGBufferPanels(float width, float height);
 	std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
@@ -38,6 +38,7 @@ private:
     std::unique_ptr<ShaderProgram> m_voxelConeTracing;
 	std::unique_ptr<ShaderProgram> m_ambientOcclusion; 
 	std::unique_ptr<ShaderProgram> m_phongShading;
+	std::unique_ptr<ShaderProgram> m_voxelGlow;
     std::unique_ptr<GBuffer> m_gbuffer;
     glm::mat4 m_uniformProjection;
 	GLuint vaoID;
