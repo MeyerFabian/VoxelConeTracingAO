@@ -97,9 +97,6 @@ float aperture[NUM_CONES]={
 	60.0,
 	60.0};
 
-	
-float voxelSizeOnLevel[maxLevel+1];
-
 /*	
 *	@param	distance                    Distance from the apex
 *	@param	coneAperture                Aperture of the given cone in degree(angle)
@@ -142,7 +139,7 @@ void alphaCorrection(	inout float alpha,
 										);
 }
 
-vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
+vec4 rayCastOctree(vec3 rayPosition){
 	vec4 outputColor = vec4(0,0,0,0);
 
     // Octree reading preparation
@@ -160,7 +157,7 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
     childPointer = firstChildPointer;
 
     // Go through octree
-    for(int level = 1; level < maxLevel; level++)
+    for(int j = 1; j < maxLevel; j++)
     {
         // Determine, in which octant the searched position is
         uvec3 nextOctant = uvec3(0, 0, 0);
@@ -181,7 +178,7 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         // 1 means has children
         // 0 means does not have children
         // Only read from brick, if we are at aimed level in octree
-        if(voxelSizeOnLevel[level] <= voxelSize)
+        if(getBit(nodeTile, 32) == 0)
         {
 
             // Brick coordinates
@@ -214,24 +211,24 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 
 // perimeterDirection seems to be calulcated right :)
 vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture){
-    float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLevel[maxLevel]);
-	float samplingRate = voxelSizeOnLevel[maxLevel];
+    float voxelSizeOnLowestLevel = volumeExtent / (pow2[maxLevel]);
+    float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLowestLevel);
+	float samplingRate= voxelSizeOnLowestLevel;
 	float distance = samplingRate/2.0;
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
-	float voxelSize = voxelSizeOnLevel[maxLevel];
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
-		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
+		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
 		color += interpolatedColor;
 	}
 	
 	while(distance < maxDistance){
 		rayPosition = perimeterStart + distance * perimeterDirection;
-		voxelSize = voxelSizeByDistance(distance,coneAperture);
-		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
+		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
+		//voxelSize = voxelSizeByDistance(distance,coneAperture);
 		color += interpolatedColor;
 	}
 	
@@ -261,17 +258,13 @@ void main()
 	mat3 OutOfTangentSpace = mat3(tangent,normal,bitangent);
 
 	vec4 finalColor = vec4(0.0,0.0,0.0,0.0);
-
-	//We precompute voxelsizes on the different levels, 
-	for(int level = 0; level<=maxLevel ; level++){
-		voxelSizeOnLevel[level] = volumeExtent / (pow2[level]);
-	}
-
+	
+    float voxelSizeOnLowestLevel = volumeExtent / (pow2[maxLevel]);
 	//consider loop unrolling
 	for(int i = 0 ; i < NUM_CONES;i++){
 
 		//Push the cone a little bit out of the voxel by its normal
-		vec3 coneStart = position.xyz + normal * voxelSizeOnLevel[maxLevel] *directionBeginScale;
+		vec3 coneStart = position.xyz + normal * voxelSizeOnLowestLevel *directionBeginScale;
 		
 		vec3 coneDirection = OutOfTangentSpace * cones[i];
 

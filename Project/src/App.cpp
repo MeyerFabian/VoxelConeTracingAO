@@ -424,7 +424,7 @@ void App::run()
 			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
 			break;
 		case Visualization::VOXEL_GLOW:
-			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+			m_VoxelConeTracing->drawVoxelGlow(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
 			break;
         }
 

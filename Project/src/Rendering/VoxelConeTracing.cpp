@@ -181,11 +181,11 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 	brickPool.bind();
 
 	//Cone Tracing Uniforms
-	m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
-	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
-	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
-	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
-	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
+	m_voxelConeTracing->updateUniform("beginningVoxelSize", beginningVoxelSize);
+	m_voxelConeTracing->updateUniform("directionBeginScale", directionBeginScale);
+	m_voxelConeTracing->updateUniform("maxDistance", maxDistance);
+	m_voxelConeTracing->updateUniform("volumeExtent", volumeExtent);
+	m_voxelConeTracing->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
 
 
     //Light uniforms
@@ -209,7 +209,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
     m_voxelConeTracing->addTexture("colorTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_DIFFUSE));
     m_voxelConeTracing->addTexture("normalTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_NORMAL));
-	m_ambientOcclusion->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));
+	m_voxelConeTracing->addTexture("tangentTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_TANGENT));
 
     //LIGHT VIEW MAP TEXTURE
     m_voxelConeTracing->addTexture("LightViewMapTex", lightViewMapTexture);
@@ -355,7 +355,7 @@ void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQua
 	// bind octree texture
 	nodePool.bind();
 
-	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_voxelGlow->getShaderProgramHandle()), "brickPool");
 	glUniform1i(brickPoolUniform, 5);
 	glActiveTexture(GL_TEXTURE5);
 	brickPool.bind();
