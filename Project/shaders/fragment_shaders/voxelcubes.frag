@@ -2,7 +2,9 @@
 
 layout(location = 0) out vec4 fragColor;
 
+flat in vec4 col;
+
 void main()
 {
-    fragColor = vec4(1,0,0, 1);
+    fragColor = vec4(col.rgb, 1);
 }

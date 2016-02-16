@@ -4,12 +4,19 @@
 #include <memory>
 #include "Rendering/ShaderProgram.h"
 #include "Scene/Camera.h"
+#include "SparseOctree/BrickPool.h"
+#include "SparseOctree/NodePool.h"
 
 class VoxelCubes
 {
 public:
     VoxelCubes(Camera const * pCamera);
-    void draw(float width, float height, float volumeExtent) const;
+    void draw(
+        float width,
+        float height,
+        float volumeExtent,
+        NodePool& nodePool,
+        BrickPool& brickPool) const;
 
 private:
 

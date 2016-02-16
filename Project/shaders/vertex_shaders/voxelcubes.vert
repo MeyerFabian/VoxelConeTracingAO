@@ -14,6 +14,6 @@ vec3 linearTo3D(int id)
 
 void main()
 {
-    // Give geometry shader the voxel coordinate
-    gl_Position = vec4(linearTo3D(int(gl_VertexID)), 1);
+    // Give geometry shader relative coordinates
+    gl_Position = vec4(linearTo3D(int(gl_VertexID)) / float(resolution), 1);
 }

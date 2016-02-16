@@ -476,7 +476,7 @@ void App::run()
                     VOLUME_EXTENT);
             break;
         case Visualization::VOXEL_CUBES:
-            m_VoxelCubes->draw(width,height, VOLUME_EXTENT);
+            m_VoxelCubes->draw(width,height, VOLUME_EXTENT, m_svo->getNodePool(), m_svo->getBrickPool());
             break;
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);

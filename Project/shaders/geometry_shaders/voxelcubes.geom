@@ -1,18 +1,66 @@
 #version 430
 
 layout(points) in;
-layout(triangle_strip, max_vertices = 3) out;
+layout(triangle_strip, max_vertices = 24) out;
+flat out vec4 col;
+
+layout(binding = 0, r32ui) uniform readonly uimageBuffer octree;
+uniform sampler3D brickPool;
 
 uniform mat4 projection;
 uniform mat4 cameraView;
 uniform float volumeExtent;
 uniform int resolution;
+uniform int maxLevel;
+
+// Defines
+const uint pow2[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
+const uvec3 insertPositions[] = {
+    uvec3(0, 0, 0),
+    uvec3(1, 0, 0),
+    uvec3(0, 1, 0),
+    uvec3(1, 1, 0),
+    uvec3(0, 0, 1),
+    uvec3(1, 0, 1),
+    uvec3(0, 1, 1),
+    uvec3(1, 1, 1)};
+
+// Helper
+uint getBit(uint value, uint position)
+{
+    return (value >> (position-1)) & 1u;
+}
+
+uvec3 decodeBrickCoords(uint coded)
+{
+    uvec3 coords;
+    coords.z =  coded & 0x000003FF;
+    coords.y = (coded & 0x000FFC00) >> 10U;
+    coords.x = (coded & 0x3FF00000) >> 20U;
+    return coords;
+}
 
 void main()
 {
-    vec3 voxelCoord = gl_in[0].gl_Position.xyz;
+    // Relative position of voxel
+    vec3 relativePos = gl_in[0].gl_Position.xyz;
 
-    /*
+    // Octree reading preparation
+    uint nodeOffset = 0;
+    uint childPointer = 0;
+    uint nodeTile;
+
+    // Some variable renaming to hold name scheme of raycasting shader
+    vec3 innerOctreePosition = relativePos;
+    float volumeRes = resolution;
+
+    // Get first child pointer
+    nodeTile = imageLoad(octree, int(0)).x;
+    uint firstChildPointer = nodeTile & uint(0x3fffffff);
+
+    // Color of voxel
+    col = vec4(0,0,0,0);
+
     // Determine content of octree on current position
     for(int j = 1; j < maxLevel; j++)
     {
@@ -37,13 +85,6 @@ void main()
         // Only read from brick, if we are at aimed level in octree
         if(j == maxLevel-1)
         {
-            // Output the reached level as color
-            //float level = float(j) / maxLevel;
-            //outputColor.x = level;
-            //outputColor.y = level;
-            //outputColor.z = level;
-            //finished = true;
-
             // Brick coordinates
             uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
             uvec3 brickCoords = decodeBrickCoords(brickTile);
@@ -59,17 +100,8 @@ void main()
                 uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
                 brickCoords += insertPositions[offset]*2;
 
-                // Accumulate color
-                outputColor = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
-                //outputColor.rgb += (1.0 - outputColor.a) * src.rgb * src.a;
-                //outputColor.a += (1.0 - outputColor.a) * src.a;
-
-                // More or less: if you hit something, exit
-                if(outputColor.a >= 0.001)
-                {
-                    //outputColor = src;
-                    finished = true;
-                }
+                // Get color from brick
+                col = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
             }
 
             // Break inner loop
@@ -81,27 +113,64 @@ void main()
             childPointer = nodeTile & uint(0x3fffffff);
         }
     }
-    */
 
-    // Now calculate world position
-    vec3 worldPos = volumeExtent * (voxelCoord / float(resolution)) - volumeExtent/2;
+    // Only continue, if something was found
+    if(col.a > 0.25)
+    {
+        // Now calculate world position
+        vec4 pos = vec4(volumeExtent * relativePos - volumeExtent/2, 1);
 
-    // Size
-    vec2 halfSize = vec2(0.1, 0.1);
+        // Size
+        float size = volumeExtent / float(resolution);
+        vec3 offset = vec3(size / 2.0, size / 2.0, size / 2.0);
 
-    // Matrix
-    mat4 matrix = projection * cameraView;
+        // Matrix
+        mat4 M = projection * cameraView;
 
-    // Emit quad
-    gl_Position = matrix * vec4(worldPos + vec3(-halfSize.x, -halfSize.y, 0), 1);
-    EmitVertex();
+        vec4 A = vec4(-offset.x, offset.y, offset.z, 0);
+        vec4 B = vec4(-offset.x, -offset.y, offset.z, 0);
+        vec4 C = vec4( offset.x, -offset.y, offset.z, 0);
+        vec4 D = vec4( offset.x, offset.y, offset.z, 0);
+        vec4 E = vec4( offset.x, offset.y, -offset.z, 0);
+        vec4 F = vec4( offset.x, -offset.y, -offset.z, 0);
+        vec4 G = vec4(-offset.x, -offset.y, -offset.z, 0);
+        vec4 H = vec4(-offset.x, offset.y, -offset.z, 0);
 
-    gl_Position = matrix * vec4(worldPos + vec3(halfSize.x, -halfSize.y, 0), 1);
-    EmitVertex();
 
-    gl_Position = matrix * vec4(worldPos + vec3(0, halfSize.y, 0), 1);
-    EmitVertex();
+        gl_Position = M * ( pos + A); EmitVertex();
+        gl_Position = M * ( pos + B); EmitVertex();
+        gl_Position = M * ( pos + D); EmitVertex();
+        gl_Position = M * ( pos + C); EmitVertex();
+        EndPrimitive();
 
-    EndPrimitive();
+        gl_Position = M * ( pos + H); EmitVertex();
+        gl_Position = M * ( pos + G); EmitVertex();
+        gl_Position = M * ( pos + A); EmitVertex();
+        gl_Position = M * ( pos + B); EmitVertex();
+        EndPrimitive();
 
+        gl_Position = M * ( pos + D); EmitVertex();
+        gl_Position = M * ( pos + C); EmitVertex();
+        gl_Position = M * ( pos + E); EmitVertex();
+        gl_Position = M * ( pos + F); EmitVertex();
+        EndPrimitive();
+
+        gl_Position = M * ( pos + H); EmitVertex();
+        gl_Position = M * ( pos + A); EmitVertex();
+        gl_Position = M * ( pos + E); EmitVertex();
+        gl_Position = M * ( pos + D); EmitVertex();
+        EndPrimitive();
+
+        gl_Position = M * ( pos + B); EmitVertex();
+        gl_Position = M * ( pos + G); EmitVertex();
+        gl_Position = M * ( pos + C); EmitVertex();
+        gl_Position = M * ( pos + F); EmitVertex();
+        EndPrimitive();
+
+        gl_Position = M * ( pos + E); EmitVertex();
+        gl_Position = M * ( pos + F); EmitVertex();
+        gl_Position = M * ( pos + H); EmitVertex();
+        gl_Position = M * ( pos + G); EmitVertex();
+        EndPrimitive();
+    }
 }
