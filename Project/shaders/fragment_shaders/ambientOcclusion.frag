@@ -156,7 +156,10 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 
 	
     vec3 innerOctreePosition = getVolumePos(rayPosition);
-	vec3 lastInnerOctreePosition;
+	vec3 parentInnerOctreePosition = vec3(0,0,0);
+	uint parentNodeOffset = 0;
+	uint parentPointer = 0;
+
     // Reset child pointer
     childPointer = firstChildPointer;
 
@@ -169,9 +172,14 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         nextOctant.y = uint(2 * innerOctreePosition.y);
         nextOctant.z = uint(2 * innerOctreePosition.z);
 
+		parentNodeOffset = nodeOffset;
+		parentPointer = childPointer;
+		parentInnerOctreePosition = innerOctreePosition;
+		
         // Make the octant position 1D for the linear memory
         nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
         nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
+
         // Update position in volume
         innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
@@ -183,21 +191,36 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         // Only read from brick, if we are at aimed level in octree
         if(voxelSize >= voxelSizeOnLevel[level+1])
         {
+		
+			float parentVoxelSize = voxelSizeOnLevel[level];
+			float childVoxelSize = voxelSizeOnLevel[level+1];
+			// PARENT BRICK SAMPLING
+			// Brick coordinates
+            uint parentBrickTile = imageLoad(octree, int(parentNodeOffset + parentPointer *16U)+1).x;
+            vec3 parentBrickCoords = decodeBrickCoords(parentBrickTile);
+ 
+            // Here we should intersect our brick seperately
+            // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+            parentBrickCoords+= 2 * parentInnerOctreePosition;
 
+            // read texture  
+			// TODO: im not sure about the volumeRes offset
+            vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes+ (1.0/volumeRes)/2.0);
+
+			// CHILD BRICK SAMPLING
             // Brick coordinates
             uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
             vec3 brickCoords = decodeBrickCoords(brickTile);
 
-            
             // Here we should intersect our brick seperately
             // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-            brickCoords.x += 2 * innerOctreePosition.x;
-            brickCoords.y += 2 * innerOctreePosition.y;
-            brickCoords.z += 2 * innerOctreePosition.z;
-            // Accumulate color
-            vec4 src = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
+            brickCoords += 2 * innerOctreePosition;
+            // read texture
+            vec4 childSrc = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
 
-            outputColor = src;
+			float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
+
+            outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
 
 
             // Break inner loop
@@ -218,17 +241,16 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture)
 	float samplingRate = voxelSizeOnLevel[maxLevel];
 	float distance = samplingRate/2.0;
 	vec3 rayPosition = vec3(0.0);
-	vec4 color = vec4(0.0,0.0,0.0,0.0);
+	vec4 color = vec4(1.0,1.0,1.0,1.0);
 	float voxelSize = voxelSizeOnLevel[maxLevel];
 	
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
 		distance += samplingRate;
-		color += interpolatedColor;
+		color -= 1.0/distance*vec4(interpolatedColor.w, interpolatedColor.w,interpolatedColor.w,1.0);
 	}
 	
-	//distance = 4.0;
 	while(distance < maxDistance){
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
 		samplingRate = voxelSize;
@@ -236,7 +258,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture)
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
 		distance += samplingRate/2.0;
-		color += interpolatedColor;
+		color -= 1.0/distance * vec4(interpolatedColor.w, interpolatedColor.w,interpolatedColor.w,1.0);
 	}
 	
 	return color;
