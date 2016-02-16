@@ -191,8 +191,6 @@ vec4 rayCastOctree(vec3 rayPosition){
             brickCoords.x += 2 * innerOctreePosition.x;
             brickCoords.y += 2 * innerOctreePosition.y;
             brickCoords.z += 2 * innerOctreePosition.z;
-
-
             // Accumulate color
             vec4 src = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
 
@@ -208,7 +206,6 @@ vec4 rayCastOctree(vec3 rayPosition){
             childPointer = nodeTile & uint(0x3fffffff);
         }
     }
-
 	return outputColor;
 }
 
@@ -221,12 +218,12 @@ vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture)
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	while(distance < distanceTillMainLoop){
-		rayPosition = perimeterStart.xyz + 0.0f * distance * perimeterDirection;
+		rayPosition = perimeterStart.xyz + 0.0 * distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
 		color += interpolatedColor;
 	}
-	/*
+	
 	while(distance < maxDistance){
 		rayPosition = perimeterStart.xyz + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
@@ -234,7 +231,7 @@ vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture)
 		//voxelSize = voxelSizeByDistance(distance,coneAperture);
 		color += interpolatedColor;
 	}
-	*/
+	
 	return color;
 }
 
