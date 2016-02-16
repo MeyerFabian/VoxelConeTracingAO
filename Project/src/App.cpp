@@ -140,32 +140,37 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     {
         VISUALIZATION = Visualization::RAYCASTING;
     }
-    //  Point Cloud
+    //  Voxel Cubes
     if(key == GLFW_KEY_3& action == GLFW_PRESS)
+    {
+        VISUALIZATION = Visualization::VOXEL_CUBES;
+    }
+    //  Point Cloud
+    if(key == GLFW_KEY_4& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::POINT_CLOUD;
     }
     //  Gbuffer
-    if(key == GLFW_KEY_4& action == GLFW_PRESS)
+    if(key == GLFW_KEY_5& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::GBUFFER;
     }
     //  Phong
-    if(key == GLFW_KEY_5& action == GLFW_PRESS)
+    if(key == GLFW_KEY_6& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::PHONG;
     }
     //  Ambient occlusion
-    if(key == GLFW_KEY_6& action == GLFW_PRESS)
+    if(key == GLFW_KEY_7& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::AMBIENT_OCCLUSION;
     }
     //  Shadow Map
-    if (key == GLFW_KEY_7& action == GLFW_PRESS)
+    if (key == GLFW_KEY_8& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::SHADOW_MAP;
     }
-    if (key == GLFW_KEY_8& action == GLFW_PRESS)
+    if (key == GLFW_KEY_9& action == GLFW_PRESS)
     {
         VISUALIZATION = Visualization::VOXEL_GLOW;
     }
@@ -364,6 +369,8 @@ App::App() : Controllable("App")
 
     m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
 
+    m_VoxelCubes = make_unique<VoxelCubes>(&(m_scene->getCamera()));
+
     // create octree from static geometrie
     // Voxelization (create fragment voxels)
     m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
@@ -467,6 +474,9 @@ void App::run()
                     m_VoxelConeTracing->getGBuffer(),
                     m_FullScreenQuad->getvaoID(),
                     VOLUME_EXTENT);
+            break;
+        case Visualization::VOXEL_CUBES:
+            m_VoxelCubes->draw(width,height, VOLUME_EXTENT);
             break;
         case Visualization::POINT_CLOUD:
             m_PointCloud->draw(width,height, VOLUME_EXTENT);
@@ -573,8 +583,8 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-    ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0Voxel-Glow\0");
+    ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0VoxelCubes\0PointCloud\0GBuffer\0Phong\0AmbientOcclusion\0VoxelConeTracing\0LightViewMap\0VoxelGlow\0");
     ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
-    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map \n8: Voxel Glow");
+    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Voxel Cubes \n4: Point Cloud \n5: Gbuffer \n6: Phong \n7: Ambient Occlusion \n8: Shadow Map \n9: Voxel Glow");
    // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
 }

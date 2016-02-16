@@ -21,9 +21,10 @@
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
 #include "PointCloud/PointCloud.h"
+#include "VoxelVisualitation/Voxelcubes.h"
 #include "Utilities/enums.h"
 
-enum Visualization { RAYCASTING, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP,VOXEL_GLOW };
+enum Visualization { RAYCASTING, VOXEL_CUBES, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP,VOXEL_GLOW };
 
 class App: public Controllable
 {
@@ -55,7 +56,7 @@ private:
     std::unique_ptr<LightViewMap> m_LightViewMap;
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
-
+    std::unique_ptr<VoxelCubes> m_VoxelCubes;
 
     bool mVoxeliseEachFrame;
     bool mShowGBuffer;

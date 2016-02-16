@@ -25,7 +25,7 @@ void OctreeRaycast::draw(glm::vec3 camPos,
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
 
-    // Bind octree image
+    // Bind octree image to binding 0
     nodePool.bind();
 
     // Update uniforms
