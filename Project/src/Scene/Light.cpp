@@ -8,7 +8,7 @@ Light::Light()
 {
     mPosition = glm::vec3(-40,125,0);
 	mDirection = glm::vec3(0,-1,0);
-	mAmbientIntensity = 0.2f;
+	mAmbientIntensity = 0.4f;
 	mDiffuseIntensity = 1.0f;
 	mColor = glm::vec3(1.0, 0.95, 0.8);
 	m_uniformModel = glm::mat4(1.f);
