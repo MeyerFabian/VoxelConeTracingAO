@@ -109,7 +109,7 @@ float voxelSizeOnLevel[maxLevel+1];
 */
 float voxelSizeByDistance(float distance, float coneAperture){
 	float halfAperture = coneAperture /2.0;
-        float voxelSize = tan(halfAperture) * distance * 2.0;
+    float voxelSize = tan(radians(halfAperture)) * distance * 2.0;
 	return voxelSize;
 }
 
@@ -156,6 +156,7 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 
 	
     vec3 innerOctreePosition = getVolumePos(rayPosition);
+	vec3 lastInnerOctreePosition;
     // Reset child pointer
     childPointer = firstChildPointer;
 
@@ -171,17 +172,16 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         // Make the octant position 1D for the linear memory
         nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
         nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
-
         // Update position in volume
         innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
         innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
-
+		
         // The 32nd bit indicates whether the node has children:
         // 1 means has children
         // 0 means does not have children
         // Only read from brick, if we are at aimed level in octree
-        if(voxelSizeOnLevel[level] <= voxelSize)
+        if(voxelSize >= voxelSizeOnLevel[level+1])
         {
 
             // Brick coordinates
@@ -220,6 +220,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture)
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	float voxelSize = voxelSizeOnLevel[maxLevel];
+	
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
@@ -227,11 +228,14 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture)
 		color += interpolatedColor;
 	}
 	
+	//distance = 4.0;
 	while(distance < maxDistance){
-		rayPosition = perimeterStart + distance * perimeterDirection;
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
+		samplingRate = voxelSize;
+		distance += samplingRate/2.0;
+		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
-		distance += samplingRate;
+		distance += samplingRate/2.0;
 		color += interpolatedColor;
 	}
 	
