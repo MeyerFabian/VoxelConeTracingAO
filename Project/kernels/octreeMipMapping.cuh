@@ -646,29 +646,338 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     // BACK FACE
     float4 backFace = make_float4(0,0,0,0);
 
-    // needed in child 0: 110 210 120 220 111 211 121 221
-    // needed in child 2: 110 210 111 211
-    // needed in child 1: 110 120 111 121
-    // needed in child 3: 110 111
+    // needed in child 4: 221 121 211 111
+    // needed in child 5: 121 111
+    // needed in child 6: 211 111
+    // needed in child 7: 111
     // keep in mind that the backface need less lookups as the faces intersect
-    backFace.x += 0.25*myChilds[0].childColors[24].x
-                   + 0.125*myChilds[0].childColors[21].x
-                   + 0.125*myChilds[0].childColors[15].x
-                   + 0.125*myChilds[0].childColors[25].x
-                   + 0.125*myChilds[1].childColors[15].x
-                   + 0.125*myChilds[2].childColors[21].x
-                   + 0.0625*myChilds[0].childColors[12].x
-                   + 0.0625*myChilds[0].childColors[16].x
-                   + 0.0625*myChilds[0].childColors[22].x
-                   + 0.0625*myChilds[1].childColors[12].x
+    backFace.x += 0.125*myChilds[4].childColors[25].x
+                   + 0.0625*myChilds[4].childColors[16].x
+                   + 0.0625*myChilds[4].childColors[22].x
+                   + 0.0625*myChilds[5].childColors[16].x
+                   + 0.0625*myChilds[6].childColors[22].x
+                   + 0.03125*myChilds[4].childColors[13].x
+                   + 0.03125*myChilds[5].childColors[13].x
+                   + 0.03125*myChilds[6].childColors[13].x
+                   + 0.03125*myChilds[7].childColors[13].x;
+
+    backFace.y += 0.125*myChilds[4].childColors[25].y
+                  + 0.0625*myChilds[4].childColors[16].y
+                  + 0.0625*myChilds[4].childColors[22].y
+                  + 0.0625*myChilds[5].childColors[16].y
+                  + 0.0625*myChilds[6].childColors[22].y
+                  + 0.03125*myChilds[4].childColors[13].y
+                  + 0.03125*myChilds[5].childColors[13].y
+                  + 0.03125*myChilds[6].childColors[13].y
+                  + 0.03125*myChilds[7].childColors[13].y;
+
+    backFace.z += 0.125*myChilds[4].childColors[25].z
+                  + 0.0625*myChilds[4].childColors[16].z
+                  + 0.0625*myChilds[4].childColors[22].z
+                  + 0.0625*myChilds[5].childColors[16].z
+                  + 0.0625*myChilds[6].childColors[22].z
+                  + 0.03125*myChilds[4].childColors[13].z
+                  + 0.03125*myChilds[5].childColors[13].z
+                  + 0.03125*myChilds[6].childColors[13].z
+                  + 0.03125*myChilds[7].childColors[13].z;
+
+    backFace.w += 0.125*myChilds[4].childColors[25].w
+                  + 0.0625*myChilds[4].childColors[16].w
+                  + 0.0625*myChilds[4].childColors[22].w
+                  + 0.0625*myChilds[5].childColors[16].w
+                  + 0.0625*myChilds[6].childColors[22].w
+                  + 0.03125*myChilds[4].childColors[13].w
+                  + 0.03125*myChilds[5].childColors[13].w
+                  + 0.03125*myChilds[6].childColors[13].w
+                  + 0.03125*myChilds[7].childColors[13].w;
+
+    backFace.x /= 0.5;
+    backFace.y /= 0.5;
+    backFace.z /= 0.5;
+    backFace.w /= 0.5;
+
+    // LEFT face
+    // needed ID 0: 0.25*022 0.125*(012 021 122) 0.0625*(121 011 112) 0.03125(111)
+    // needed ID 4: 0.125*(021) 0.0625*(011 121) 0.03125(111)
+    // needed ID 2: 0.125*(012) 0.0625*(011 112) 0.03125(111)
+    // needed ID 6: 0,0625*(011) 0.03125*(111)
+    float4 leftFace = make_float4(0,0,0,0);
+
+    leftFace.x += 0.25*myChilds[0].childColors[8].x
+                  + 0.125*myChilds[0].childColors[5].x
+                  + 0.125*myChilds[0].childColors[7].x
+                  + 0.125*myChilds[0].childColors[17].x
+                  + 0.125*myChilds[4].childColors[7].x
+                  + 0.125*myChilds[2].childColors[5].x
+                  + 0.0625*myChilds[0].childColors[16].x
+                  + 0.0625*myChilds[0].childColors[4].x
+                  + 0.0625*myChilds[0].childColors[14].x
+                  + 0.0625*myChilds[4].childColors[4].x
+                  + 0.0625*myChilds[4].childColors[16].x
+                  + 0.0625*myChilds[2].childColors[4].x
+                  + 0.0625*myChilds[2].childColors[14].x
+                  + 0.0625*myChilds[6].childColors[4].x
+                  + 0.03125*myChilds[0].childColors[13].x
+                  + 0.03125*myChilds[4].childColors[13].x
+                  + 0.03125*myChilds[2].childColors[13].x
+                  + 0.03125*myChilds[6].childColors[13].x;
+
+    leftFace.y += 0.25*myChilds[0].childColors[8].y
+                  + 0.125*myChilds[0].childColors[5].y
+                  + 0.125*myChilds[0].childColors[7].y
+                  + 0.125*myChilds[0].childColors[17].y
+                  + 0.125*myChilds[4].childColors[7].y
+                  + 0.125*myChilds[2].childColors[5].y
+                  + 0.0625*myChilds[0].childColors[16].y
+                  + 0.0625*myChilds[0].childColors[4].y
+                  + 0.0625*myChilds[0].childColors[14].y
+                  + 0.0625*myChilds[4].childColors[4].y
+                  + 0.0625*myChilds[4].childColors[16].y
+                  + 0.0625*myChilds[2].childColors[4].y
+                  + 0.0625*myChilds[2].childColors[14].y
+                  + 0.0625*myChilds[6].childColors[4].x
+                  + 0.03125*myChilds[0].childColors[13].y
+                  + 0.03125*myChilds[4].childColors[13].y
+                  + 0.03125*myChilds[2].childColors[13].y
+                  + 0.03125*myChilds[6].childColors[13].y;
+
+    leftFace.z += 0.25*myChilds[0].childColors[8].z
+                  + 0.125*myChilds[0].childColors[5].z
+                  + 0.125*myChilds[0].childColors[7].z
+                  + 0.125*myChilds[0].childColors[17].z
+                  + 0.125*myChilds[4].childColors[7].z
+                  + 0.125*myChilds[2].childColors[5].z
+                  + 0.0625*myChilds[0].childColors[16].z
+                  + 0.0625*myChilds[0].childColors[4].z
+                  + 0.0625*myChilds[0].childColors[14].z
+                  + 0.0625*myChilds[4].childColors[4].z
+                  + 0.0625*myChilds[4].childColors[16].z
+                  + 0.0625*myChilds[2].childColors[4].z
+                  + 0.0625*myChilds[2].childColors[14].z
+                  + 0.0625*myChilds[6].childColors[4].x
+                  + 0.03125*myChilds[0].childColors[13].z
+                  + 0.03125*myChilds[4].childColors[13].z
+                  + 0.03125*myChilds[2].childColors[13].z
+                  + 0.03125*myChilds[6].childColors[13].z;
+
+    leftFace.w += 0.25*myChilds[0].childColors[8].w
+                  + 0.125*myChilds[0].childColors[5].w
+                  + 0.125*myChilds[0].childColors[7].w
+                  + 0.125*myChilds[0].childColors[17].w
+                  + 0.125*myChilds[4].childColors[7].w
+                  + 0.125*myChilds[2].childColors[5].w
+                  + 0.0625*myChilds[0].childColors[16].w
+                  + 0.0625*myChilds[0].childColors[4].w
+                  + 0.0625*myChilds[0].childColors[14].w
+                  + 0.0625*myChilds[4].childColors[4].w
+                  + 0.0625*myChilds[4].childColors[16].w
+                  + 0.0625*myChilds[2].childColors[4].w
+                  + 0.0625*myChilds[2].childColors[14].w
+                  + 0.0625*myChilds[6].childColors[4].x
+                  + 0.03125*myChilds[0].childColors[13].w
+                  + 0.03125*myChilds[4].childColors[13].w
+                  + 0.03125*myChilds[2].childColors[13].w
+                  + 0.03125*myChilds[6].childColors[13].w;
+
+    leftFace.x /= 1.5;
+    leftFace.y /= 1.5;
+    leftFace.z /= 1.5;
+    leftFace.w /= 1.5;
+
+    // RIGHT FACE
+    // needed id 1: 0.125(122) 0.0625(121 112) 0.03125(111)
+    // needed id 3: 0.0625(112) 0.03125(111)
+    // needed id 5: 0.0625(121) 0.03125(111)
+    // needed id 7: 0.03125(111)
+
+    float4 rightFace = make_float4(0,0,0,0);
+
+    rightFace.x += 0.125*myChilds[1].childColors[17].x
                    + 0.0625*myChilds[1].childColors[16].x
-                   + 0.0625*myChilds[3].childColors[12].x
-                   + 0.0625*myChilds[2].childColors[12].x
-                   + 0.0625*myChilds[2].childColors[22].x
-                   + 0.03125*myChilds[0].childColors[13].x
+                   + 0.0625*myChilds[1].childColors[14].x
+                   + 0.0625*myChilds[3].childColors[14].x
+                   + 0.0625*myChilds[5].childColors[16].x
                    + 0.03125*myChilds[1].childColors[13].x
                    + 0.03125*myChilds[3].childColors[13].x
-                   + 0.03125*myChilds[2].childColors[13].x;
+                   + 0.03125*myChilds[5].childColors[13].x
+                   + 0.03125*myChilds[7].childColors[13].x;
+
+    rightFace.y += 0.125*myChilds[1].childColors[17].y
+                   + 0.0625*myChilds[1].childColors[16].y
+                   + 0.0625*myChilds[1].childColors[14].y
+                   + 0.0625*myChilds[3].childColors[14].y
+                   + 0.0625*myChilds[5].childColors[16].y
+                   + 0.03125*myChilds[1].childColors[13].y
+                   + 0.03125*myChilds[3].childColors[13].y
+                   + 0.03125*myChilds[5].childColors[13].y
+                   + 0.03125*myChilds[7].childColors[13].y;
+
+    rightFace.z += 0.125*myChilds[1].childColors[17].z
+                   + 0.0625*myChilds[1].childColors[16].z
+                   + 0.0625*myChilds[1].childColors[14].z
+                   + 0.0625*myChilds[3].childColors[14].z
+                   + 0.0625*myChilds[5].childColors[16].z
+                   + 0.03125*myChilds[1].childColors[13].z
+                   + 0.03125*myChilds[3].childColors[13].z
+                   + 0.03125*myChilds[5].childColors[13].z
+                   + 0.03125*myChilds[7].childColors[13].z;
+
+    rightFace.w += 0.125*myChilds[1].childColors[17].w
+                   + 0.0625*myChilds[1].childColors[16].w
+                   + 0.0625*myChilds[1].childColors[14].w
+                   + 0.0625*myChilds[3].childColors[14].w
+                   + 0.0625*myChilds[5].childColors[16].w
+                   + 0.03125*myChilds[1].childColors[13].w
+                   + 0.03125*myChilds[3].childColors[13].w
+                   + 0.03125*myChilds[5].childColors[13].w
+                   + 0.03125*myChilds[7].childColors[13].w;
+
+    rightFace.x /= 0.5;
+    rightFace.y /= 0.5;
+    rightFace.z /= 0.5;
+    rightFace.w /= 0.5;
+
+    // TOP FACE
+    // needed id 0: 0.25(202) 0.125(201 102 212) 0.0625(112 211 101) 0.03125(111)
+    // needed id 1: 0.125(102) 0.0625(112 101) 0.03125(111)
+    // needed id 4: 0.125(201) 0.0625(101 211) 0.03125(111)
+    // needed id 5: 0.0625(101) 0.03125(111)
+
+    float4 topFace = make_float4(0,0,0,0);
+
+    topFace.x += 0.25*myChilds[0].childColors[20].x
+                 + 0.125*myChilds[0].childColors[19].x
+                 + 0.125*myChilds[0].childColors[11].x
+                 + 0.125*myChilds[0].childColors[23].x
+                 + 0.125*myChilds[1].childColors[11].x
+                 + 0.125*myChilds[4].childColors[19].x
+                 + 0.0625*myChilds[0].childColors[14].x
+                 + 0.0625*myChilds[0].childColors[22].x
+                 + 0.0625*myChilds[0].childColors[10].x
+                 + 0.0625*myChilds[1].childColors[14].x
+                 + 0.0625*myChilds[1].childColors[10].x
+                 + 0.0625*myChilds[4].childColors[10].x
+                 + 0.0625*myChilds[4].childColors[22].x
+                 + 0.0625*myChilds[5].childColors[10].x
+                 + 0.03125*myChilds[0].childColors[13].x
+                 + 0.03125*myChilds[1].childColors[13].x
+                 + 0.03125*myChilds[4].childColors[13].x
+                 + 0.03125*myChilds[5].childColors[13].x;
+
+    topFace.y += 0.25*myChilds[0].childColors[20].y
+                 + 0.125*myChilds[0].childColors[19].y
+                 + 0.125*myChilds[0].childColors[11].y
+                 + 0.125*myChilds[0].childColors[23].y
+                 + 0.125*myChilds[1].childColors[11].y
+                 + 0.125*myChilds[4].childColors[19].y
+                 + 0.0625*myChilds[0].childColors[14].y
+                 + 0.0625*myChilds[0].childColors[22].y
+                 + 0.0625*myChilds[0].childColors[10].y
+                 + 0.0625*myChilds[1].childColors[14].y
+                 + 0.0625*myChilds[1].childColors[10].y
+                 + 0.0625*myChilds[4].childColors[10].y
+                 + 0.0625*myChilds[4].childColors[22].y
+                 + 0.0625*myChilds[5].childColors[10].y
+                 + 0.03125*myChilds[0].childColors[13].y
+                 + 0.03125*myChilds[1].childColors[13].y
+                 + 0.03125*myChilds[4].childColors[13].y
+                 + 0.03125*myChilds[5].childColors[13].y;
+
+    topFace.z += 0.25*myChilds[0].childColors[20].z
+                 + 0.125*myChilds[0].childColors[19].z
+                 + 0.125*myChilds[0].childColors[11].z
+                 + 0.125*myChilds[0].childColors[23].z
+                 + 0.125*myChilds[1].childColors[11].z
+                 + 0.125*myChilds[4].childColors[19].z
+                 + 0.0625*myChilds[0].childColors[14].z
+                 + 0.0625*myChilds[0].childColors[22].z
+                 + 0.0625*myChilds[0].childColors[10].z
+                 + 0.0625*myChilds[1].childColors[14].z
+                 + 0.0625*myChilds[1].childColors[10].z
+                 + 0.0625*myChilds[4].childColors[10].z
+                 + 0.0625*myChilds[4].childColors[22].z
+                 + 0.0625*myChilds[5].childColors[10].z
+                 + 0.03125*myChilds[0].childColors[13].z
+                 + 0.03125*myChilds[1].childColors[13].z
+                 + 0.03125*myChilds[4].childColors[13].z
+                 + 0.03125*myChilds[5].childColors[13].z;
+
+    topFace.w += 0.25*myChilds[0].childColors[20].w
+                 + 0.125*myChilds[0].childColors[19].w
+                 + 0.125*myChilds[0].childColors[11].w
+                 + 0.125*myChilds[0].childColors[23].w
+                 + 0.125*myChilds[1].childColors[11].w
+                 + 0.125*myChilds[4].childColors[19].w
+                 + 0.0625*myChilds[0].childColors[14].w
+                 + 0.0625*myChilds[0].childColors[22].w
+                 + 0.0625*myChilds[0].childColors[10].w
+                 + 0.0625*myChilds[1].childColors[14].w
+                 + 0.0625*myChilds[1].childColors[10].w
+                 + 0.0625*myChilds[4].childColors[10].w
+                 + 0.0625*myChilds[4].childColors[22].w
+                 + 0.0625*myChilds[5].childColors[10].w
+                 + 0.03125*myChilds[0].childColors[13].w
+                 + 0.03125*myChilds[1].childColors[13].w
+                 + 0.03125*myChilds[4].childColors[13].w
+                 + 0.03125*myChilds[5].childColors[13].w;
+
+    topFace.x /= 1.5;
+    topFace.y /= 1.5;
+    topFace.z /= 1.5;
+    topFace.w /= 1.5;
+
+    // BOTTOM FACE
+    // needed ID 2: 0.125*(212) 0.0625*(211 112) 0.03125*(111)
+    // needed ID 3: 0.0625*(102) 0.03125*(111)
+    // needed ID 6: 0.0625*(221) 0.03125*(111)
+    // needed ID 7: 0.03125(111)
+
+    float4 bottomFace = make_float4(0,0,0,0);
+
+    bottomFace.x += 0.125*myChilds[2].childColors[23].x
+                    + 0.0625*myChilds[2].childColors[22].x
+                    + 0.0625*myChilds[2].childColors[14].x
+                    + 0.0625*myChilds[3].childColors[11].x
+                    + 0.0625*myChilds[6].childColors[25].x
+                    + 0.03125*myChilds[2].childColors[13].x
+                    + 0.03125*myChilds[3].childColors[13].x
+                    + 0.03125*myChilds[6].childColors[13].x
+                    + 0.03125*myChilds[7].childColors[13].x;
+
+    bottomFace.y += 0.125*myChilds[2].childColors[23].y
+                    + 0.0625*myChilds[2].childColors[22].y
+                    + 0.0625*myChilds[2].childColors[14].y
+                    + 0.0625*myChilds[3].childColors[11].y
+                    + 0.0625*myChilds[6].childColors[25].y
+                    + 0.03125*myChilds[2].childColors[13].y
+                    + 0.03125*myChilds[3].childColors[13].y
+                    + 0.03125*myChilds[6].childColors[13].y
+                    + 0.03125*myChilds[7].childColors[13].y;
+
+    bottomFace.z += 0.125*myChilds[2].childColors[23].z
+                    + 0.0625*myChilds[2].childColors[22].z
+                    + 0.0625*myChilds[2].childColors[14].z
+                    + 0.0625*myChilds[3].childColors[11].z
+                    + 0.0625*myChilds[6].childColors[25].z
+                    + 0.03125*myChilds[2].childColors[13].z
+                    + 0.03125*myChilds[3].childColors[13].z
+                    + 0.03125*myChilds[6].childColors[13].z
+                    + 0.03125*myChilds[7].childColors[13].z;
+
+    bottomFace.w += 0.125*myChilds[2].childColors[23].w
+                    + 0.0625*myChilds[2].childColors[22].w
+                    + 0.0625*myChilds[2].childColors[14].w
+                    + 0.0625*myChilds[3].childColors[11].w
+                    + 0.0625*myChilds[6].childColors[25].w
+                    + 0.03125*myChilds[2].childColors[13].w
+                    + 0.03125*myChilds[3].childColors[13].w
+                    + 0.03125*myChilds[6].childColors[13].w
+                    + 0.03125*myChilds[7].childColors[13].w;
+
+    bottomFace.x /= 0.5;
+    bottomFace.y /= 0.5;
+    bottomFace.z /= 0.5;
+    bottomFace.w /= 0.5;
 
 
     // center (1,1,1)
@@ -707,7 +1016,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 0,1,1
-    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+    surf3Dwrite(make_uchar4(leftFace.x,leftFace.y,leftFace.z,leftFace.w),
                 colorBrickPool,
                 (targetBrick.x) * sizeof(uchar4),
                 targetBrick.y+1,
@@ -748,7 +1057,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y,
                 targetBrick.z);
     // 1,0,1
-    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+    surf3Dwrite(make_uchar4(topFace.x,topFace.y,topFace.z,topFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
                 targetBrick.y,
@@ -769,7 +1078,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 1,1,2
-    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+    surf3Dwrite(make_uchar4(backFace.x,backFace.y,backFace.z,backFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
                 targetBrick.y+1,
@@ -783,7 +1092,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 1,2,1
-    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+    surf3Dwrite(make_uchar4(bottomFace.x,bottomFace.y,bottomFace.z,bottomFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
                 targetBrick.y+2,
@@ -825,7 +1134,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 2,1,1
-    surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
+    surf3Dwrite(make_uchar4(rightFace.x,rightFace.y,rightFace.z,rightFace.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
                 targetBrick.y+1,
