@@ -1,7 +1,5 @@
 #version 430
 
-uniform float volumeExtent;
-
 uniform int resolution;
 
 // Calculate 3D position from index
@@ -11,11 +9,11 @@ vec3 linearTo3D(int id)
     id -= (z * resolution * resolution);
     int y = id / resolution;
     int x = id % resolution;
-    return vec3(x,y,z) / resolution;
+    return vec3(x,y,z);
 }
 
 void main()
 {
-    vec3 position = volumeExtent * linearTo3D(int(gl_VertexID)) - volumeExtent/2;
-    gl_Position = vec4(position, 1);
+    // Give geometry shader the voxel coordinate
+    gl_Position = vec4(linearTo3D(int(gl_VertexID)), 1);
 }
