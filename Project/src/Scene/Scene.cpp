@@ -11,6 +11,9 @@
 
 Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
 {
+    // Initial members
+    mDynamicObjectPosition = glm::vec3(0,0,0);
+
     // Create instance of assimp
     Assimp::Importer importer;
 

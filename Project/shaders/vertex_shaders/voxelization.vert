@@ -11,6 +11,7 @@ layout(location = 2) in vec4 normalAttribute;
 
 //!< uniforms
 uniform mat4 orthographicProjection;
+uniform mat4 model;
 
 //!< out-variables
 out Vertex
@@ -22,7 +23,7 @@ out Vertex
 
 void main()
 {
-    Out.posDevice = (orthographicProjection * positionAttribute).xyz;
-    Out.normal = normalAttribute.xyz;
+    Out.posDevice = (orthographicProjection * model * positionAttribute).xyz;
+    Out.normal = (transpose( inverse( model ) ) *  normalAttribute).xyz;
     Out.uv = uvCoordAttribute;
 }
