@@ -10,7 +10,7 @@ class Material
 {
 public:
 
-    Material(aiMaterial const * material);
+    Material(std::string areaName, aiMaterial const * material);
     virtual ~Material();
 
     void bind(ShaderProgram* pShaderProgram) const;

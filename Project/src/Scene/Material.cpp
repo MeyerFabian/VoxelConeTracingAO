@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <iostream>
-Material::Material(aiMaterial const * material)
+Material::Material(std::string areaName, aiMaterial const * material)
 {
     // Name of material
     aiString name;
@@ -15,7 +15,7 @@ Material::Material(aiMaterial const * material)
     // Diffuse
     if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
     {
-        mupDiffuse = std::unique_ptr<Texture>(new Texture(std::string(TEXTURES_PATH) + "/" + std::string(texturePath.C_Str())));
+        mupDiffuse = std::unique_ptr<Texture>(new Texture(std::string(TEXTURES_PATH) + "/" + areaName + "/" + std::string(texturePath.C_Str())));
     }
 }
 
