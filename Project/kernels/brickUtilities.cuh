@@ -73,6 +73,20 @@ if(pos.z<10) {
     surf3Dwrite(color, colorBrickPool, pos.x* sizeof(uchar4), pos.y, pos.z);
 }
 
+__device__ unsigned int addColors(const uchar4 &input, float4 &output)
+{
+    if(input.w != 0)
+    {
+        output.x += input.x;
+        output.y += input.y;
+        output.z += input.z;
+        output.w += input.w;
+        return 1;
+    }
+    else
+        return 0;
+}
+
 // filters the brick with an inverse gaussian mask to fill a brick
 // the corner bricks are used as sources
 __device__ void filterBrick(const uint3 &brickCoords)
@@ -100,51 +114,24 @@ __device__ void filterBrick(const uint3 &brickCoords)
 	
     // ################ center: #######################
     float4 tmp = make_float4(0,0,0,0);
+    int counter = 0;
 
-    tmp.x += static_cast<float>(colors[0].x);
-    tmp.y += static_cast<float>(colors[0].y);
-    tmp.z += static_cast<float>(colors[0].z);
-    tmp.w += static_cast<float>(colors[0].w);
 
-    tmp.x += static_cast<float>(colors[1].x);
-    tmp.y += static_cast<float>(colors[1].y);
-    tmp.z += static_cast<float>(colors[1].z);
-    tmp.w += static_cast<float>(colors[1].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[1], tmp);
+    counter += addColors(colors[2], tmp);
+    counter += addColors(colors[3], tmp);
+    counter += addColors(colors[4], tmp);
+    counter += addColors(colors[5], tmp);
+    counter += addColors(colors[6], tmp);
+    counter += addColors(colors[7], tmp);
 
-    tmp.x += static_cast<float>(colors[2].x);
-    tmp.y += static_cast<float>(colors[2].y);
-    tmp.z += static_cast<float>(colors[2].z);
-    tmp.w += static_cast<float>(colors[2].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[3].x);
-    tmp.y += static_cast<float>(colors[3].y);
-    tmp.z += static_cast<float>(colors[3].z);
-    tmp.w += static_cast<float>(colors[3].w);
-
-    tmp.x += static_cast<float>(colors[4].x);
-    tmp.y += static_cast<float>(colors[4].y);
-    tmp.z += static_cast<float>(colors[4].z);
-    tmp.w += static_cast<float>(colors[4].w);
-
-    tmp.x += static_cast<float>(colors[5].x);
-    tmp.y += static_cast<float>(colors[5].y);
-    tmp.z += static_cast<float>(colors[5].z);
-    tmp.w += static_cast<float>(colors[5].w);
-
-    tmp.x += static_cast<float>(colors[6].x);
-    tmp.y += static_cast<float>(colors[6].y);
-    tmp.z += static_cast<float>(colors[6].z);
-    tmp.w += static_cast<float>(colors[6].w);
-
-    tmp.x += static_cast<float>(colors[7].x);
-    tmp.y += static_cast<float>(colors[7].y);
-    tmp.z += static_cast<float>(colors[7].z);
-    tmp.w += static_cast<float>(colors[7].w);
-
-    tmp.x *= 0.125f;
-	tmp.y *= 0.125f;
-	tmp.z *= 0.125f;
-    tmp.w *= 0.125f;
+    counter = 0;
 
     uint3 newCoords = make_uint3(1,1,1);
     newCoords.x+=brickCoords.x;
@@ -157,31 +144,33 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // ################### FACES ##########################
     // right side: 1, 3, 5, 7
+
+    /*
+     * // front corners
+    insertpos[0] = make_uint3(0,0,0);
+    insertpos[1] = make_uint3(2,0,0);
+    insertpos[2] = make_uint3(0,2,0);
+    insertpos[3] = make_uint3(2,2,0);
+
+    //back corners
+    insertpos[4] = make_uint3(0,0,2);
+    insertpos[5] = make_uint3(2,0,2);
+    insertpos[6] = make_uint3(0,2,2);
+    insertpos[7] = make_uint3(2,2,2);
+     */
+
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[1].x);
-    tmp.y += static_cast<float>(colors[1].y);
-    tmp.z += static_cast<float>(colors[1].z);
-    tmp.w += static_cast<float>(colors[1].w);
+    counter += addColors(colors[1], tmp);
+    counter += addColors(colors[3], tmp);
+    counter += addColors(colors[5], tmp);
+    counter += addColors(colors[7], tmp);
 
-    tmp.x += static_cast<float>(colors[3].x);
-    tmp.y += static_cast<float>(colors[3].y);
-    tmp.z += static_cast<float>(colors[3].z);
-    tmp.w += static_cast<float>(colors[3].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[5].x);
-    tmp.y += static_cast<float>(colors[5].y);
-    tmp.z += static_cast<float>(colors[5].z);
-    tmp.w += static_cast<float>(colors[5].w);
-
-    tmp.x += static_cast<float>(colors[7].x);
-    tmp.y += static_cast<float>(colors[7].y);
-    tmp.z += static_cast<float>(colors[7].z);
-    tmp.w += static_cast<float>(colors[7].w);
-
-    tmp.x *= 0.25f;
-    tmp.y *= 0.25f;
-    tmp.z *= 0.25f;
-    tmp.w *= 0.25f;
+    counter = 0;
 
     newCoords = make_uint3(2,1,1);
     newCoords.x+=brickCoords.x;
@@ -192,30 +181,17 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // left side: 0, 2, 4, 6
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[0].x);
-    tmp.y += static_cast<float>(colors[0].y);
-    tmp.z += static_cast<float>(colors[0].z);
-    tmp.w += static_cast<float>(colors[0].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[2], tmp);
+    counter += addColors(colors[4], tmp);
+    counter += addColors(colors[5], tmp);
 
-    tmp.x += static_cast<float>(colors[2].x);
-    tmp.y += static_cast<float>(colors[2].y);
-    tmp.z += static_cast<float>(colors[2].z);
-    tmp.w += static_cast<float>(colors[2].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[4].x);
-    tmp.y += static_cast<float>(colors[4].y);
-    tmp.z += static_cast<float>(colors[4].z);
-    tmp.w += static_cast<float>(colors[4].w);
-
-    tmp.x += static_cast<float>(colors[6].x);
-    tmp.y += static_cast<float>(colors[6].y);
-    tmp.z += static_cast<float>(colors[6].z);
-    tmp.w += static_cast<float>(colors[6].w);
-
-    tmp.x *= 0.25f;
-    tmp.y *= 0.25f;
-    tmp.z *= 0.25f;
-    tmp.w *= 0.25f;
+    counter = 0;
 
     newCoords = make_uint3(0,1,1);
     newCoords.x+=brickCoords.x;
@@ -226,30 +202,18 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // bottom side: 2, 3, 6, 7
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[2].x);
-    tmp.y += static_cast<float>(colors[2].y);
-    tmp.z += static_cast<float>(colors[2].z);
-    tmp.w += static_cast<float>(colors[2].w);
 
-    tmp.x += static_cast<float>(colors[3].x);
-    tmp.y += static_cast<float>(colors[3].y);
-    tmp.z += static_cast<float>(colors[3].z);
-    tmp.w += static_cast<float>(colors[3].w);
+    counter += addColors(colors[2], tmp);
+    counter += addColors(colors[3], tmp);
+    counter += addColors(colors[6], tmp);
+    counter += addColors(colors[7], tmp);
 
-    tmp.x += static_cast<float>(colors[6].x);
-    tmp.y += static_cast<float>(colors[6].y);
-    tmp.z += static_cast<float>(colors[6].z);
-    tmp.w += static_cast<float>(colors[6].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[7].x);
-    tmp.y += static_cast<float>(colors[7].y);
-    tmp.z += static_cast<float>(colors[7].z);
-    tmp.w += static_cast<float>(colors[7].w);
-
-    tmp.x *= 0.25f;
-    tmp.y *= 0.25f;
-    tmp.z *= 0.25f;
-    tmp.w *= 0.25f;
+    counter = 0;
 
     newCoords = make_uint3(1,2,1);
     newCoords.x+=brickCoords.x;
@@ -260,30 +224,18 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // top side: 0, 1, 4, 5
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[0].x);
-    tmp.y += static_cast<float>(colors[0].y);
-    tmp.z += static_cast<float>(colors[0].z);
-    tmp.w += static_cast<float>(colors[0].w);
 
-    tmp.x += static_cast<float>(colors[1].x);
-    tmp.y += static_cast<float>(colors[1].y);
-    tmp.z += static_cast<float>(colors[1].z);
-    tmp.w += static_cast<float>(colors[1].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[1], tmp);
+    counter += addColors(colors[4], tmp);
+    counter += addColors(colors[5], tmp);
 
-    tmp.x += static_cast<float>(colors[4].x);
-    tmp.y += static_cast<float>(colors[4].y);
-    tmp.z += static_cast<float>(colors[4].z);
-    tmp.w += static_cast<float>(colors[4].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[5].x);
-    tmp.y += static_cast<float>(colors[5].y);
-    tmp.z += static_cast<float>(colors[5].z);
-    tmp.w += static_cast<float>(colors[5].w);
-
-    tmp.x *= 0.25f;
-    tmp.y *= 0.25f;
-    tmp.z *= 0.25f;
-    tmp.w *= 0.25f;
+    counter = 0;
 
     newCoords = make_uint3(1,0,1);
     newCoords.x+=brickCoords.x;
@@ -294,30 +246,18 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // near side: 0, 1, 2, 3
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[0].x);
-    tmp.y += static_cast<float>(colors[0].y);
-    tmp.z += static_cast<float>(colors[0].z);
-    tmp.w += static_cast<float>(colors[0].w);
 
-    tmp.x += static_cast<float>(colors[1].x);
-    tmp.y += static_cast<float>(colors[1].y);
-    tmp.z += static_cast<float>(colors[1].z);
-    tmp.w += static_cast<float>(colors[1].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[1], tmp);
+    counter += addColors(colors[2], tmp);
+    counter += addColors(colors[3], tmp);
 
-    tmp.x += static_cast<float>(colors[2].x);
-    tmp.y += static_cast<float>(colors[2].y);
-    tmp.z += static_cast<float>(colors[2].z);
-    tmp.w += static_cast<float>(colors[2].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[3].x);
-    tmp.y += static_cast<float>(colors[3].y);
-    tmp.z += static_cast<float>(colors[3].z);
-    tmp.w += static_cast<float>(colors[3].w);
-
-    tmp.x *= 0.25f;
-    tmp.y *= 0.25f;
-    tmp.z *= 0.25f;
-    tmp.w *= 0.25f;
+    counter = 0;
 
     newCoords = make_uint3(1,1,0);
     newCoords.x+=brickCoords.x;
@@ -328,30 +268,18 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // far side: 4, 5, 6, 7
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[4].x);
-    tmp.y += static_cast<float>(colors[4].y);
-    tmp.z += static_cast<float>(colors[4].z);
-    tmp.w += static_cast<float>(colors[4].w);
 
-    tmp.x += static_cast<float>(colors[5].x);
-    tmp.y += static_cast<float>(colors[5].y);
-    tmp.z += static_cast<float>(colors[5].z);
-    tmp.w += static_cast<float>(colors[5].w);
+    counter += addColors(colors[4], tmp);
+    counter += addColors(colors[5], tmp);
+    counter += addColors(colors[6], tmp);
+    counter += addColors(colors[7], tmp);
 
-    tmp.x += static_cast<float>(colors[6].x);
-    tmp.y += static_cast<float>(colors[6].y);
-    tmp.z += static_cast<float>(colors[6].z);
-    tmp.w += static_cast<float>(colors[6].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x += static_cast<float>(colors[7].x);
-    tmp.y += static_cast<float>(colors[7].y);
-    tmp.z += static_cast<float>(colors[7].z);
-    tmp.w += static_cast<float>(colors[7].w);
-
-    tmp.x *= 0.25f;
-    tmp.y *= 0.25f;
-    tmp.z *= 0.25f;
-    tmp.w *= 0.25f;
+    counter = 0;
 
     newCoords = make_uint3(1,1,2);
     newCoords.x+=brickCoords.x;
@@ -363,20 +291,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
     // ####################### EDGES (FRONT) #####################
     // top edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[0].x);
-    tmp.y += static_cast<float>(colors[0].y);
-    tmp.z += static_cast<float>(colors[0].z);
-    tmp.w += static_cast<float>(colors[0].w);
 
-    tmp.x += static_cast<float>(colors[1].x);
-    tmp.y += static_cast<float>(colors[1].y);
-    tmp.z += static_cast<float>(colors[1].z);
-    tmp.w += static_cast<float>(colors[1].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[1], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(1,0,0);
     newCoords.x+=brickCoords.x;
@@ -387,20 +311,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // bottom edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[2].x);
-    tmp.y += static_cast<float>(colors[2].y);
-    tmp.z += static_cast<float>(colors[2].z);
-    tmp.w += static_cast<float>(colors[2].w);
 
-    tmp.x += static_cast<float>(colors[3].x);
-    tmp.y += static_cast<float>(colors[3].y);
-    tmp.z += static_cast<float>(colors[3].z);
-    tmp.w += static_cast<float>(colors[3].w);
+    counter += addColors(colors[2], tmp);
+    counter += addColors(colors[3], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(1,2,0);
     newCoords.x+=brickCoords.x;
@@ -411,20 +331,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // left edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[0].x);
-    tmp.y += static_cast<float>(colors[0].y);
-    tmp.z += static_cast<float>(colors[0].z);
-    tmp.w += static_cast<float>(colors[0].w);
 
-    tmp.x += static_cast<float>(colors[2].x);
-    tmp.y += static_cast<float>(colors[2].y);
-    tmp.z += static_cast<float>(colors[2].z);
-    tmp.w += static_cast<float>(colors[2].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[2], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(0,1,0);
     newCoords.x+=brickCoords.x;
@@ -435,20 +351,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // right edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[1].x);
-    tmp.y += static_cast<float>(colors[1].y);
-    tmp.z += static_cast<float>(colors[1].z);
-    tmp.w += static_cast<float>(colors[1].w);
 
-    tmp.x += static_cast<float>(colors[3].x);
-    tmp.y += static_cast<float>(colors[3].y);
-    tmp.z += static_cast<float>(colors[3].z);
-    tmp.w += static_cast<float>(colors[3].w);
+    counter += addColors(colors[1], tmp);
+    counter += addColors(colors[3], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(2,1,0);
     newCoords.x+=brickCoords.x;
@@ -460,20 +372,15 @@ __device__ void filterBrick(const uint3 &brickCoords)
     // ####################### EDGES (BACK) #####################
     // top edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[4].x);
-    tmp.y += static_cast<float>(colors[4].y);
-    tmp.z += static_cast<float>(colors[4].z);
-    tmp.w += static_cast<float>(colors[4].w);
+    counter += addColors(colors[4], tmp);
+    counter += addColors(colors[5], tmp);
 
-    tmp.x += static_cast<float>(colors[5].x);
-    tmp.y += static_cast<float>(colors[5].y);
-    tmp.z += static_cast<float>(colors[5].z);
-    tmp.w += static_cast<float>(colors[5].w);
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    counter = 0;
 
     newCoords = make_uint3(1,0,2);
     newCoords.x+=brickCoords.x;
@@ -484,20 +391,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // bottom edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[6].x);
-    tmp.y += static_cast<float>(colors[6].y);
-    tmp.z += static_cast<float>(colors[6].z);
-    tmp.w += static_cast<float>(colors[6].w);
 
-    tmp.x += static_cast<float>(colors[7].x);
-    tmp.y += static_cast<float>(colors[7].y);
-    tmp.z += static_cast<float>(colors[7].z);
-    tmp.w += static_cast<float>(colors[7].w);
+    counter += addColors(colors[5], tmp);
+    counter += addColors(colors[6], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(1,2,2);
     newCoords.x+=brickCoords.x;
@@ -508,20 +411,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // left edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[4].x);
-    tmp.y += static_cast<float>(colors[4].y);
-    tmp.z += static_cast<float>(colors[4].z);
-    tmp.w += static_cast<float>(colors[4].w);
 
-    tmp.x += static_cast<float>(colors[6].x);
-    tmp.y += static_cast<float>(colors[6].y);
-    tmp.z += static_cast<float>(colors[6].z);
-    tmp.w += static_cast<float>(colors[6].w);
+    counter += addColors(colors[4], tmp);
+    counter += addColors(colors[6], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(0,1,2);
     newCoords.x+=brickCoords.x;
@@ -532,20 +431,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     // right edge
     tmp = make_float4(0,0,0,0);
-    tmp.x += static_cast<float>(colors[5].x);
-    tmp.y += static_cast<float>(colors[5].y);
-    tmp.z += static_cast<float>(colors[5].z);
-    tmp.w += static_cast<float>(colors[5].w);
 
-    tmp.x += static_cast<float>(colors[7].x);
-    tmp.y += static_cast<float>(colors[7].y);
-    tmp.z += static_cast<float>(colors[7].z);
-    tmp.w += static_cast<float>(colors[7].w);
+    counter += addColors(colors[5], tmp);
+    counter += addColors(colors[7], tmp);
 
-    tmp.x *= 0.5f;
-    tmp.y *= 0.5f;
-    tmp.z *= 0.5f;
-    tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
     newCoords = make_uint3(2,1,2);
     newCoords.x+=brickCoords.x;
@@ -560,20 +455,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 	//bottom edge
 
 	tmp = make_float4(0, 0, 0, 0);
-	tmp.x += static_cast<float>(colors[2].x);
-	tmp.y += static_cast<float>(colors[2].y);
-	tmp.z += static_cast<float>(colors[2].z);
-	tmp.w += static_cast<float>(colors[2].w);
 
-	tmp.x += static_cast<float>(colors[6].x);
-	tmp.y += static_cast<float>(colors[6].y);
-	tmp.z += static_cast<float>(colors[6].z);
-	tmp.w += static_cast<float>(colors[6].w);
+    counter += addColors(colors[2], tmp);
+    counter += addColors(colors[6], tmp);
 
-	tmp.x *= 0.5f;
-	tmp.y *= 0.5f;
-	tmp.z *= 0.5f;
-	tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
 	newCoords = make_uint3(0,2,1);
 	newCoords.x += brickCoords.x;
@@ -585,20 +476,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 	//top edge
 
 	tmp = make_float4(0, 0, 0, 0);
-	tmp.x += static_cast<float>(colors[0].x);
-	tmp.y += static_cast<float>(colors[0].y);
-	tmp.z += static_cast<float>(colors[0].z);
-	tmp.w += static_cast<float>(colors[0].w);
 
-	tmp.x += static_cast<float>(colors[4].x);
-	tmp.y += static_cast<float>(colors[4].y);
-	tmp.z += static_cast<float>(colors[4].z);
-	tmp.w += static_cast<float>(colors[4].w);
+    counter += addColors(colors[0], tmp);
+    counter += addColors(colors[4], tmp);
 
-	tmp.x *= 0.5f;
-	tmp.y *= 0.5f;
-	tmp.z *= 0.5f;
-	tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
 	newCoords = make_uint3(0, 0, 1);
 	newCoords.x += brickCoords.x;
@@ -611,20 +498,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 	//bottom edge
 
 	tmp = make_float4(0, 0, 0, 0);
-	tmp.x += static_cast<float>(colors[3].x);
-	tmp.y += static_cast<float>(colors[3].y);
-	tmp.z += static_cast<float>(colors[3].z);
-	tmp.w += static_cast<float>(colors[3].w);
 
-	tmp.x += static_cast<float>(colors[7].x);
-	tmp.y += static_cast<float>(colors[7].y);
-	tmp.z += static_cast<float>(colors[7].z);
-	tmp.w += static_cast<float>(colors[7].w);
+    counter += addColors(colors[3], tmp);
+    counter += addColors(colors[7], tmp);
 
-	tmp.x *= 0.5f;
-	tmp.y *= 0.5f;
-	tmp.z *= 0.5f;
-	tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
 	newCoords = make_uint3(2, 2, 1);
 	newCoords.x += brickCoords.x;
@@ -636,20 +519,16 @@ __device__ void filterBrick(const uint3 &brickCoords)
 	//top edge
 
 	tmp = make_float4(0, 0, 0, 0);
-	tmp.x += static_cast<float>(colors[1].x);
-	tmp.y += static_cast<float>(colors[1].y);
-	tmp.z += static_cast<float>(colors[1].z);
-	tmp.w += static_cast<float>(colors[1].w);
 
-	tmp.x += static_cast<float>(colors[5].x);
-	tmp.y += static_cast<float>(colors[5].y);
-	tmp.z += static_cast<float>(colors[5].z);
-	tmp.w += static_cast<float>(colors[5].w);
+    counter += addColors(colors[1], tmp);
+    counter += addColors(colors[5], tmp);
 
-	tmp.x *= 0.5f;
-	tmp.y *= 0.5f;
-	tmp.z *= 0.5f;
-	tmp.w *= 0.5f;
+    tmp.x /= counter;
+    tmp.y /= counter;
+    tmp.z /= counter;
+    tmp.w /= counter;
+
+    counter = 0;
 
 	newCoords = make_uint3(2, 0, 1);
 	newCoords.x += brickCoords.x;
@@ -657,8 +536,6 @@ __device__ void filterBrick(const uint3 &brickCoords)
 	newCoords.z += brickCoords.z;
 
 	surf3Dwrite(make_uchar4(tmp.x, tmp.y, tmp.z, tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
-
-
 }
 
 
