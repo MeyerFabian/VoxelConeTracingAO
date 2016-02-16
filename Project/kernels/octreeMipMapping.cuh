@@ -643,6 +643,33 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     frontFace.z /= 1.5;
     frontFace.w /= 1.5;
 
+    // BACK FACE
+    float4 backFace = make_float4(0,0,0,0);
+
+    // needed in child 0: 110 210 120 220 111 211 121 221
+    // needed in child 2: 110 210 111 211
+    // needed in child 1: 110 120 111 121
+    // needed in child 3: 110 111
+    // keep in mind that the backface need less lookups as the faces intersect
+    backFace.x += 0.25*myChilds[0].childColors[24].x
+                   + 0.125*myChilds[0].childColors[21].x
+                   + 0.125*myChilds[0].childColors[15].x
+                   + 0.125*myChilds[0].childColors[25].x
+                   + 0.125*myChilds[1].childColors[15].x
+                   + 0.125*myChilds[2].childColors[21].x
+                   + 0.0625*myChilds[0].childColors[12].x
+                   + 0.0625*myChilds[0].childColors[16].x
+                   + 0.0625*myChilds[0].childColors[22].x
+                   + 0.0625*myChilds[1].childColors[12].x
+                   + 0.0625*myChilds[1].childColors[16].x
+                   + 0.0625*myChilds[3].childColors[12].x
+                   + 0.0625*myChilds[2].childColors[12].x
+                   + 0.0625*myChilds[2].childColors[22].x
+                   + 0.03125*myChilds[0].childColors[13].x
+                   + 0.03125*myChilds[1].childColors[13].x
+                   + 0.03125*myChilds[3].childColors[13].x
+                   + 0.03125*myChilds[2].childColors[13].x;
+
 
     // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
