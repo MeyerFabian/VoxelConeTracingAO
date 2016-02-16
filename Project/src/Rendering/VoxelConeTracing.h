@@ -45,6 +45,7 @@ private:
 	float directionBeginScale;
 	float beginningVoxelSize;
 	float maxDistance;
+	float lambda;
 	void fillGui();
 };
 #endif //VOXELCONETRACING_H

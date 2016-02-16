@@ -27,6 +27,7 @@ uniform float beginningVoxelSize;
 uniform float directionBeginScale;
 uniform float volumeExtent;
 uniform float maxDistance;
+uniform float lambda;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
@@ -142,6 +143,10 @@ void alphaCorrection(	inout float alpha,
 										);
 }
 
+void alphaWeighting(inout float alpha,float distance){
+	alpha = 1/(1+lambda*distance)*alpha;
+}
+
 vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 	vec4 outputColor = vec4(0,0,0,0);
 
@@ -236,33 +241,43 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 }
 
 // perimeterDirection seems to be calulcated right :)
-vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture){
+vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture, float cosWeight){
     float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLevel[maxLevel]);
 	float samplingRate = voxelSizeOnLevel[maxLevel];
 	float distance = samplingRate/2.0;
 	vec3 rayPosition = vec3(0.0);
-	vec4 color = vec4(1.0,1.0,1.0,1.0);
+	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	float voxelSize = voxelSizeOnLevel[maxLevel];
-	
+	float alpha = 0.0f;
+	float oldSamplingRate =0.0f;
+	vec4 premultipliedColor = vec4(0,0,0,0);
+
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
-		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
+		alpha = cosWeight * rayCastOctree(rayPosition,voxelSize).w;
 		distance += samplingRate;
-		color -= 1.0/distance*vec4(interpolatedColor.w, interpolatedColor.w,interpolatedColor.w,1.0);
+		alphaWeighting(alpha,distance);
+		premultipliedColor= vec4(1.0,1.0,1.0,1.0) * alpha;
+		color =  (1.0 - color.a) * premultipliedColor + color;
 	}
 	
 	while(distance < maxDistance){
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
+		oldSamplingRate = samplingRate;
 		samplingRate = voxelSize;
 		distance += samplingRate/2.0;
 		rayPosition = perimeterStart + distance * perimeterDirection;
-		vec4 interpolatedColor = rayCastOctree(rayPosition,voxelSize);
+		alpha = cosWeight * rayCastOctree(rayPosition,voxelSize).w;
+		alphaWeighting(alpha,distance);
+		alphaCorrection(alpha,oldSamplingRate,samplingRate);
 		distance += samplingRate/2.0;
-		color -= 1.0/distance * vec4(interpolatedColor.w, interpolatedColor.w,interpolatedColor.w,1.0);
+		premultipliedColor= vec4(1.0,1.0,1.0,1.0) * alpha;
+		color =  (1.0 - color.a) * premultipliedColor + color;
 	}
 	
 	return color;
 }
+
 
 /*
 *						MAIN
@@ -286,30 +301,32 @@ void main()
 	// accordingly to the given normal
 	mat3 OutOfTangentSpace = mat3(tangent,normal,bitangent);
 
-	vec4 finalColor = vec4(0.0,0.0,0.0,0.0);
+	vec4 finalColor = vec4(1.0,1.0,1.0,1.0);
 
 	//We precompute voxelsizes on the different levels, 
 	for(int level = 0; level<=maxLevel ; level++){
 		voxelSizeOnLevel[level] = volumeExtent / (pow2[level]);
 	}
-
+	
 	//consider loop unrolling
 	for(int i = 0 ; i < NUM_CONES;i++){
 
 		//Push the cone a little bit out of the voxel by its normal
 		vec3 coneStart = position.xyz + normal * voxelSizeOnLevel[maxLevel] *directionBeginScale;
 		
+		
 		vec3 coneDirection = OutOfTangentSpace * cones[i];
+		float cosWeight = abs(dot(normal,coneDirection));
 
 		float coneAperture = aperture[i];
 
 		// finalColor will be accumulated due to cone tracing in the octree 
-		finalColor += coneTracing(coneStart, coneDirection,coneAperture) / (NUM_CONES);
+		finalColor -= coneTracing(coneStart, coneDirection,coneAperture,cosWeight) / (NUM_CONES);
 	}
 
 	Everything_else=vec4(tangent,1.0) * vec4(normal,1.0)*volumeRes *  position*beginningVoxelSize*directionBeginScale*
 	volumeExtent*maxDistance;
 
-	FragColor = vec4(finalColor); 
+	FragColor =  vec4(finalColor); 
 
 }

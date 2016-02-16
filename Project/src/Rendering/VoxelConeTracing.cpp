@@ -22,7 +22,8 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
     m_gbuffer = make_unique<GBuffer>();
 	beginningVoxelSize = 0.05f;
 	directionBeginScale = 1.0f;
-	maxDistance = 5.0f;
+	maxDistance = 5.0f; 
+	lambda = 0.5f;
 }
 
 
@@ -313,6 +314,7 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
 	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
 	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
 	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
+	m_ambientOcclusion->updateUniform("lambda", lambda);
 
 	//GBUFFER TEXTURES
 	m_ambientOcclusion->addTexture("positionTex", m_gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION));
@@ -391,4 +393,5 @@ void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
 	ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");
 	ImGui::SliderFloat("Pushed out PerimeterStart in VoxelSize", &directionBeginScale, 0.0f, 5.0f, "%.1f");
+	ImGui::SliderFloat("AO lambda", &lambda, 0.0f, 2.0f, "%.3f");
 }
