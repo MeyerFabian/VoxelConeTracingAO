@@ -17,7 +17,7 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
     // ### AREA ###
 
     // Import area
-    const aiScene* scene = importer.ReadFile(std::string(MESHES_PATH) + "/" + areaName + ".obj",
+    const aiScene* area = importer.ReadFile(std::string(MESHES_PATH) + "/" + areaName + ".obj",
         aiProcess_GenNormals			 |
         aiProcess_CalcTangentSpace       |
         aiProcess_Triangulate            |
@@ -25,16 +25,16 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
         aiProcess_SortByPType);
 
     // Check whether import was successful
-    if(!scene)
+    if(!area)
     {
         ErrorHandler::log(importer.GetErrorString());
     }
 
     // Iterate first over materials in area
-    for(int i = 0; i < scene->mNumMaterials; i++)
+    for(int i = 0; i < area->mNumMaterials; i++)
     {
         // Fetch pointer to assimp structure
-        aiMaterial* material = scene->mMaterials[i];
+        aiMaterial* material = area->mMaterials[i];
 
         // Create material from assimp data
         std::unique_ptr<Material> upMaterial = std::unique_ptr<Material>(new Material(areaName, material));
@@ -44,10 +44,10 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
     }
 
     // Iterate then over meshes in area
-    for(int i = 0; i < scene->mNumMeshes; i++)
+    for(int i = 0; i < area->mNumMeshes; i++)
     {
         // Fetch pointer to assimp structure
-        aiMesh* mesh = scene->mMeshes[i];
+        aiMesh* mesh = area->mMeshes[i];
 
         // Create mesh from assimp data
         std::unique_ptr<Mesh> upMesh = std::unique_ptr<Mesh>(new Mesh(mesh));
@@ -63,21 +63,21 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
     // ### DYNAMIC OBJECT ###
 
     // Import dynamic object
-    scene = importer.ReadFile(std::string(MESHES_PATH) + "/teapot.obj",
+    const aiScene* dynamicObject = importer.ReadFile(std::string(MESHES_PATH) + "/teapot.obj",
         aiProcess_GenNormals			 |
         aiProcess_CalcTangentSpace       |
         aiProcess_Triangulate            |
         aiProcess_JoinIdenticalVertices  |
         aiProcess_SortByPType);
 
-    // Fetch pointer to one and only material
-    aiMaterial* material = scene->mMaterials[0];
+    // Fetch pointer to one and only material (zero is default material)
+    aiMaterial* material = dynamicObject->mMaterials[1];
 
     // Create material from assimp data
     mupDynamicMeshMaterial = std::unique_ptr<Material>(new Material("teapot", material));
 
     // Fetch pointer to assimp structure
-    aiMesh* mesh = scene->mMeshes[0];
+    aiMesh* mesh = dynamicObject->mMeshes[0];
 
     // Create mesh from assimp data
     mupDynamicMesh = std::unique_ptr<Mesh>(new Mesh(mesh));
