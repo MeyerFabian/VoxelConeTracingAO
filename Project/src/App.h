@@ -23,7 +23,7 @@
 #include "PointCloud/PointCloud.h"
 #include "Utilities/enums.h"
 
-enum Visualization { RAYCASTING, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP };
+enum Visualization { RAYCASTING, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP,VOXEL_GLOW };
 
 class App: public Controllable
 {

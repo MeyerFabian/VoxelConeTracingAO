@@ -161,10 +161,14 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         VISUALIZATION = Visualization::AMBIENT_OCCLUSION;
     }
     //  Shadow Map
-    if(key == GLFW_KEY_7& action == GLFW_PRESS)
-    {
-        VISUALIZATION = Visualization::SHADOW_MAP;
-    }
+	if (key == GLFW_KEY_7& action == GLFW_PRESS)
+	{
+		VISUALIZATION = Visualization::SHADOW_MAP;
+	}
+	if (key == GLFW_KEY_8& action == GLFW_PRESS)
+	{
+		VISUALIZATION = Visualization::VOXEL_GLOW;
+	}
 }
 
 // GLFW callback for cursor position
@@ -432,6 +436,9 @@ void App::run()
 			m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
 			m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
 			break;
+		case Visualization::VOXEL_GLOW:
+			m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+			break;
         }
 
 		if (mShowGBuffer){
@@ -513,8 +520,8 @@ void App::fillGui()
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
     ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0");
+	ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0PointCloud\0GBuffer\0Phong\0Ambient-Occlusion\0VoxelConeTracing\0LightViewMap\0Voxel-Glow\0");
 	ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
-    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map");
+    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Point Cloud \n4: Gbuffer \n5: Phong \n6: Ambient Occlusion \n7: Shadow Map \n8: Voxel Glow");
    // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
 }
