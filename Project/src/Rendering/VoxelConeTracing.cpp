@@ -21,7 +21,7 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
 {
     m_gbuffer = make_unique<GBuffer>();
 	beginningVoxelSize = 0.05f;
-	directionBeginScale = 1.5f;
+	directionBeginScale = 1.0f;
 	maxDistance = 5.0f;
 }
 

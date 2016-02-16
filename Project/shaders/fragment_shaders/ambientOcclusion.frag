@@ -210,23 +210,22 @@ vec4 rayCastOctree(vec3 rayPosition){
 }
 
 // perimeterDirection seems to be calulcated right :)
-vec4 coneTracing(vec4 perimeterStart,vec3 perimeterDirection,float coneAperture){
+vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture){
     float voxelSizeOnLowestLevel = volumeExtent / (pow2[maxLevel]);
     float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLowestLevel);
 	float samplingRate= voxelSizeOnLowestLevel;
 	float distance = samplingRate/2.0;
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
-	vec3 perimeterPushedOut = perimeterStart.xyz + directionBeginScale*voxelSizeOnLowestLevel * perimeterDirection;
 	while(distance < distanceTillMainLoop){
-		rayPosition = perimeterPushedOut + distance * perimeterDirection;
+		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
 		color += interpolatedColor;
 	}
 	
 	while(distance < maxDistance){
-		rayPosition = perimeterPushedOut + distance * perimeterDirection;
+		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 interpolatedColor = rayCastOctree(rayPosition);
 		distance += samplingRate;
 		//voxelSize = voxelSizeByDistance(distance,coneAperture);
@@ -260,12 +259,19 @@ void main()
 
 	vec4 finalColor = vec4(0.0,0.0,0.0,0.0);
 	
+    float voxelSizeOnLowestLevel = volumeExtent / (pow2[maxLevel]);
 	//consider loop unrolling
 	for(int i = 0 ; i < NUM_CONES;i++){
+
+		//Push the cone a little bit out of the voxel by its normal
+		vec3 coneStart = position.xyz + normal * voxelSizeOnLowestLevel *directionBeginScale;
+		
 		vec3 coneDirection = OutOfTangentSpace * cones[i];
+
 		float coneAperture = aperture[i];
+
 		// finalColor will be accumulated due to cone tracing in the octree 
-		finalColor += coneTracing(position, coneDirection,coneAperture) / (NUM_CONES);
+		finalColor += coneTracing(coneStart, coneDirection,coneAperture) / (NUM_CONES);
 	}
 
 	Everything_else=vec4(tangent,1.0) * vec4(normal,1.0)*volumeRes *  position*beginningVoxelSize*directionBeginScale*
