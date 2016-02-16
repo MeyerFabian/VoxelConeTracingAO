@@ -28,8 +28,9 @@ enum Visualization { RAYCASTING, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION,
 class App: public Controllable
 {
 public:
-	 // Some constants
+     // Some constants
     float VOLUME_EXTENT = 384.f;
+    float DYNAMIC_OBJECT_SPEED = 10.0f;
 
     App();
     virtual ~App(); // Virtual not necessary
@@ -56,8 +57,8 @@ private:
     std::unique_ptr<PointCloud> m_PointCloud;
 
 
-	bool mVoxeliseEachFrame; 
-	bool mShowGBuffer;
+    bool mVoxeliseEachFrame;
+    bool mShowGBuffer;
 };
 
 #endif // APP_H_

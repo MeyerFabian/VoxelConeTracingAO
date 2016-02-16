@@ -3,7 +3,6 @@
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/glm.hpp"
-#include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 #include <iostream>
 using namespace std;
@@ -20,7 +19,6 @@ using namespace std;
 VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone Tracing")
 {
     m_gbuffer = make_unique<GBuffer>();
-	beginningVoxelSize = 0.05f;
 	directionBeginScale = 1.0f;
 	ambientOcclusionScale = 0.5f;
 	maxDistance = 5.0f; 
@@ -71,7 +69,6 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
     m_geomPass->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
 
-
     // Render all the buckets' content
     for (auto& bucket : scene->getRenderBuckets())
     {
@@ -84,6 +81,9 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
             pMesh->draw();
         }
     }
+
+    // Set model matrix for dynamic object
+    m_geomPass->updateUniform("model", glm::translate(glm::mat4(1.0f), scene->getDynamicObjectPosition()));
 
     // Draw dynamic object
     scene->drawDynamicObjectWithCustomShader(m_geomPass.get());
@@ -308,12 +308,19 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
     m_ambientOcclusion->updateUniform("identity", WVP);
     m_ambientOcclusion->updateUniform("screenSize", glm::vec2(width, height));
 
-	//Cone Tracing Uniforms
-	m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
-	m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
-	m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
-	m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
-	m_ambientOcclusion->updateUniform("lambda", lambda);
+
+    //other uniforms
+    m_ambientOcclusion->updateUniform("identity", WVP);
+    m_ambientOcclusion->updateUniform("screenSize", glm::vec2(width, height));
+
+    //Cone Tracing Uniforms
+    m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
+    m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
+    m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
+    m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);
+    m_ambientOcclusion->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x ));
+    m_ambientOcclusion->updateUniform("lambda", lambda);
+
 
 
     //GBUFFER TEXTURES
@@ -390,10 +397,10 @@ void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQua
 
 }
 void VoxelConeTracing::fillGui(){
-	ImGui::SliderFloat("beginning voxel size", &beginningVoxelSize, 0.01f, 1.0f, "%.3f");
 	ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");
 	ImGui::SliderFloat("Pushed out PerimeterStart in VoxelSize", &directionBeginScale, 0.0f, 5.0f, "%.1f");
 	ImGui::SliderFloat("AO lambda", &lambda, 0.0f, 2.0f, "%.3f");
 	ImGui::SliderFloat("AO scale VoxelConeTracing", &ambientOcclusionScale, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("Color Bleeding", &colorBleeding, 0.0f, 5.0f, "%.2f");
+
 }
