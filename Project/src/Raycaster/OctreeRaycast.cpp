@@ -19,18 +19,16 @@ void OctreeRaycast::draw(glm::vec3 camPos,
         NodePool& nodePool,
         BrickPool& brickPool,
         std::unique_ptr<GBuffer>& gbuffer,
-		GLuint ScreenQuad,
+        GLuint ScreenQuad,
         float volumeExtent) const
 {
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
 
-    GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "octree");
-    glUniform1i(octreeUniform, 0);
-    // bind octree texture
+    // Bind octree image
     nodePool.bind();
 
-    // update uniforms
+    // Update uniforms
     mupOctreeRaycastShader->updateUniform("stepSize", stepSize);
     mupOctreeRaycastShader->updateUniform("directionBeginScale", directionBeginScale);
     mupOctreeRaycastShader->updateUniform("maxSteps", maxSteps);
@@ -40,7 +38,6 @@ void OctreeRaycast::draw(glm::vec3 camPos,
     mupOctreeRaycastShader->updateUniform("maxLevel", maxLevel);
 
     // Position texture as image
-    glActiveTexture(GL_TEXTURE1);
     glBindImageTexture(1,
                        gbuffer->getTextureID(GBuffer::GBUFFER_TEXTURE_TYPE_POSITION),
                        0,
@@ -48,19 +45,19 @@ void OctreeRaycast::draw(glm::vec3 camPos,
                        0,
                        GL_READ_ONLY,
                        GL_RGBA32F);
-    GLint worldPosUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "worldPos");
-    glUniform1i(worldPosUniform, 1);
 
+
+    // Brick pool binding as sampler texture
+    glActiveTexture(GL_TEXTURE0);
     GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(mupOctreeRaycastShader->getShaderProgramHandle()), "brickPool");
-    glUniform1i(brickPoolUniform, 2);
-    glActiveTexture(GL_TEXTURE2);
+    glUniform1i(brickPoolUniform, 0);
     brickPool.bind();
 
-    // use shader AFTER texture is added
+    // Use shader
     mupOctreeRaycastShader->use();
 
-    // draw voxel
-	glBindVertexArray(ScreenQuad);
+    // Draw voxel
+    glBindVertexArray(ScreenQuad);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 
