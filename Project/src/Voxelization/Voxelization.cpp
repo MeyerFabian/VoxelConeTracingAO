@@ -70,6 +70,9 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList *fr
         }
     }
 
+    // Draw dynamic object
+    pScene->drawDynamicObjectWithCustomShader(mVoxelizationShader.get());
+
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
     fragmentList->setVoxelCount(readAtomicCounter());

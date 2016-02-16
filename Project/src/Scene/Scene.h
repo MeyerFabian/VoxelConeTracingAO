@@ -24,9 +24,9 @@ public:
     Scene(App* pApp, std::string areaName);
     virtual ~Scene();
 
+    void drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const;
     void updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch);
     void updateLight(float deltaCameraYaw, float deltaCameraPitch);
-    void draw(float windowWidth,float windowHeight) const;
     void setCameraSpeed(float speed) { mCamera.setSpeed(speed); }
 
 
@@ -44,10 +44,11 @@ private:
     // Members
     Camera mCamera;
     Light mLight;
-    std::unique_ptr<ShaderProgram> mupShader;
     std::vector<std::unique_ptr<Material> > mMaterials;
     std::vector<std::unique_ptr<Mesh> > mMeshes;
     std::map<Material const *, std::vector<Mesh const *> > mRenderBuckets;
+    std::unique_ptr<Mesh> mupDynamicMesh;
+    std::unique_ptr<Material> mupDynamicMeshMaterial;
 };
 
 #endif // SCENE_H_
