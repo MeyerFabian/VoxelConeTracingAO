@@ -56,7 +56,7 @@ void main()
 
     // Get first child pointer
     nodeTile = imageLoad(octree, int(0)).x;
-    uint firstChildPointer = nodeTile & uint(0x3fffffff);
+    childPointer = nodeTile & uint(0x3fffffff);
 
     // Color of voxel
     col = vec4(0,0,0,0);
