@@ -74,7 +74,6 @@ __global__ void filterBrickCornersFast(node* nodePool, unsigned int level)
 }
 
 // traverses to the bottom level and filters all bricks by applying a inverse gaussian mask to the corner voxels
-// TODO: use levelMap!
 __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -166,6 +165,8 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
     value = nodePool[offset].value;
 
+  //  if(index < 10000)
+    //    printf("ADRESSE: %d %d\n", offset, maxLevel);
     // we have a valid brick => fill it
     fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
     setBit(value, 31);
@@ -200,16 +201,22 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         // traverse to my node // TODO: it might be easier if we stack the parent level
         unsigned int nodeAdress = traverseToCorrespondingNode(nodePool, position, nodeLevel, level);
 
+
+   // if(index < 10000)
+       // printf("ADRESSE: %d %d\n", nodeAdress, nodeLevel);
+
         // traverse to neighbours
-        if (position.x + stepSize < 1) {
+        if (position.x + stepSize < 1)
+        {
             // handle X
             float3 tmp = position;
             tmp.x += stepSize;
-            X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if (level != foundOnLevel)
+            X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
+            if(!(X >= constLevelIntervalMap[level].start*8 && X <= constLevelIntervalMap[level].end*8))
             {
                 X = 0;
+               // WE HAVE NO NEIGHBOUR IN +X
             }
         }
         if (position.y + stepSize < 1)
@@ -219,7 +226,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.y += stepSize;
             Y = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if (level != foundOnLevel)
+            if(!(Y >= constLevelIntervalMap[level].start*8 && Y <= constLevelIntervalMap[level].end*8))
             {
                 Y = 0;
             }
@@ -231,7 +238,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.z += stepSize;
             Z = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if (level != foundOnLevel)
+            if(!(Z >= constLevelIntervalMap[level].start*8 && Z <= constLevelIntervalMap[level].end*8))
             {
                 Z = 0;
             }
@@ -244,7 +251,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.x -= stepSize;
             negX = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if (level != foundOnLevel)
+            if(!(negX >= constLevelIntervalMap[level].start*8 && negX <= constLevelIntervalMap[level].end*8))
             {
                 negX = 0;
             }
@@ -256,7 +263,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.y -= stepSize;
             negY = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if (level != foundOnLevel)
+            if(!(negY >= constLevelIntervalMap[level].start*8 && negY <= constLevelIntervalMap[level].end*8))
             {
                 negY = 0;
             }
@@ -268,7 +275,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.z -= stepSize;
             negZ = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if (level != foundOnLevel)
+            if(!(negZ >= constLevelIntervalMap[level].start*8 && negZ <= constLevelIntervalMap[level].end*8))
             {
                 negZ = 0;
             }
@@ -504,7 +511,7 @@ cudaError_t buildSVO(node *nodePool,
         cudaMemcpy(h_counter, d_counter, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         reserveMemoryForNodesFast <<< blockCountReserve, threadPerBlockReserve >>> (nodePool, reservedOld, maxNodes, d_counter, volumeResolution, 3, lastLevel, poolSize);
 
-        // remember counter
+            // remember counter
         reservedOld = *h_counter;
 
         // todo: this is silly
@@ -520,7 +527,6 @@ cudaError_t buildSVO(node *nodePool,
     // copy the level interval map to constant memory
     errorCode = cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10);
 
-   // fillNeighbours <<< blockCount, threadsPerBlockFragmentList >>> (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, maxLevel);
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
 
@@ -528,8 +534,13 @@ cudaError_t buildSVO(node *nodePool,
 
     cudaDeviceSynchronize();
 
+    for(int i=1;i<7;i++)
+        fillNeighbours << < blockCount, threadsPerBlockFragmentList >> > (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
+
     const int level = 6;
     unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
+
+   // printf("LEVEL %d start: %d end:%d\n", 5, LevelIntervalMap[5].start*8, LevelIntervalMap[5].end*8);
 
     // filter the last level with an inverse gaussian kernel
 	
