@@ -185,7 +185,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         float3 position;
         getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
-        float stepSize = 1.f/powf(2,level);// for some reason this is faster than lookups :D
+        float stepSize = 1.f/powf(2,level+1);// for some reason this is faster than lookups :D
 
         // initialise all neighbours to no neighbour :P
         unsigned int X = 0;
@@ -213,7 +213,8 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.x += stepSize;
 
             X = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
-            if(!(X >= constLevelIntervalMap[level].start*8 && X <= constLevelIntervalMap[level].end*8))
+
+            if(!(X > (constLevelIntervalMap[level].start)*8 && X < (constLevelIntervalMap[level].end)*8))
             {
                 X = 0;
                // WE HAVE NO NEIGHBOUR IN +X
@@ -226,7 +227,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.y += stepSize;
             Y = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if(!(Y >= constLevelIntervalMap[level].start*8 && Y <= constLevelIntervalMap[level].end*8))
+            if(!(Y > (constLevelIntervalMap[level].start)*8 && Y < (constLevelIntervalMap[level].end)*8))
             {
                 Y = 0;
             }
@@ -238,7 +239,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.z += stepSize;
             Z = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if(!(Z >= constLevelIntervalMap[level].start*8 && Z <= constLevelIntervalMap[level].end*8))
+            if(!(Z > (constLevelIntervalMap[level].start)*8 && Z < (constLevelIntervalMap[level].end)*8))
             {
                 Z = 0;
             }
@@ -251,7 +252,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.x -= stepSize;
             negX = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if(!(negX >= constLevelIntervalMap[level].start*8 && negX <= constLevelIntervalMap[level].end*8))
+            if(!(negX > (constLevelIntervalMap[level].start)*8 && negX < (constLevelIntervalMap[level].end)*8))
             {
                 negX = 0;
             }
@@ -263,7 +264,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.y -= stepSize;
             negY = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if(!(negY >= constLevelIntervalMap[level].start*8 && negY <= constLevelIntervalMap[level].end*8))
+            if(!(negY > (constLevelIntervalMap[level].start)*8 && negY < (constLevelIntervalMap[level].end)*8))
             {
                 negY = 0;
             }
@@ -275,7 +276,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             tmp.z -= stepSize;
             negZ = traverseToCorrespondingNode(nodePool, tmp, foundOnLevel, level);
 
-            if(!(negZ >= constLevelIntervalMap[level].start*8 && negZ <= constLevelIntervalMap[level].end*8))
+            if(!(negZ > (constLevelIntervalMap[level].start)*8 && negZ < (constLevelIntervalMap[level].end)*8))
             {
                 negZ = 0;
             }
@@ -547,7 +548,7 @@ cudaError_t buildSVO(node *nodePool,
 	filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / threadsPerBlockCombineBorders;
-  //  combineBrickBordersFast<<<tmpBlock, threadPerBlockSpread>>>(nodePool, neighbourPool, level);
+    combineBrickBordersFast<<<tmpBlock, threadPerBlockSpread>>>(nodePool, neighbourPool, level);
     cudaDeviceSynchronize();
 
     // MIPMAP we have some crap with the 0 level. therefore we subtract 3 :)
