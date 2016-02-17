@@ -4,9 +4,9 @@
 layout(location = 0) out vec4 fragColor;
 
 // Uniforms
-layout(r32ui, location = 0) uniform readonly uimageBuffer octree;
-layout(rgba32f, location = 1) uniform readonly image2D worldPos;
-layout(binding = 2) uniform sampler3D brickPool;
+layout(binding = 0, r32ui) uniform readonly uimageBuffer octree;
+layout(binding = 1, rgba32f) uniform readonly image2D worldPos;
+uniform sampler3D brickPool;
 uniform vec3 camPos;
 uniform float stepSize;
 uniform float volumeExtent;
@@ -72,7 +72,7 @@ void main()
     // Go over ray
     for(int i = 0; i < maxSteps; i++)
     {
-		
+
         // Propagate ray along ray direction
         rayPosition += stepSize * direction;
 
@@ -83,7 +83,7 @@ void main()
 		)
 		break;
 
-        vec3 innerOctreePosition = getVolumePos(rayPosition);
+	vec3 innerOctreePosition = getVolumePos(rayPosition);
 
         // Reset child pointer
         childPointer = firstChildPointer;

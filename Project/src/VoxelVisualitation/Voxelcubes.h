@@ -2,16 +2,26 @@
 #define VOXELCUBES_H
 
 #include <memory>
-#include "Voxelization/FragmentList.h"
 #include "Rendering/ShaderProgram.h"
+#include "Scene/Camera.h"
+#include "SparseOctree/BrickPool.h"
+#include "SparseOctree/NodePool.h"
 
 class VoxelCubes
 {
 public:
-    VoxelCubes();
-    void drawVoxel(FragmentList &fragmentList);
+    VoxelCubes(Camera const * pCamera);
+    void draw(
+        float width,
+        float height,
+        float volumeExtent,
+        NodePool& nodePool,
+        BrickPool& brickPool) const;
 
-    std::unique_ptr<ShaderProgram> mupVoxelCubeShader;
+private:
+
+    Camera const * mpCamera;
+    std::unique_ptr<ShaderProgram> mupShaderProgram;
 };
 
 #endif // VOXELCUBES_H
