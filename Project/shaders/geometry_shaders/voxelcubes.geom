@@ -45,132 +45,150 @@ void main()
     // Relative position of voxel
     vec3 relativePos = gl_in[0].gl_Position.xyz;
 
-    // Octree reading preparation
-    uint nodeOffset = 0;
-    uint childPointer = 0;
-    uint nodeTile;
+    // First, check whether user will see this cube
+    vec4 pos = vec4(volumeExtent * relativePos - volumeExtent/2, 1);
 
-    // Some variable renaming to hold name scheme of raycasting shader
-    vec3 innerOctreePosition = relativePos;
-    float volumeRes = resolution;
+    // Matrix
+    mat4 M = projection * cameraView;
 
-    // Get first child pointer
-    nodeTile = imageLoad(octree, int(0)).x;
-    childPointer = nodeTile & uint(0x3fffffff);
+    // Project position into device coordinates
+    vec4 projectedPos = (M * pos);
+    vec3 devicePos = projectedPos.xyz / projectedPos.w;
 
-    // Color of voxel
-    col = vec4(0,0,0,0);
-
-    // Determine content of octree on current position
-    for(int j = 1; j < maxLevel; j++)
+    // Check, whether that position is visible
+    if  (
+        !any(
+            greaterThan(devicePos.xy, vec2(1,1))
+            )
+        &&
+        !any(
+            lessThan(devicePos.xy, vec2(-1,-1))
+            )
+        )
     {
-        // Determine, in which octant the searched position is
-        uvec3 nextOctant = uvec3(0, 0, 0);
-        nextOctant.x = uint(2 * innerOctreePosition.x);
-        nextOctant.y = uint(2 * innerOctreePosition.y);
-        nextOctant.z = uint(2 * innerOctreePosition.z);
+        // Octree reading preparation
+        uint nodeOffset = 0;
+        uint childPointer = 0;
+        uint nodeTile;
 
-        // Make the octant position 1D for the linear memory
-        nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
-        nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
+        // Some variable renaming to hold name scheme of raycasting shader
+        vec3 innerOctreePosition = relativePos;
+        float volumeRes = resolution;
 
-        // Update position in volume
-        innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
-        innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
-        innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
+        // Get first child pointer
+        nodeTile = imageLoad(octree, int(0)).x;
+        childPointer = nodeTile & uint(0x3fffffff);
 
-        // The 32nd bit indicates whether the node has children:
-        // 1 means has children
-        // 0 means does not have children
-        // Only read from brick, if we are at aimed level in octree
-        if(j == maxLevel-1)
+        // Color of voxel
+        col = vec4(0,0,0,0);
+
+        // Determine content of octree on current position
+        for(int j = 1; j < maxLevel; j++)
         {
-            // Brick coordinates
-            uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
-            uvec3 brickCoords = decodeBrickCoords(brickTile);
+            // Determine, in which octant the searched position is
+            uvec3 nextOctant = uvec3(0, 0, 0);
+            nextOctant.x = uint(2 * innerOctreePosition.x);
+            nextOctant.y = uint(2 * innerOctreePosition.y);
+            nextOctant.z = uint(2 * innerOctreePosition.z);
 
-            // Just a check, whether brick is there
-            if(getBit(brickTile, 31) == 1)
+            // Make the octant position 1D for the linear memory
+            nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+            nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
+
+            // Update position in volume
+            innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
+            innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
+            innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
+
+            // The 32nd bit indicates whether the node has children:
+            // 1 means has children
+            // 0 means does not have children
+            // Only read from brick, if we are at aimed level in octree
+            if(j == maxLevel-1)
             {
-                // Here we should intersect our brick seperately
-                // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-                nextOctant.x = uint(2 * innerOctreePosition.x);
-                nextOctant.y = uint(2 * innerOctreePosition.y);
-                nextOctant.z = uint(2 * innerOctreePosition.z);
-                uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
-                brickCoords += insertPositions[offset]*2;
+                // Brick coordinates
+                uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
+                uvec3 brickCoords = decodeBrickCoords(brickTile);
 
-                // Get color from brick
-                col = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
+                // Just a check, whether brick is there
+                if(getBit(brickTile, 31) == 1)
+                {
+                    // Here we should intersect our brick seperately
+                    // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+                    nextOctant.x = uint(2 * innerOctreePosition.x);
+                    nextOctant.y = uint(2 * innerOctreePosition.y);
+                    nextOctant.z = uint(2 * innerOctreePosition.z);
+                    uint offset = nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z;
+                    brickCoords += insertPositions[offset]*2;
+
+                    // Get color from brick
+                    col = texture(brickPool, brickCoords/(volumeRes) + (1.0/volumeRes)/2.0);
+                }
+
+                // Break inner loop
+                break;
             }
-
-            // Break inner loop
-            break;
+            else
+            {
+                // If the node has children we read the pointer to the next nodetile
+                childPointer = nodeTile & uint(0x3fffffff);
+            }
         }
-        else
+
+        // Only continue, if something was found
+        if(col.a > 0.25)
         {
-            // If the node has children we read the pointer to the next nodetile
-            childPointer = nodeTile & uint(0x3fffffff);
+
+
+            // Size
+            float size = volumeExtent / float(resolution);
+            vec3 offset = vec3(size / 2.0, size / 2.0, size / 2.0);
+
+            vec4 A = vec4(-offset.x, offset.y, offset.z, 0);
+            vec4 B = vec4(-offset.x, -offset.y, offset.z, 0);
+            vec4 C = vec4( offset.x, -offset.y, offset.z, 0);
+            vec4 D = vec4( offset.x, offset.y, offset.z, 0);
+            vec4 E = vec4( offset.x, offset.y, -offset.z, 0);
+            vec4 F = vec4( offset.x, -offset.y, -offset.z, 0);
+            vec4 G = vec4(-offset.x, -offset.y, -offset.z, 0);
+            vec4 H = vec4(-offset.x, offset.y, -offset.z, 0);
+
+
+            gl_Position = M * ( pos + A); EmitVertex();
+            gl_Position = M * ( pos + B); EmitVertex();
+            gl_Position = M * ( pos + D); EmitVertex();
+            gl_Position = M * ( pos + C); EmitVertex();
+            EndPrimitive();
+
+            gl_Position = M * ( pos + H); EmitVertex();
+            gl_Position = M * ( pos + G); EmitVertex();
+            gl_Position = M * ( pos + A); EmitVertex();
+            gl_Position = M * ( pos + B); EmitVertex();
+            EndPrimitive();
+
+            gl_Position = M * ( pos + D); EmitVertex();
+            gl_Position = M * ( pos + C); EmitVertex();
+            gl_Position = M * ( pos + E); EmitVertex();
+            gl_Position = M * ( pos + F); EmitVertex();
+            EndPrimitive();
+
+            gl_Position = M * ( pos + H); EmitVertex();
+            gl_Position = M * ( pos + A); EmitVertex();
+            gl_Position = M * ( pos + E); EmitVertex();
+            gl_Position = M * ( pos + D); EmitVertex();
+            EndPrimitive();
+
+            gl_Position = M * ( pos + B); EmitVertex();
+            gl_Position = M * ( pos + G); EmitVertex();
+            gl_Position = M * ( pos + C); EmitVertex();
+            gl_Position = M * ( pos + F); EmitVertex();
+            EndPrimitive();
+
+            gl_Position = M * ( pos + E); EmitVertex();
+            gl_Position = M * ( pos + F); EmitVertex();
+            gl_Position = M * ( pos + H); EmitVertex();
+            gl_Position = M * ( pos + G); EmitVertex();
+            EndPrimitive();
         }
-    }
-
-    // Only continue, if something was found
-    if(col.a > 0.25)
-    {
-        // Now calculate world position
-        vec4 pos = vec4(volumeExtent * relativePos - volumeExtent/2, 1);
-
-        // Size
-        float size = volumeExtent / float(resolution);
-        vec3 offset = vec3(size / 2.0, size / 2.0, size / 2.0);
-
-        // Matrix
-        mat4 M = projection * cameraView;
-
-        vec4 A = vec4(-offset.x, offset.y, offset.z, 0);
-        vec4 B = vec4(-offset.x, -offset.y, offset.z, 0);
-        vec4 C = vec4( offset.x, -offset.y, offset.z, 0);
-        vec4 D = vec4( offset.x, offset.y, offset.z, 0);
-        vec4 E = vec4( offset.x, offset.y, -offset.z, 0);
-        vec4 F = vec4( offset.x, -offset.y, -offset.z, 0);
-        vec4 G = vec4(-offset.x, -offset.y, -offset.z, 0);
-        vec4 H = vec4(-offset.x, offset.y, -offset.z, 0);
-
-
-        gl_Position = M * ( pos + A); EmitVertex();
-        gl_Position = M * ( pos + B); EmitVertex();
-        gl_Position = M * ( pos + D); EmitVertex();
-        gl_Position = M * ( pos + C); EmitVertex();
-        EndPrimitive();
-
-        gl_Position = M * ( pos + H); EmitVertex();
-        gl_Position = M * ( pos + G); EmitVertex();
-        gl_Position = M * ( pos + A); EmitVertex();
-        gl_Position = M * ( pos + B); EmitVertex();
-        EndPrimitive();
-
-        gl_Position = M * ( pos + D); EmitVertex();
-        gl_Position = M * ( pos + C); EmitVertex();
-        gl_Position = M * ( pos + E); EmitVertex();
-        gl_Position = M * ( pos + F); EmitVertex();
-        EndPrimitive();
-
-        gl_Position = M * ( pos + H); EmitVertex();
-        gl_Position = M * ( pos + A); EmitVertex();
-        gl_Position = M * ( pos + E); EmitVertex();
-        gl_Position = M * ( pos + D); EmitVertex();
-        EndPrimitive();
-
-        gl_Position = M * ( pos + B); EmitVertex();
-        gl_Position = M * ( pos + G); EmitVertex();
-        gl_Position = M * ( pos + C); EmitVertex();
-        gl_Position = M * ( pos + F); EmitVertex();
-        EndPrimitive();
-
-        gl_Position = M * ( pos + E); EmitVertex();
-        gl_Position = M * ( pos + F); EmitVertex();
-        gl_Position = M * ( pos + H); EmitVertex();
-        gl_Position = M * ( pos + G); EmitVertex();
-        EndPrimitive();
     }
 }
