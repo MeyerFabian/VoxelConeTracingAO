@@ -561,6 +561,8 @@ cudaError_t buildSVO(node *nodePool,
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
+        combineBrickBordersFast<<<tmpBlock, threadPerBlockSpread>>>(nodePool, neighbourPool, i);
+        cudaDeviceSynchronize();
     }
 
     delete h_counter;
