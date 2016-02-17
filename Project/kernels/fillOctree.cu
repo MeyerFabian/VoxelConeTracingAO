@@ -185,7 +185,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         float3 position;
         getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
-        float stepSize = 1.f/powf(2,level+1);// for some reason this is faster than lookups :D
+        float stepSize = 1.f/powf(2,level);// for some reason this is faster than lookups :D
 
         // initialise all neighbours to no neighbour :P
         unsigned int X = 0;
@@ -202,8 +202,8 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         unsigned int nodeAdress = traverseToCorrespondingNode(nodePool, position, nodeLevel, level);
 
 
-   // if(index < 10000)
-       // printf("ADRESSE: %d %d\n", nodeAdress, nodeLevel);
+    //if(index < 10000 && level == 2)
+      //  printf("ADRESSE: %d %d\n", nodeAdress, nodeLevel);
 
         // traverse to neighbours
         if (position.x + stepSize < 1)
@@ -561,6 +561,8 @@ cudaError_t buildSVO(node *nodePool,
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
+        cudaDeviceSynchronize();
+        printf("i %d\n",i);
         combineBrickBordersFast<<<tmpBlock, threadPerBlockSpread>>>(nodePool, neighbourPool, i);
         cudaDeviceSynchronize();
     }
