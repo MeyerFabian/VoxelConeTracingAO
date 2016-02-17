@@ -59,6 +59,7 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 
     // Create uniforms used by shader
     // Fill uniforms to shader
+	m_shadowMapPass->updateUniform("model", glm::mat4(1.f));
     m_shadowMapPass->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
     m_shadowMapPass->updateUniform("LightView", scene->getLight().getViewMatrix());
 
