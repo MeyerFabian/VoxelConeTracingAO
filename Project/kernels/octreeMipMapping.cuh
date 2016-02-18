@@ -1497,7 +1497,7 @@ void combineBrickBordersFast(node *nodePool, neighbours* neighbourPool, unsigned
             if (targetNeighbours.negY != 0)
             {
                 uint3 nNegYbrickCoords = decodeBrickCoords(nodePool[targetNeighbours.negY].value);
-                combineNegYFace(brickCoords, nNegYbrickCoords, myColors, neighbourColors);
+                //combineNegYFace(brickCoords, nNegYbrickCoords, myColors, neighbourColors);
             }
         }
 
