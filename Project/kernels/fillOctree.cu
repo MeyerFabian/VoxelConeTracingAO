@@ -186,8 +186,8 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
         float stepSize = 1.f/powf(2,level+4);// for some reason this is faster than lookups :D
-
         // initialise all neighbours to no neighbour :P
+
         unsigned int X = 0;
         unsigned int Y = 0;
         unsigned int Z = 0;
@@ -225,7 +225,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             position.y += stepSize;
             Y = traverseToCorrespondingNode(nodePool, position, foundOnLevel, level);
 
-            if(!(Y > (constLevelIntervalMap[level].start)*8 && Y < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
+            if(!(Y > (constLevelIntervalMap[level].start)*8 && Y < (constLevelIntervalMap[level].end)*8) || Y == nodeAdress)
             {
                 Y = 0;
             }
@@ -236,7 +236,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             position.z += stepSize;
             Z = traverseToCorrespondingNode(nodePool, position, foundOnLevel, level);
 
-            if(!(Z > (constLevelIntervalMap[level].start)*8 && Z < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
+            if(!(Z > (constLevelIntervalMap[level].start)*8 && Z < (constLevelIntervalMap[level].end)*8) || Z == nodeAdress)
             {
                 Z = 0;
             }
@@ -248,7 +248,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             position.x -= stepSize;
             negX = traverseToCorrespondingNode(nodePool, position, foundOnLevel, level);
 
-            if(!(negX > (constLevelIntervalMap[level].start)*8 && negX < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
+            if(!(negX > (constLevelIntervalMap[level].start)*8 && negX < (constLevelIntervalMap[level].end)*8) || negX == nodeAdress)
             {
                 negX = 0;
             }
@@ -259,7 +259,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             position.y -= stepSize;
             negY = traverseToCorrespondingNode(nodePool, position, foundOnLevel, level);
 
-            if(!(negY > (constLevelIntervalMap[level].start)*8 && negY < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
+            if(!(negY > (constLevelIntervalMap[level].start)*8 && negY < (constLevelIntervalMap[level].end)*8) || negY == nodeAdress)
             {
                 negY = 0;
             }
@@ -270,7 +270,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             position.z -= stepSize;
             negZ = traverseToCorrespondingNode(nodePool, position, foundOnLevel, level);
 
-            if(!(negZ > (constLevelIntervalMap[level].start)*8 && negZ < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
+            if(!(negZ > (constLevelIntervalMap[level].start)*8 && negZ < (constLevelIntervalMap[level].end)*8) || negZ == nodeAdress)
             {
                 negZ = 0;
             }
@@ -541,8 +541,12 @@ cudaError_t buildSVO(node *nodePool,
     cudaDeviceSynchronize();
 
     // filter the last level with an inverse gaussian kernel
-    combineBrickBordersFast<<<tmpBlock, threadPerBlockSpread>>>(nodePool, neighbourPool, level);
-    cudaDeviceSynchronize();
+
+    for(int i=0;i<6;i++)
+    {
+        combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, level, i);
+        cudaDeviceSynchronize();
+    }
 	
 	filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
@@ -562,8 +566,12 @@ cudaError_t buildSVO(node *nodePool,
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
         cudaDeviceSynchronize();
         printf("i %d\n",i);
-        combineBrickBordersFast<<<tmpBlock, threadPerBlockSpread>>>(nodePool, neighbourPool, i);
-        cudaDeviceSynchronize();
+
+        for(int j=0;j<6;j++)
+        {
+            combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, i, j);
+            cudaDeviceSynchronize();
+        }
     }
 
     delete h_counter;
@@ -580,6 +588,7 @@ cudaError_t clearNodePoolCuda(node *nodePool, neighbours* neighbourPool, int poo
 
     // clear the nodepool
     clearNodePoolKernel<<<neighbourPoolBlockCount, threadsPerBlockClear>>>(reinterpret_cast<unsigned int*>(neighbourPool), poolSize*6);
+    cudaDeviceSynchronize();
     clearNodePoolKernel<<<blockCount, threadsPerBlockClear>>>(reinterpret_cast<unsigned int*>(nodePool), poolSize*2);
 
     return errorCode;
