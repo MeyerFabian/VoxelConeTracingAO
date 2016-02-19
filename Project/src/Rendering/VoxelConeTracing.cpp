@@ -24,6 +24,8 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
 	maxDistance = 5.0f; 
 	lambda = 0.5f;
 	colorBleeding = 0.0f;
+
+    glGenFramebuffers(1, &mPhongFbo);
 }
 
 
@@ -40,6 +42,27 @@ void VoxelConeTracing::init(float width,float height) {
 
     m_gbuffer->init(width, height);
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mPhongFbo);
+    glGenTextures(1, &mPhongTexture);
+    glBindTexture(GL_TEXTURE_2D, mPhongTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPhongTexture, 0);
+
+    GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, DrawBuffers);
+
+    GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (Status != GL_FRAMEBUFFER_COMPLETE)
+    {
+        printf("FB error: 0x%x\n", Status);
+    }
+    else
+    {
+        printf("GBuffer successfully initialized.\n");
+    }
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 
@@ -108,14 +131,12 @@ void VoxelConeTracing::drawSimplePhong(float width, float height,
 
     //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
     m_gbuffer->bindForReading();
-
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mPhongFbo);
 
 
     glm::mat4 WVP = glm::mat4(1.f);
 
     m_phongShading->use();
-
-
 
     //Light uniforms
     m_phongShading->updateUniform("LightPosition", scene->getLight().getPosition());
@@ -144,6 +165,13 @@ void VoxelConeTracing::drawSimplePhong(float width, float height,
     m_phongShading->addTexture("LightViewMapTex", lightViewMapTexture);
 
 
+
+    //Draw FullScreenQuad  DRAW TWICE ONE TO FBO AND ONE FULLSCREEN.. it might be faster to just display the fbo, but im too lazy :D
+    glBindVertexArray(ScreenQuad);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
     //Draw FullScreenQuad
     glBindVertexArray(ScreenQuad);
@@ -403,4 +431,8 @@ void VoxelConeTracing::fillGui(){
 	ImGui::SliderFloat("AO scale VoxelConeTracing", &ambientOcclusionScale, 0.0f, 1.0f, "%.3f");
 	ImGui::SliderFloat("Color Bleeding", &colorBleeding, 0.0f, 5.0f, "%.2f");
 
+}
+
+GLuint VoxelConeTracing::getPhongTexID() {
+    return mPhongTexture;
 }

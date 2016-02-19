@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <memory>
+#include <src/Rendering/SSR.h>
 
 #include "SparseOctree/SparseVoxelOctree.h"
 #include "SparseOctree/BrickPool.h"
@@ -57,6 +58,7 @@ private:
     std::unique_ptr<FullScreenQuad> m_FullScreenQuad;
     std::unique_ptr<PointCloud> m_PointCloud;
     std::unique_ptr<VoxelCubes> m_VoxelCubes;
+    std::unique_ptr<SSR> mSSR;
 
     bool mVoxeliseEachFrame;
     bool mShowGBuffer;

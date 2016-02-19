@@ -33,6 +33,8 @@ public:
 	std::unique_ptr<GBuffer>& getGBuffer() { return m_gbuffer; }
     glm::mat4 getProjectionMatrix() {return m_uniformProjection;}
 
+	GLuint getPhongTexID();
+
 private:
     std::unique_ptr<ShaderProgram> m_geomPass;
     std::unique_ptr<ShaderProgram> m_voxelConeTracing;
@@ -48,6 +50,10 @@ private:
 	float colorBleeding;
 	float maxDistance;
 	float lambda;
+
+	GLuint mPhongFbo;
+	GLuint mPhongTexture;
+
 	void fillGui();
 };
 #endif //VOXELCONETRACING_H

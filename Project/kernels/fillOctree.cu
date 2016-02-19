@@ -185,7 +185,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         float3 position;
         getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
-        float stepSize = 1.f/powf(2,level+4);// for some reason this is faster than lookups :D
+        double stepSize = 1.0/pow(2.0,level+4.0);// for some reason this is faster than lookups :D
         // initialise all neighbours to no neighbour :P
 
         unsigned int X = 0;
@@ -529,25 +529,26 @@ cudaError_t buildSVO(node *nodePool,
 
     cudaDeviceSynchronize();
 
+    /*
     for(int i=1;i<7;i++) {
         fillNeighbours << < blockCount, threadsPerBlockFragmentList >> > (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
         cudaDeviceSynchronize();
-    }
+    }*/
 
     const int level = 6;
     unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
 
    // printf("LEVEL %d start: %d end:%d\n", 5, LevelIntervalMap[5].start*8, LevelIntervalMap[5].end*8);
-    cudaDeviceSynchronize();
+   // cudaDeviceSynchronize();
 
     // filter the last level with an inverse gaussian kernel
-
+/*
     for(int i=0;i<6;i++)
     {
         combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, level, i);
         cudaDeviceSynchronize();
     }
-	
+	*/
 	filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
     cudaDeviceSynchronize();
@@ -565,13 +566,13 @@ cudaError_t buildSVO(node *nodePool,
 
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
         cudaDeviceSynchronize();
-        printf("i %d\n",i);
 
+/*
         for(int j=0;j<6;j++)
         {
             combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, i, j);
             cudaDeviceSynchronize();
-        }
+        }*/
     }
 
     delete h_counter;

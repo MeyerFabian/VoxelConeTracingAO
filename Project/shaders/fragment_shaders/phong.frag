@@ -29,6 +29,7 @@ uniform vec2 shadowToWindowRatio;
 
 //!< out-
 layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 fragColor;
 
 // gl_FragCoord is built in for input Fragment Coordinate (in Pixels),
 // divide it by Screensize to get a value between 0..1 to sample our Framebuffer textures 

@@ -364,6 +364,7 @@ App::App() : Controllable("App")
     m_VoxelConeTracing = make_unique<VoxelConeTracing>(this);
 
     m_VoxelConeTracing->init(width, height);
+    mSSR = make_unique<SSR>();
 
     m_FullScreenQuad = make_unique<FullScreenQuad>();
 
@@ -388,7 +389,6 @@ App::App() : Controllable("App")
                        mFragmentList->getVoxelCount());
 
     mFragmentList->unmapFromCUDA();
-
 }
 
 App::~App()
@@ -487,7 +487,8 @@ void App::run()
             break;
         case Visualization::PHONG:
             m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
-            break;
+           // mSSR->draw(m_VoxelConeTracing->getGBuffer().get(),m_VoxelConeTracing.get(),m_scene->getCamera().getViewMatrix(),width, height);
+                break;
         case Visualization::AMBIENT_OCCLUSION:
             m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
             break;
