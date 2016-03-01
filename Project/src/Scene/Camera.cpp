@@ -5,8 +5,8 @@
 
 Camera::Camera()
 {
-	mPosition = glm::vec3(-6.45, 56.7, -19.4);
-	mDirection = glm::normalize(glm::vec3(-1.0, -0.5, 0.5));
+    mPosition = glm::vec3(-6.45, 56.7, -19.4);
+    mDirection = glm::normalize(glm::vec3(-1.0, -0.5, 0.5));
     mSpeed = .3f;
 }
 
@@ -64,6 +64,11 @@ void Camera::update(direction dir, float deltaRotationYaw, float deltaRotationPi
 glm::mat4 Camera::getViewMatrix() const
 {
     return glm::lookAt(mPosition, mPosition + mDirection, glm::vec3(0, 1, 0));
+}
+
+glm::mat4 Camera::getProjection(float width, float height) const
+{
+    return glm::perspective(glm::radians(35.0f), width / height, 0.1f, 400.f);
 }
 
 glm::vec3 Camera::getPosition() const

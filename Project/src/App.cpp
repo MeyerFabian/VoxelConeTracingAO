@@ -31,7 +31,7 @@ bool moveUpwards = false;
 bool moveDownwards = false;
 bool rotateCamera = false;
 bool rotateLight = false;
-glm::vec3 dynamicObjectDelta = vec3(0,0,0);
+glm::vec3 dynamicObjectDelta = glm::vec3(0,0,0);
 
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)

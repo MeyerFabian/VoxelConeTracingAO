@@ -14,7 +14,7 @@ public:
     void update(direction dir, float deltaRotationPitch, float deltaRotationYaw);
     void setSpeed(float speed) { mSpeed = speed; }
     glm::mat4 getViewMatrix() const;
-
+    glm::mat4 getProjection(float width, float height) const;
     glm::vec3 getPosition() const;
 
 private:

@@ -1,14 +1,14 @@
 #version 430
 
-layout(location = 0) in float placebo;
-
-out float id;
-
-uniform float volumeExtent;;
 layout(r32ui, location = 1) readonly restrict uniform uimageBuffer positionImage;
+layout(rgba8, location = 2) readonly restrict uniform imageBuffer normalImage;
+layout(rgba8, location = 3) readonly restrict uniform imageBuffer colorImage;
 
-uniform mat4 projection;
 uniform mat4 cameraView;
+uniform mat4 projection;
+uniform float volumeExtent;
+
+out vec3 col;
 
 vec3 uintXYZ10ToVec3(uint val)
 {
@@ -21,8 +21,10 @@ vec3 uintXYZ10ToVec3(uint val)
 
 void main()
 {
-    id = gl_VertexID;
-    uint codedPosition = uint(imageLoad(positionImage,int(id)).x);
+    uint codedPosition = uint(imageLoad(positionImage,int(gl_VertexID)).x);
     vec3 position = volumeExtent * uintXYZ10ToVec3(codedPosition) - volumeExtent/2;
     gl_Position = projection * cameraView * vec4(position, 1);
+
+    // If normal is not read, image location is not found etc. Much error
+    col = imageLoad(colorImage,int(gl_VertexID)).rgb + 0.01 * imageLoad(normalImage,int(gl_VertexID)).rgb;
 }
