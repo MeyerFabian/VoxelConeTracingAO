@@ -91,8 +91,28 @@ Scene::~Scene()
     // Nothing to do
 }
 
-void Scene::drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const
+void Scene::draw(ShaderProgram* pShaderProgram, std::string modelUniform) const
 {
+    // Fill model matrix
+    pShaderProgram->updateUniform(modelUniform, glm::mat4(1.0));
+
+    // Draw scene with voxelization shader
+    for (auto& bucket : m_renderBuckets)
+    {
+        // Bind texture of mesh material (pointer to shader is needed for location)
+        bucket.first->bind(pShaderProgram);
+
+        // Draw all meshes in that bucket
+        for (Mesh const * pMesh : bucket.second)
+        {
+            pMesh->draw();
+        }
+    }
+
+    // Set model matrix for dynamic object
+    pShaderProgram->updateUniform(modelUniform, glm::translate(glm::mat4(1.0f), m_dynamicObjectPosition));
+
+    // Draw dynamic object
     m_upDynamicMeshMaterial->bind(pShaderProgram);
     m_upDynamicMesh->draw();
 }

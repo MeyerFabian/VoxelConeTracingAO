@@ -20,16 +20,15 @@ public:
     Scene(App* pApp, std::string areaName);
     virtual ~Scene();
 
-    void drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const;
+    void draw(ShaderProgram* pShaderProgram, std::string modelUniform) const;
+
     void updateDynamicObject(glm::vec3 deltaMovement) { m_dynamicObjectPosition += deltaMovement; }
     void updateCamera(Direction dir, float deltaCameraYaw, float deltaCameraPitch);
     void updateLight(float deltaCameraYaw, float deltaCameraPitch);
     void setCameraSpeed(float speed) { m_camera.setSpeed(speed); }
     glm::vec3 getCamPos() { return m_camera.getPosition(); }
-    const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return m_renderBuckets; }
     const Camera& getCamera() const{ return m_camera; }
     Light& getLight() { return m_light; }
-    glm::vec3 getDynamicObjectPosition() const {return m_dynamicObjectPosition; }
 
     virtual void fillGui(); // Implementation of Controllable
 

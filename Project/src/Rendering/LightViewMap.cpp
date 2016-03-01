@@ -59,28 +59,11 @@ void LightViewMap::shadowMapPass(const std::unique_ptr<Scene>& scene) const{
 
     // Create uniforms used by shader
     // Fill uniforms to shader
-	m_shadowMapPass->updateUniform("model", glm::mat4(1.f));
     m_shadowMapPass->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
     m_shadowMapPass->updateUniform("LightView", scene->getLight().getViewMatrix());
 
-    // Render all the buckets' content
-    for (auto& bucket : scene->getRenderBuckets())
-    {
-        // Bind material of bucket (which binds its uniforms and textures)
-        bucket.first->bind(m_shadowMapPass.get());
-
-        // Draw all meshes in that bucket
-        for (Mesh const * pMesh : bucket.second)
-        {
-            pMesh->draw();
-        }
-    }
-
-    // Set model matrix for dynamic object
-    m_shadowMapPass->updateUniform("model", glm::translate(glm::mat4(1.0f), scene->getDynamicObjectPosition()));
-
-    // Draw dynamic object
-    scene->drawDynamicObjectWithCustomShader(m_shadowMapPass.get());
+    // Draw with custom shader
+    scene->draw(m_shadowMapPass.get(), "model");
 
     m_shadowMapPass->disable();
 

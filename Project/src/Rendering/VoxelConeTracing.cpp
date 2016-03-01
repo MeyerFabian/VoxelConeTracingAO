@@ -19,11 +19,11 @@ using namespace std;
 VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone Tracing")
 {
     m_gbuffer = make_unique<GBuffer>();
-	directionBeginScale = 1.0f;
-	ambientOcclusionScale = 0.5f;
-	maxDistance = 5.0f; 
-	lambda = 0.5f;
-	colorBleeding = 0.0f;
+    directionBeginScale = 1.0f;
+    ambientOcclusionScale = 0.5f;
+    maxDistance = 5.0f;
+    lambda = 0.5f;
+    colorBleeding = 0.0f;
 
     glGenFramebuffers(1, &mPhongFbo);
 }
@@ -73,8 +73,6 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
     //Bind the GBuffer before enabling (and texture stuff) else it will fail
     m_gbuffer->bindForWriting();
 
-    glm::mat4 uniformModel = glm::mat4(1.f);
-
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -89,27 +87,9 @@ void VoxelConeTracing::geometryPass(float width,float height,const std::unique_p
     // Fill uniforms to shader
     m_geomPass->updateUniform("projection", m_uniformProjection);
     m_geomPass->updateUniform("view", scene->getCamera().getViewMatrix());
-    m_geomPass->updateUniform("model", uniformModel); // all meshes have center at 0,0,0
 
-
-    // Render all the buckets' content
-    for (auto& bucket : scene->getRenderBuckets())
-    {
-        // Bind material of bucket (which binds its uniforms and textures)
-        bucket.first->bind(m_geomPass.get());
-
-        // Draw all meshes in that bucket
-        for (Mesh const * pMesh : bucket.second)
-        {
-            pMesh->draw();
-        }
-    }
-
-    // Set model matrix for dynamic object
-    m_geomPass->updateUniform("model", glm::translate(glm::mat4(1.0f), scene->getDynamicObjectPosition()));
-
-    // Draw dynamic object
-    scene->drawDynamicObjectWithCustomShader(m_geomPass.get());
+    // Draw with custom shader
+    scene->draw(m_geomPass.get(), "model");
 
     m_geomPass->disable();
 
@@ -198,32 +178,32 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
 
     //Bind Gbuffer so we can transfer the geometry information into the color coded main framebuffer
 
-	m_gbuffer->bindForReading();
+    m_gbuffer->bindForReading();
 
-	glm::mat4 WVP = glm::mat4(1.f);
+    glm::mat4 WVP = glm::mat4(1.f);
 
-	m_voxelConeTracing->use();
+    m_voxelConeTracing->use();
 
-	GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "octree");
-	glUniform1i(octreeUniform, 0);
-	// bind octree texture
-	nodePool.bind();
+    GLint octreeUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "octree");
+    glUniform1i(octreeUniform, 0);
+    // bind octree texture
+    nodePool.bind();
 
-	GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
-	glUniform1i(brickPoolUniform, 5);
-	glActiveTexture(GL_TEXTURE5);
-	brickPool.bind();
+    GLint brickPoolUniform = glGetUniformLocation(static_cast<GLuint>(m_ambientOcclusion->getShaderProgramHandle()), "brickPool");
+    glUniform1i(brickPoolUniform, 5);
+    glActiveTexture(GL_TEXTURE5);
+    brickPool.bind();
 
 
     //Cone Tracing Uniforms
     //m_voxelConeTracing->updateUniform("beginningVoxelSize", beginningVoxelSize);
     m_voxelConeTracing->updateUniform("directionBeginScale", directionBeginScale);
-	m_voxelConeTracing->updateUniform("maxDistance", maxDistance);
-	m_voxelConeTracing->updateUniform("volumeExtent", volumeExtent);
-	m_voxelConeTracing->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
-	m_voxelConeTracing->updateUniform("lambda", lambda);
-	m_voxelConeTracing->updateUniform("ambientOcclusionScale", ambientOcclusionScale);
-	m_voxelConeTracing->updateUniform("colorBleeding", colorBleeding);
+    m_voxelConeTracing->updateUniform("maxDistance", maxDistance);
+    m_voxelConeTracing->updateUniform("volumeExtent", volumeExtent);
+    m_voxelConeTracing->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
+    m_voxelConeTracing->updateUniform("lambda", lambda);
+    m_voxelConeTracing->updateUniform("ambientOcclusionScale", ambientOcclusionScale);
+    m_voxelConeTracing->updateUniform("colorBleeding", colorBleeding);
     //Light uniforms
     m_voxelConeTracing->updateUniform("LightPosition", scene->getLight().getPosition());
     m_voxelConeTracing->updateUniform("LightColor", scene->getLight().getColor());
@@ -234,7 +214,7 @@ void VoxelConeTracing::drawVoxelConeTracing(float width, float height,
     m_voxelConeTracing->updateUniform("LightView", scene->getLight().getViewMatrix());
     m_voxelConeTracing->updateUniform("LightProjection", scene->getLight().getProjectionMatrix());
     //m_voxelConeTracing->updateUniform("shininess", 10.0);
-	// m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
+    // m_voxelConeTracing->updateUniform("eyeVector", scene->getCamPos());
 
     //other uniforms
     m_voxelConeTracing->updateUniform("identity", WVP);
@@ -405,7 +385,7 @@ void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQua
     //Cone Tracing Uniforms
     m_voxelGlow->updateUniform("beginningVoxelSize", beginningVoxelSize);
     m_voxelGlow->updateUniform("directionBeginScale", directionBeginScale);
-	m_voxelGlow->updateUniform("maxDistance", maxDistance);
+    m_voxelGlow->updateUniform("maxDistance", maxDistance);
     m_voxelGlow->updateUniform("volumeExtent", volumeExtent);
     m_voxelGlow->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
 
@@ -425,11 +405,11 @@ void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQua
 
 }
 void VoxelConeTracing::fillGui(){
-	ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");
-	ImGui::SliderFloat("Pushed out PerimeterStart in VoxelSize", &directionBeginScale, 0.0f, 5.0f, "%.1f");
-	ImGui::SliderFloat("AO lambda", &lambda, 0.0f, 2.0f, "%.3f");
-	ImGui::SliderFloat("AO scale VoxelConeTracing", &ambientOcclusionScale, 0.0f, 1.0f, "%.3f");
-	ImGui::SliderFloat("Color Bleeding", &colorBleeding, 0.0f, 5.0f, "%.2f");
+    ImGui::SliderFloat("max distance", &maxDistance, 0.5f, 20.0f , "%.2f");
+    ImGui::SliderFloat("Pushed out PerimeterStart in VoxelSize", &directionBeginScale, 0.0f, 5.0f, "%.1f");
+    ImGui::SliderFloat("AO lambda", &lambda, 0.0f, 2.0f, "%.3f");
+    ImGui::SliderFloat("AO scale VoxelConeTracing", &ambientOcclusionScale, 0.0f, 1.0f, "%.3f");
+    ImGui::SliderFloat("Color Bleeding", &colorBleeding, 0.0f, 5.0f, "%.2f");
 
 }
 
