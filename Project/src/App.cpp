@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// Easier creation of unique pointers
 #ifdef __unix__
 template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args) {
@@ -13,9 +14,11 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 }
 #endif
 
-// Ugly static variables
-GLint width, height;
-int VISUALIZATION = Visualization::RAYCASTING;
+// Global variables for GLFW callbacks
+int visualization = Visualization::RAYCASTING;
+float volumeExtent = 384.f;
+int width = 1280;
+int height = 720;
 int mouseX, mouseY = 0;
 int deltaCameraYaw = 0;
 int deltaCameraPitch = 0;
@@ -28,7 +31,7 @@ bool moveUpwards = false;
 bool moveDownwards = false;
 bool rotateCamera = false;
 bool rotateLight = false;
-glm::vec3 dynamicObjectDelta;
+glm::vec3 dynamicObjectDelta = vec3(0,0,0);
 
 // GLFW callback for errors
 static void errorCallback(int error, const char* description)
@@ -58,7 +61,9 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     {
         glfwSetWindowShouldClose(window, true);
     }
-    // Camera Handling
+
+    // ### Camera Handling ###
+
     // Cam turbo
     if(key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
     {
@@ -129,50 +134,52 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         moveDownwards = false;
     }
 
-    // Visualitation Handling
+    // Visualization handling
+
     // Voxel cone tracing
     if(key == GLFW_KEY_1& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::VOXEL_CONE_TRACING;
+        visualization = Visualization::VOXEL_CONE_TRACING;
     }
     //  Raycasting
     if(key == GLFW_KEY_2& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::RAYCASTING;
+        visualization = Visualization::RAYCASTING;
     }
-    //  Voxel Cubes
+    //  Voxel cubes
     if(key == GLFW_KEY_3& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::VOXEL_CUBES;
+        visualization = Visualization::VOXEL_CUBES;
     }
-    //  Point Cloud
+    //  Point cloud
     if(key == GLFW_KEY_4& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::POINT_CLOUD;
+        visualization = Visualization::POINT_CLOUD;
     }
     //  Gbuffer
     if(key == GLFW_KEY_5& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::GBUFFER;
+        visualization = Visualization::GBUFFER;
     }
     //  Phong
     if(key == GLFW_KEY_6& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::PHONG;
+        visualization = Visualization::PHONG;
     }
     //  Ambient occlusion
     if(key == GLFW_KEY_7& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::AMBIENT_OCCLUSION;
+        visualization = Visualization::AMBIENT_OCCLUSION;
     }
-    //  Shadow Map
+    //  Shadow map
     if (key == GLFW_KEY_8& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::SHADOW_MAP;
+        visualization = Visualization::SHADOW_MAP;
     }
+    // Voxel glow
     if (key == GLFW_KEY_9& action == GLFW_PRESS)
     {
-        VISUALIZATION = Visualization::VOXEL_GLOW;
+        visualization = Visualization::VOXEL_GLOW;
     }
 
     // Dynamic object control
@@ -244,7 +251,7 @@ static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     }
 }
 
-// ugly workaround for broken CURSOR_HIDDEN
+// Ugly workaround for broken CURSOR_HIDDEN
 GLFWcursor* BlankCursor()
 {
     const int w=1;//16;
@@ -295,105 +302,87 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
 App::App() : Controllable("App")
 {
-    width = 1024;
-    height = 1024;
-
-    mShowGBuffer = false;
-    mVoxeliseEachFrame = false;
+    // Initialize members
+    m_showGBuffer = false;
+    m_voxeliseEachFrame = false;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
-    mpWindow = glfwCreateWindow(width, height, "VoxelConeTracing", NULL, NULL);
-    if (!mpWindow)
+    m_pWindow = glfwCreateWindow(width, height, "VoxelConeTracing", NULL, NULL);
+    if (!m_pWindow)
     {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    // Initialize
-    glfwMakeContextCurrent(mpWindow);
+    glfwMakeContextCurrent(m_pWindow);
     gl3wInit();
 
-    // OpenGL initialization
+    // OpenGL setup
     glClearColor(0.0f, 0.0f, 0.0f, 1);
-    glEnable(GL_TEXTURE_1D);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_TEXTURE_3D);
 
     // Init ImGui
-    ImGui_ImplGlfwGL3_Init(mpWindow, true);
-
-    // Set GLFW callbacks after ImGui
-    glfwSetKeyCallback(mpWindow, keyCallback);
-    glfwSetCursorPosCallback(mpWindow, cursorPositionCallback);
-    glfwSetMouseButtonCallback(mpWindow, mouseButtonCallback);
-
-    // Load fonts
+    ImGui_ImplGlfwGL3_Init(m_pWindow, true);
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontDefault();
 
+    // Set GLFW callbacks after ImGui
+    glfwSetKeyCallback(m_pWindow, keyCallback);
+    glfwSetCursorPosCallback(m_pWindow, cursorPositionCallback);
+    glfwSetMouseButtonCallback(m_pWindow, mouseButtonCallback);
+
     // Variables for the loop
-    mPrevTime = (GLfloat)glfwGetTime();
+    m_prevTime = (GLfloat)glfwGetTime();
 
     // Register app as controllable
     this->registerControllable(this);
 
-    // Scene (load polygon scene)
-    m_scene = std::unique_ptr<Scene>(new Scene(this, "sponza"));
+    // Scene
+    m_upScene = std::unique_ptr<Scene>(new Scene(this, "sponza"));
 
-    // Voxelization
-    m_voxelization = std::unique_ptr<Voxelization>(
-        new Voxelization(this));
+    // Voxelization class (takes polygons and fills fragment list)
+    m_upVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
 
-    mFragmentList = std::unique_ptr<FragmentList>(
-            new FragmentList());
+    // Fragment list that gets filled up with voxel fragments
+    m_upFragmentList = make_unique<FragmentList>();
 
-    // Sparse voxel octree (use fragment voxels and create octree for later use)
+    // Visualization of voxel fragments as point cloud
+    m_upPointCloud = make_unique<PointCloud>(m_upFragmentList.get(), &(m_upScene->getCamera()));
 
-    m_svo = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
+    // Sparse Voxel Octree takes voxel fragments and builds up octree
+    m_upSVO = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
+    m_upSVO->init();
 
-    m_svo->init();
+    // Raycaster for visualization of octree
+    m_upOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
 
-    mupOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
+    // Visualization of octree with little cubes
+    m_upVoxelCubes = make_unique<VoxelCubes>(&(m_upScene->getCamera()));
 
-    m_LightViewMap = make_unique<LightViewMap>(this);
-    m_LightViewMap->init();
-    m_VoxelConeTracing = make_unique<VoxelConeTracing>(this);
+    // Light view map
+    m_upLightViewMap = make_unique<LightViewMap>(this);
+    m_upLightViewMap->init();
 
-    m_VoxelConeTracing->init(width, height);
-    mSSR = make_unique<SSR>();
+    // Voxel cone tracing (does ambient occlusion and global illumination)
+    m_upVoxelConeTracing = make_unique<VoxelConeTracing>(this);
+    m_upVoxelConeTracing->init(width, height);
 
-    m_FullScreenQuad = make_unique<FullScreenQuad>();
+    // Some screen spaced reflection testing
+    m_upSSR = make_unique<SSR>();
 
-    m_PointCloud = make_unique<PointCloud>(mFragmentList.get(), &(m_scene->getCamera()));
+    // Many classes use the same fullscreen rendering quad
+    m_upFullScreenQuad = make_unique<FullScreenQuad>();
 
-    m_VoxelCubes = make_unique<VoxelCubes>(&(m_scene->getCamera()));
-
-    // create octree from static geometrie
-    // Voxelization (create fragment voxels)
-    m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
-
-    // Testing fragment list
-    //
-    m_svo->clearOctree();
-    mFragmentList->mapToCUDA();
-
-
-    //m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
-    m_svo->buildOctree(mFragmentList->getPositionDevPointer(),
-                       mFragmentList->getColorBufferDevPointer(),
-                       mFragmentList->getNormalDevPointer(),
-                       mFragmentList->getVoxelCount());
-
-    mFragmentList->unmapFromCUDA();
+    // Voxelize scene and fill octree at least once
+    voxelizeAndFillOctree();
 }
 
 App::~App()
 {
-    glfwDestroyWindow(mpWindow);
+    glfwDestroyWindow(m_pWindow);
     glfwTerminate();
     exit(EXIT_SUCCESS);
 }
@@ -401,12 +390,12 @@ App::~App()
 void App::run()
 {
     // Loop
-    while (!glfwWindowShouldClose(mpWindow))
+    while (!glfwWindowShouldClose(m_pWindow))
     {
         // Calc time per frame
         GLfloat currentTime = (GLfloat)glfwGetTime();
-        GLfloat deltaTime = currentTime - mPrevTime;
-        mPrevTime = currentTime;
+        GLfloat deltaTime = currentTime - m_prevTime;
+        m_prevTime = currentTime;
 
         // Clear buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -415,7 +404,7 @@ void App::run()
         ImGui_ImplGlfwGL3_NewFrame();
 
         //Get window resolution
-        glfwGetWindowSize(mpWindow, &width, &height);
+        glfwGetWindowSize(m_pWindow, &width, &height);
 
         // Update camera
         handleCamera(deltaTime);
@@ -423,99 +412,82 @@ void App::run()
         // Update light
         if (rotateLight)
         {
-            glfwSetCursorPos(mpWindow, width/2, height/2);
-            m_scene->updateLight(0.01f * deltaCameraYaw * deltaTime, 0.01f * deltaCameraPitch * deltaTime);
+            glfwSetCursorPos(m_pWindow, width/2, height/2);
+            m_upScene->updateLight(0.01f * deltaCameraYaw * deltaTime, 0.01f * deltaCameraPitch * deltaTime);
         }
         else
         {
-            m_scene->updateLight(0, 0);
+            m_upScene->updateLight(0, 0);
         }
 
         // Update dynamic object
-        m_scene->updateDynamicObject(dynamicObjectDelta * deltaTime * DYNAMIC_OBJECT_SPEED);
+        m_upScene->updateDynamicObject(dynamicObjectDelta * deltaTime * DYNAMIC_OBJECT_SPEED);
 
         // Voxelization of scene
-        if(mVoxeliseEachFrame)
+        if(m_voxeliseEachFrame)
         {
-            // Voxelization (create fragment voxels)
-            m_voxelization->voxelize(VOLUME_EXTENT, m_scene.get(), mFragmentList.get());
-
-
-            // Testing fragment list
-            //
-            m_svo->clearOctree();
-            mFragmentList->mapToCUDA();
-
-
-            //m_svo->updateOctree(mFragmentList->getColorBufferDevPointer());
-            m_svo->buildOctree(mFragmentList->getPositionDevPointer(),
-                               mFragmentList->getColorBufferDevPointer(),
-                               mFragmentList->getNormalDevPointer(),
-                               mFragmentList->getVoxelCount());
-
-            mFragmentList->unmapFromCUDA();
+            voxelizeAndFillOctree();
         }
 
         // Set viewport for scene rendering
         glViewport(0, 0, width, height);
 
-        m_LightViewMap->shadowMapPass(m_scene);
+        m_upLightViewMap->shadowMapPass(m_upScene);
 
-        m_VoxelConeTracing->geometryPass(width,height,m_scene);
+        m_upVoxelConeTracing->geometryPass(width, height, m_upScene);
 
-        // Choose visualization TODO: make this available to user interface
-        switch(VISUALIZATION)
+        // Choose visualization
+        switch(visualization)
         {
         case Visualization::RAYCASTING:
-            mupOctreeRaycast->draw(
-                    m_scene->getCamPos(),
-                    m_svo->getNodePool(),
-                    m_svo->getBrickPool(),
-                    m_VoxelConeTracing->getGBuffer(),
-                    m_FullScreenQuad->getvaoID(),
-                    VOLUME_EXTENT);
+            m_upOctreeRaycast->draw(
+                    m_upScene->getCamPos(),
+                    m_upSVO->getNodePool(),
+                    m_upSVO->getBrickPool(),
+                    m_upVoxelConeTracing->getGBuffer(),
+                    m_upFullScreenQuad->getvaoID(),
+                    volumeExtent);
             break;
         case Visualization::VOXEL_CUBES:
-            m_VoxelCubes->draw(width,height, VOLUME_EXTENT, m_svo->getNodePool(), m_svo->getBrickPool());
+            m_upVoxelCubes->draw(width,height, volumeExtent, m_upSVO->getNodePool(), m_upSVO->getBrickPool());
             break;
         case Visualization::POINT_CLOUD:
-            m_PointCloud->draw(width,height, VOLUME_EXTENT);
+            m_upPointCloud->draw(width,height, volumeExtent);
             break;
         case Visualization::GBUFFER:
-            mShowGBuffer = false;
-            m_VoxelConeTracing->drawGBuffer(width, height);
+            m_showGBuffer = false;
+            m_upVoxelConeTracing->drawGBuffer(width, height);
             break;
         case Visualization::PHONG:
-            m_VoxelConeTracing->drawSimplePhong(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene);
-           // mSSR->draw(m_VoxelConeTracing->getGBuffer().get(),m_VoxelConeTracing.get(),m_scene->getCamera().getViewMatrix(),width, height);
-                break;
+            m_upVoxelConeTracing->drawSimplePhong(width, height, m_upLightViewMap->getCurrentShadowMapRes(), m_upFullScreenQuad->getvaoID(), m_upLightViewMap->getDepthTextureID(), m_upScene);
+            // mSSR->draw(m_VoxelConeTracing->getGBuffer().get(),m_VoxelConeTracing.get(),m_scene->getCamera().getViewMatrix(),width, height);
+            break;
         case Visualization::AMBIENT_OCCLUSION:
-            m_VoxelConeTracing->drawAmbientOcclusion(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+            m_upVoxelConeTracing->drawAmbientOcclusion(width, height, m_upFullScreenQuad->getvaoID(), m_upScene, m_upSVO->getNodePool(), m_upSVO->getBrickPool(), volumeExtent);
             break;
         case Visualization::VOXEL_CONE_TRACING:
-            m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
+            m_upVoxelConeTracing->drawVoxelConeTracing(width, height, m_upLightViewMap->getCurrentShadowMapRes(), m_upFullScreenQuad->getvaoID(), m_upLightViewMap->getDepthTextureID(), m_upScene, m_upSVO->getNodePool(), m_upSVO->getBrickPool(), 5, volumeExtent);
             break;
         case Visualization::SHADOW_MAP:
-            mShowGBuffer = false;
-            m_VoxelConeTracing->drawVoxelConeTracing(width, height, m_LightViewMap->getCurrentShadowMapRes(), m_FullScreenQuad->getvaoID(), m_LightViewMap->getDepthTextureID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), 5, VOLUME_EXTENT);
-            m_LightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_FullScreenQuad->getvaoID());
+            m_showGBuffer = false;
+            m_upVoxelConeTracing->drawVoxelConeTracing(width, height, m_upLightViewMap->getCurrentShadowMapRes(), m_upFullScreenQuad->getvaoID(), m_upLightViewMap->getDepthTextureID(), m_upScene, m_upSVO->getNodePool(), m_upSVO->getBrickPool(), 5, volumeExtent);
+            m_upLightViewMap->shadowMapRender(width*0.25, height*0.25, width, height, m_upFullScreenQuad->getvaoID());
             break;
         case Visualization::VOXEL_GLOW:
-            m_VoxelConeTracing->drawVoxelGlow(width, height, m_FullScreenQuad->getvaoID(), m_scene, m_svo->getNodePool(), m_svo->getBrickPool(), VOLUME_EXTENT);
+            m_upVoxelConeTracing->drawVoxelGlow(width, height, m_upFullScreenQuad->getvaoID(), m_upScene, m_upSVO->getNodePool(), m_upSVO->getBrickPool(), volumeExtent);
             break;
         }
 
-        if (mShowGBuffer){
-            m_LightViewMap->shadowMapRender(150, 150, width, height, m_FullScreenQuad->getvaoID());
-            m_VoxelConeTracing->drawGBufferPanels(width, height);
+        // One can display the gbuffer in addition
+        if (m_showGBuffer){
+            m_upLightViewMap->shadowMapRender(150, 150, width, height, m_upFullScreenQuad->getvaoID());
+            m_upVoxelConeTracing->drawGBufferPanels(width, height);
         }
-        // FUTURE STUFF
-
 
         // Update all controllables
         bool opened = true;
         ImGui::Begin("Properties", &opened, ImVec2(100, 200));
-        for(Controllable* pControllable : mControllables)
+        for(Controllable* pControllable : m_controllables)
         {
             pControllable->updateGui();
         }
@@ -525,67 +497,78 @@ void App::run()
         ImGui::Render();
 
         // Prepare next frame
-        glfwSwapBuffers(mpWindow);
+        glfwSwapBuffers(m_pWindow);
         glfwPollEvents();
 
     }
+}
+
+void App::registerControllable(Controllable* pControllable)
+{
+    m_controllables.push_back(pControllable);
+}
+
+void App::fillGui()
+{
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::SliderFloat("VolumeExtent", &volumeExtent, 300.f, 1024.f, "%0.5f");
+    ImGui::Checkbox("Voxelize each frame",&m_voxeliseEachFrame);
+    ImGui::Combo("Visualisation", &visualization, "RayCasting\0VoxelCubes\0PointCloud\0GBuffer\0Phong\0AmbientOcclusion\0VoxelConeTracing\0LightViewMap\0VoxelGlow\0");
+    ImGui::Checkbox("Show GBuffer", &m_showGBuffer);
+    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Voxel Cubes \n4: Point Cloud \n5: Gbuffer \n6: Phong \n7: Ambient Occlusion \n8: Shadow Map \n9: Voxel Glow");
 }
 
 void App::handleCamera(GLfloat deltaTime)
 {
     if(camTurbo)
     {
-        m_scene->setCameraSpeed(50.f*deltaTime);
+        m_upScene->setCameraSpeed(50.f*deltaTime);
     }
     else
     {
-        m_scene->setCameraSpeed(25.f*deltaTime);
+        m_upScene->setCameraSpeed(25.f*deltaTime);
     }
     if(moveForwards)
     {
-        m_scene->updateCamera(FORWARDS, 0, 0);
+        m_upScene->updateCamera(FORWARDS, 0, 0);
     }
     if(moveBackwards)
     {
-        m_scene->updateCamera(BACKWARDS, 0, 0);
+        m_upScene->updateCamera(BACKWARDS, 0, 0);
     }
     if(strafeLeft)
     {
-        m_scene->updateCamera(LEFT, 0, 0);
+        m_upScene->updateCamera(LEFT, 0, 0);
     }
     if(strafeRight)
     {
-        m_scene->updateCamera(RIGHT, 0, 0);
+        m_upScene->updateCamera(RIGHT, 0, 0);
     }
     if(moveUpwards)
     {
-        m_scene->updateCamera(UP, 0, 0);
+        m_upScene->updateCamera(UP, 0, 0);
     }
     if(moveDownwards)
     {
-        m_scene->updateCamera(DOWN, 0, 0);
+        m_upScene->updateCamera(DOWN, 0, 0);
     }
     if(rotateCamera)
     {
-        glfwSetCursorPos(mpWindow, width/2, height/2);
-        m_scene->updateCamera(NONE, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
+        glfwSetCursorPos(m_pWindow, width/2, height/2);
+        m_upScene->updateCamera(NONE, 0.1f * deltaCameraYaw * deltaTime, 0.1f * deltaCameraPitch * deltaTime);
         deltaCameraPitch = 0;
         deltaCameraYaw = 0;
     }
 }
 
-void App::registerControllable(Controllable* pControllable)
+void App::voxelizeAndFillOctree()
 {
-    mControllables.push_back(pControllable);
-}
-
-void App::fillGui()
-{
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::SliderFloat("VolumeExtent", &VOLUME_EXTENT, 300.f, 1024.f, "%0.5f");
-    ImGui::Checkbox("Voxelize each frame",&mVoxeliseEachFrame);
-    ImGui::Combo("Visualisation", &VISUALIZATION, "RayCasting\0VoxelCubes\0PointCloud\0GBuffer\0Phong\0AmbientOcclusion\0VoxelConeTracing\0LightViewMap\0VoxelGlow\0");
-    ImGui::Checkbox("Show GBuffer", &mShowGBuffer);
-    ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Voxel Cubes \n4: Point Cloud \n5: Gbuffer \n6: Phong \n7: Ambient Occlusion \n8: Shadow Map \n9: Voxel Glow");
-   // ImGui::Combo("Visualisation",&VISUALIZATION, "RayCasting\0PointCloud\0LightViewMap\0GBuffer\0VoxelConeTracing\0\0");
+    m_upVoxelization->voxelize(volumeExtent, m_upScene.get(), m_upFragmentList.get());
+    m_upSVO->clearOctree();
+    m_upFragmentList->mapToCUDA();
+    m_upSVO->buildOctree(m_upFragmentList->getPositionDevPointer(),
+                       m_upFragmentList->getColorBufferDevPointer(),
+                       m_upFragmentList->getNormalDevPointer(),
+                       m_upFragmentList->getVoxelCount());
+    m_upFragmentList->unmapFromCUDA();
 }
