@@ -1,120 +1,112 @@
-//
-// Created by nils1990 on 28.12.15.
-//
-
 #include "FragmentList.h"
+
+#include "Utilities/errorUtils.h"
+
 #include <assert.h>
 #include <cuda_runtime_api.h>
-#include <src/Utilities/errorUtils.h>
 #include <cuda_gl_interop.h>
 
-FragmentList::FragmentList(GLuint maxListSize) : mVoxelCount(0), mMaxListSize(maxListSize)
+FragmentList::FragmentList(GLuint maxListSize)
 {
-    init(maxListSize);
-}
+    m_voxelCount = 0;
+    m_maxListSize = maxListSize;
 
-FragmentList::~FragmentList()
-{
-    cudaGraphicsUnregisterResource(mPositionFragmentList);
-    cudaGraphicsUnregisterResource(mColorFragmentList);
-    cudaGraphicsUnregisterResource(mNormalFragmentList);
-
-    cudaGLUnregisterBufferObject(mPositionOutputBuffer);
-    cudaGLUnregisterBufferObject(mColorOutputBuffer);
-    cudaGLUnregisterBufferObject(mNormalOutputBuffer);
-
-    glDeleteTextures(1, &mPositionOutputTexture);
-    glDeleteTextures(1, &mColorOutputTexture);
-    glDeleteTextures(1, &mNormalOutputTexture);
-    glDeleteBuffers(1, &mPositionOutputBuffer);
-    glDeleteBuffers(1, &mColorOutputBuffer);
-    glDeleteBuffers(1, &mNormalOutputBuffer);
-}
-
-void FragmentList::init(GLuint maxListSize)
-{
-    mMaxListSize = maxListSize;
-
-    // ### OpenGL ###
+        // ### OpenGL ###
 
     // Position buffer
-    glGenBuffers(1, &mPositionOutputBuffer);
-    glBindBuffer(GL_TEXTURE_BUFFER, mPositionOutputBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint) * mMaxListSize, 0, GL_DYNAMIC_DRAW);
+    glGenBuffers(1, &m_positionOutputBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, m_positionOutputBuffer);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLuint) * m_maxListSize, 0, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // Position texture
-    glGenTextures(1, &mPositionOutputTexture);
-    glBindTexture(GL_TEXTURE_BUFFER, mPositionOutputTexture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, mPositionOutputBuffer);
+    glGenTextures(1, &m_positionOutputTexture);
+    glBindTexture(GL_TEXTURE_BUFFER, m_positionOutputTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, m_positionOutputBuffer);
     glBindTexture(GL_TEXTURE_BUFFER, 0);
 
     // Normal buffer
-    glGenBuffers(1, &mNormalOutputBuffer);
-    glBindBuffer(GL_TEXTURE_BUFFER, mNormalOutputBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * mMaxListSize, 0, GL_DYNAMIC_DRAW);
+    glGenBuffers(1, &m_normalOutputBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, m_normalOutputBuffer);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * m_maxListSize, 0, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // Normal texture
-    glGenTextures(1, &mNormalOutputTexture);
-    glBindTexture(GL_TEXTURE_BUFFER, mNormalOutputTexture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mNormalOutputBuffer);
+    glGenTextures(1, &m_normalOutputTexture);
+    glBindTexture(GL_TEXTURE_BUFFER, m_normalOutputTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, m_normalOutputBuffer);
     glBindTexture(GL_TEXTURE_BUFFER, 0);
 
     // Color buffer
-    glGenBuffers(1, &mColorOutputBuffer);
-    glBindBuffer(GL_TEXTURE_BUFFER, mColorOutputBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * mMaxListSize, 0, GL_DYNAMIC_DRAW);
+    glGenBuffers(1, &m_colorOutputBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, m_colorOutputBuffer);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(GLubyte) * 4 * m_maxListSize, 0, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
     // Color texture
-    glGenTextures(1, &mColorOutputTexture);
-    glBindTexture(GL_TEXTURE_BUFFER, mColorOutputTexture);
-    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, mColorOutputBuffer);
+    glGenTextures(1, &m_colorOutputTexture);
+    glBindTexture(GL_TEXTURE_BUFFER, m_colorOutputTexture);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, m_colorOutputBuffer);
     glBindTexture(GL_TEXTURE_BUFFER, 0);
 
     // ### Cuda ###
 
     // Register the texture for cuda (just once)
     // ### POSITION
-    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mPositionFragmentList,mPositionOutputBuffer,cudaGraphicsMapFlagsReadOnly));
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mPositionFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&m_positionFragmentList,m_positionOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_positionFragmentList, 0));
 
-    size_t sizePosition = maxListSize * sizeof(GLuint);
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mPositionDevPointer,
-                                                        &sizePosition, mPositionFragmentList));
+    size_t sizePosition = m_maxListSize * sizeof(GLuint);
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_positionDevPointer,
+                                                        &sizePosition, m_positionFragmentList));
 
-    cudaGraphicsUnmapResources(1, &mPositionFragmentList, 0);
+    cudaGraphicsUnmapResources(1, &m_positionFragmentList, 0);
 
     // ### COLOR
-    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mColorFragmentList,mColorOutputBuffer,cudaGraphicsMapFlagsReadOnly));
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mColorFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&m_colorFragmentList,m_colorOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_colorFragmentList, 0));
 
-    size_t sizeColor = maxListSize * sizeof(GLubyte) * 4;
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mColorDevPointer,
-                                         &sizeColor, mColorFragmentList));
+    size_t sizeColor = m_maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_colorDevPointer,
+                                         &sizeColor, m_colorFragmentList));
 
-    cudaGraphicsUnmapResources(1, &mColorFragmentList, 0);
+    cudaGraphicsUnmapResources(1, &m_colorFragmentList, 0);
 
     // ### NORMAL
-    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&mNormalFragmentList,mNormalOutputBuffer,cudaGraphicsMapFlagsReadOnly));
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mNormalFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&m_normalFragmentList,m_normalOutputBuffer,cudaGraphicsMapFlagsReadOnly));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_normalFragmentList, 0));
 
-    size_t sizeNormal = maxListSize * sizeof(GLubyte) * 4;
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mNormalDevPointer,
-                                                        &sizeNormal, mNormalFragmentList));
+    size_t sizeNormal = m_maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_normalDevPointer,
+                                                        &sizeNormal, m_normalFragmentList));
 
-    cudaGraphicsUnmapResources(1, &mNormalFragmentList, 0);
-
-
+    cudaGraphicsUnmapResources(1, &m_normalFragmentList, 0);
 
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
+}
+
+FragmentList::~FragmentList()
+{
+    cudaGraphicsUnregisterResource(m_positionFragmentList);
+    cudaGraphicsUnregisterResource(m_colorFragmentList);
+    cudaGraphicsUnregisterResource(m_normalFragmentList);
+
+    cudaGLUnregisterBufferObject(m_positionOutputBuffer);
+    cudaGLUnregisterBufferObject(m_colorOutputBuffer);
+    cudaGLUnregisterBufferObject(m_normalOutputBuffer);
+
+    glDeleteTextures(1, &m_positionOutputTexture);
+    glDeleteTextures(1, &m_colorOutputTexture);
+    glDeleteTextures(1, &m_normalOutputTexture);
+    glDeleteBuffers(1, &m_positionOutputBuffer);
+    glDeleteBuffers(1, &m_colorOutputBuffer);
+    glDeleteBuffers(1, &m_normalOutputBuffer);
 }
 
 void FragmentList::bind()
 {
     glBindImageTexture(1,
-                       mPositionOutputTexture,
+                       m_positionOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -122,7 +114,7 @@ void FragmentList::bind()
                        GL_R32UI);
 
     glBindImageTexture(2,
-                       mNormalOutputTexture,
+                       m_normalOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -130,7 +122,7 @@ void FragmentList::bind()
                        GL_RGBA8);
 
     glBindImageTexture(3,
-                       mColorOutputTexture,
+                       m_colorOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -141,7 +133,7 @@ void FragmentList::bind()
 void FragmentList::bindWriteonly()
 {
     glBindImageTexture(1,
-                       mPositionOutputTexture,
+                       m_positionOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -149,7 +141,7 @@ void FragmentList::bindWriteonly()
                        GL_R32UI);
 
     glBindImageTexture(2,
-                       mNormalOutputTexture,
+                       m_normalOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -157,7 +149,7 @@ void FragmentList::bindWriteonly()
                        GL_RGBA8);
 
     glBindImageTexture(3,
-                       mColorOutputTexture,
+                       m_colorOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -168,7 +160,7 @@ void FragmentList::bindWriteonly()
 void FragmentList::bindReadonly()
 {
     glBindImageTexture(1,
-                       mPositionOutputTexture,
+                       m_positionOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -176,7 +168,7 @@ void FragmentList::bindReadonly()
                        GL_R32UI);
 
     glBindImageTexture(2,
-                       mNormalOutputTexture,
+                       m_normalOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -184,7 +176,7 @@ void FragmentList::bindReadonly()
                        GL_RGBA8);
 
     glBindImageTexture(3,
-                       mColorOutputTexture,
+                       m_colorOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -195,7 +187,7 @@ void FragmentList::bindReadonly()
 void FragmentList::bindPosition()
 {
     glBindImageTexture(1,
-                       mPositionOutputTexture,
+                       m_positionOutputTexture,
                        0,
                        GL_TRUE,
                        0,
@@ -205,59 +197,59 @@ void FragmentList::bindPosition()
 
 int FragmentList::getVoxelCount() const
 {
-    return mVoxelCount;
+    return m_voxelCount;
 }
 
 void FragmentList::setVoxelCount(int count)
 {
     assert(count >=0);
 
-    mVoxelCount = count;
+    m_voxelCount = count;
 }
 
 void FragmentList::mapToCUDA()
 {
     // ### POSITION
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mPositionFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_positionFragmentList, 0));
 
-    size_t sizePosition = mMaxListSize * sizeof(GLuint);
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mPositionDevPointer,
-                                                        &sizePosition, mPositionFragmentList));
+    size_t sizePosition = m_maxListSize * sizeof(GLuint);
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_positionDevPointer,
+                                                        &sizePosition, m_positionFragmentList));
 
     // ### COLOR
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mColorFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_colorFragmentList, 0));
 
-    size_t sizeColor = mMaxListSize * sizeof(GLubyte) * 4;
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mColorDevPointer,
-                                                        &sizeColor, mColorFragmentList));
+    size_t sizeColor = m_maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_colorDevPointer,
+                                                        &sizeColor, m_colorFragmentList));
 
     // ### NORMAL
-    cudaErrorCheck(cudaGraphicsMapResources(1, &mNormalFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsMapResources(1, &m_normalFragmentList, 0));
 
-    size_t sizeNormal = mMaxListSize * sizeof(GLubyte) * 4;
-    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&mNormalDevPointer,
-                                                        &sizeNormal, mNormalFragmentList));
+    size_t sizeNormal = m_maxListSize * sizeof(GLubyte) * 4;
+    cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_normalDevPointer,
+                                                        &sizeNormal, m_normalFragmentList));
 
 }
 
 void FragmentList::unmapFromCUDA()
 {
-    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mPositionFragmentList, 0));
-    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mColorFragmentList, 0));
-    cudaErrorCheck(cudaGraphicsUnmapResources(1, &mNormalFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &m_positionFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &m_colorFragmentList, 0));
+    cudaErrorCheck(cudaGraphicsUnmapResources(1, &m_normalFragmentList, 0));
 }
 
 uchar4 *FragmentList::getColorBufferDevPointer()
 {
-    return mColorDevPointer;
+    return m_colorDevPointer;
 }
 
 uint1 *FragmentList::getPositionDevPointer()
 {
-    return mPositionDevPointer;
+    return m_positionDevPointer;
 }
 
 uchar4 *FragmentList::getNormalDevPointer()
 {
-    return mNormalDevPointer;
+    return m_normalDevPointer;
 }

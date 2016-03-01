@@ -10,7 +10,7 @@ are save to buffer textures, collection world position, normal and color of each
 #include "Scene/Scene.h"
 #include "FragmentList.h"
 
-// TODO
+// TODO:
 // -Create own framebuffer to be independend from screen resoluation
 
 class Voxelization : public Controllable
@@ -18,25 +18,24 @@ class Voxelization : public Controllable
 public:
 
     enum VoxelizeResolutions {RES_256, RES_384, RES_512, RES_1024};
-    int VOXELIZE_RESOLUTION = RES_384;
+    int voxelizationResolution = RES_384;
 
     Voxelization(App *pApp);
     ~Voxelization();
 
-    void voxelize(float extent, Scene const * pScene, FragmentList *fragmentList);
+    void voxelize(float extent, Scene const * pScene, FragmentList* pFragmentList);
+
+    virtual void fillGui();
 
 private:
 
-    // Members
-    std::unique_ptr<ShaderProgram> mVoxelizationShader;
-    GLuint mAtomicBuffer;
-
     void resetAtomicCounter() const;
     GLuint readAtomicCounter() const;
+    unsigned int determineVoxeliseResolution(int res) const;
 
-    unsigned int determineVoxeliseResolution(int res);
-
-    void fillGui();
+    // Members
+    std::unique_ptr<ShaderProgram> m_voxelizationShader;
+    GLuint m_atomicBuffer;
 };
 
 #endif // VOXELIZATION_H_
