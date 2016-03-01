@@ -1,7 +1,8 @@
 #ifndef MESH_H_
 #define MESH_H_
 
-#include <GL/gl3w.h>
+#include "externals/gl3w/include/GL/gl3w.h"
+
 #include <assimp/scene.h>
 #include <string>
 #include <vector>
@@ -20,13 +21,13 @@ public:
 private:
 
     // Members
-    GLuint mVertexBuffer;
-    GLuint mNormalBuffer;
-    GLuint mIndexBuffer;
-	GLuint mTangentBuffer;
-    GLuint mUVBuffer;
-    GLuint mVertexArrayObject;
-    int mElementCount;
+    GLuint m_vertexBuffer;
+    GLuint m_normalBuffer;
+    GLuint m_indexBuffer;
+    GLuint m_tangentBuffer;
+    GLuint m_UVBuffer;
+    GLuint m_vertexArrayObject;
+    int m_elementCount;
 };
 
 #endif // MESH_H_

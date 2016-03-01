@@ -1,7 +1,8 @@
 #ifndef TEXTURE_H_
 #define TEXTURE_H_
 
-#include <GL/gl3w.h>
+#include "externals/gl3w/include/GL/gl3w.h"
+
 #include <string>
 
 class Texture
@@ -16,9 +17,9 @@ public:
 private:
 
     // Members
-    int mWidth;
-    int mHeight;
-    GLuint mTexture;
+    int m_width;
+    int m_height;
+    GLuint m_texture;
 };
 
 #endif // TEXTURE_H_

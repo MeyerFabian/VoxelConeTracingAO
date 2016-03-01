@@ -6,14 +6,15 @@
 
 Light::Light()
 {
-    mPosition = glm::vec3(-40,125,0);
-	mDirection = glm::vec3(0,-1,0);
-	mAmbientIntensity = 0.4f;
-	mDiffuseIntensity = 1.0f;
-	mColor = glm::vec3(1.0, 0.95, 0.8);
-	m_uniformModel = glm::mat4(1.f);
-	m_width = 0;
-	m_height = 0;
+    // Fill members
+    m_position = glm::vec3(-40,125,0);
+    m_direction = glm::vec3(0,-1,0);
+    m_ambientIntensity = 0.4f;
+    m_diffuseIntensity = 1.0f;
+    m_color = glm::vec3(1.0f, 0.95f, 0.8f);
+    m_uniformModel = glm::mat4(1.f);
+    m_width = 0;
+    m_height = 0;
 }
 
 Light::~Light()
@@ -23,56 +24,55 @@ Light::~Light()
 
 void Light::update(float deltaRotationYaw, float deltaRotationPitch)
 {
-	float speed = 0.25;
-	mDirection = glm::rotate(mDirection, deltaRotationYaw*speed, glm::vec3(1, 0, 0));
-	mDirection = glm::rotate(mDirection, deltaRotationPitch*speed, glm::cross(mDirection, glm::vec3(1, 0, 0)));
-    
-
+    float speed = 0.25f;
+    m_direction = glm::rotate(m_direction, deltaRotationYaw * speed, glm::vec3(1, 0, 0));
+    m_direction = glm::rotate(m_direction, deltaRotationPitch * speed, glm::cross(m_direction, glm::vec3(1, 0, 0)));
 }
 
 glm::mat4 Light::getViewMatrix() const
 {
-    return glm::lookAt(mPosition, mPosition + mDirection, glm::vec3(1, 0, 0));
+    return glm::lookAt(m_position, m_position + m_direction, glm::vec3(1, 0, 0));
 }
 
 glm::vec3 Light::getPosition() const
 {
-    return mPosition;
+    return m_position;
 }
 glm::vec3 Light::getColor() const
 {
-	return mColor;
+    return m_color;
 }
 float Light::getAmbientIntensity() const
 {
-	return mAmbientIntensity;
+    return m_ambientIntensity;
 }
 float Light::getDiffuseIntensity() const
 {
-	return mDiffuseIntensity;
+    return m_diffuseIntensity;
 }
 
 float& Light::getAmbientIntensity()
 {
-	return mAmbientIntensity;
-}
-float& Light::getDiffuseIntensity()
-{
-	return mDiffuseIntensity;
-}
-glm::mat4 Light::getProjectionMatrix() const
-{
-	return glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 150.f);
+    return m_ambientIntensity;
 }
 
+float& Light::getDiffuseIntensity()
+{
+    return m_diffuseIntensity;
+}
+
+glm::mat4 Light::getProjectionMatrix() const
+{
+    return glm::perspective(glm::radians(35.0f), m_width / m_height, 0.1f, 150.f);
+}
 
 const glm::mat4& Light::getModelMatrix() const
 {
-	return m_uniformModel;
+    return m_uniformModel;
 }
 
-void Light::setProjectionMatrix(float width, float height) 
+void Light::setProjectionMatrix(float width, float height)
 {
-	m_width = width;
-	m_height = height;
+    m_width = width;
+    m_height = height;
 }

@@ -1,18 +1,18 @@
 #include "Scene.h"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <iostream>
 #include "Utilities/errorUtils.h"
 #include "externals/GLM/glm/glm.hpp"
 #include "externals/GLM/glm/gtc/matrix_transform.hpp"
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
 {
     // Initial members
-    mDynamicObjectPosition = glm::vec3(0,0,0);
+    m_dynamicObjectPosition = glm::vec3(0,0,0);
 
     // Create instance of assimp
     Assimp::Importer importer;
@@ -43,7 +43,7 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
         std::unique_ptr<Material> upMaterial = std::unique_ptr<Material>(new Material(areaName, material));
 
         // Move to materials
-        mMaterials.push_back(std::move(upMaterial));
+        m_materials.push_back(std::move(upMaterial));
     }
 
     // Iterate then over meshes in area
@@ -57,10 +57,10 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
 
         // Move to meshes
         Mesh const * pMesh = upMesh.get();
-        mMeshes.push_back(std::move(upMesh));
+        m_meshes.push_back(std::move(upMesh));
 
         // Register in render bucket
-        mRenderBuckets[mMaterials[mesh->mMaterialIndex].get()].push_back(pMesh);
+        m_renderBuckets[m_materials[mesh->mMaterialIndex].get()].push_back(pMesh);
     }
 
     // ### DYNAMIC OBJECT ###
@@ -77,13 +77,13 @@ Scene::Scene(App* pApp, std::string areaName) : Controllable(pApp, "Scene")
     aiMaterial* material = dynamicObject->mMaterials[1];
 
     // Create material from assimp data
-    mupDynamicMeshMaterial = std::unique_ptr<Material>(new Material("teapot", material));
+    m_upDynamicMeshMaterial = std::unique_ptr<Material>(new Material("teapot", material));
 
     // Fetch pointer to assimp structure
     aiMesh* mesh = dynamicObject->mMeshes[0];
 
     // Create mesh from assimp data
-    mupDynamicMesh = std::unique_ptr<Mesh>(new Mesh(mesh));
+    m_upDynamicMesh = std::unique_ptr<Mesh>(new Mesh(mesh));
 }
 
 Scene::~Scene()
@@ -93,30 +93,28 @@ Scene::~Scene()
 
 void Scene::drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const
 {
-    mupDynamicMeshMaterial->bind(pShaderProgram);
-    mupDynamicMesh->draw();
+    m_upDynamicMeshMaterial->bind(pShaderProgram);
+    m_upDynamicMesh->draw();
 }
 
-void Scene::updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch)
+void Scene::updateCamera(Direction dir, float deltaCameraYaw, float deltaCameraPitch)
 {
     // Update camera
-    mCamera.update(dir, deltaCameraYaw, deltaCameraPitch);
+    m_camera.update(dir, deltaCameraYaw, deltaCameraPitch);
 }
 
 void Scene::updateLight(float deltaCameraYaw, float deltaCameraPitch)
 {
     // Update camera
-    mLight.update(deltaCameraYaw, deltaCameraPitch);
+    m_light.update(deltaCameraYaw, deltaCameraPitch);
 }
 
 void Scene::fillGui()
 {
-    std::string output = "Camera " + glm::to_string(mCamera.getPosition());
+    std::string output = "Camera " + glm::to_string(m_camera.getPosition());
     ImGui::Text(output.c_str());
-    float& ambient = mLight.getAmbientIntensity();
-
-    float& diffuse = mLight.getDiffuseIntensity();
-
+    float& ambient = m_light.getAmbientIntensity();
+    float& diffuse = m_light.getDiffuseIntensity();
     ImGui::SliderFloat("AmbientIntensity", &ambient, 0.0f, 1.0f, "%0.2f");
     ImGui::SliderFloat("DiffuseIntensity", &diffuse, 0.0f, 2.0f, "%0.2f");
 }

@@ -4,18 +4,14 @@
 #include "Controllable.h"
 #include "Mesh.h"
 #include "Material.h"
-#include <Rendering/ShaderProgram.h>
+#include "Rendering/ShaderProgram.h"
 #include "Camera.h"
-#include <vector>
-#include <map>
-#include <memory>
 #include "Light.h"
 #include "Utilities/enums.h"
 
-// TODO
-/*
- * Diffuse has to be used in shader (and deactivated if necessary)
- */
+#include <vector>
+#include <map>
+#include <memory>
 
 class Scene : public Controllable
 {
@@ -25,35 +21,29 @@ public:
     virtual ~Scene();
 
     void drawDynamicObjectWithCustomShader(ShaderProgram* pShaderProgram) const;
-
-    void updateDynamicObject(glm::vec3 deltaMovement) {mDynamicObjectPosition += deltaMovement;}
-    void updateCamera(direction dir, float deltaCameraYaw, float deltaCameraPitch);
+    void updateDynamicObject(glm::vec3 deltaMovement) { m_dynamicObjectPosition += deltaMovement; }
+    void updateCamera(Direction dir, float deltaCameraYaw, float deltaCameraPitch);
     void updateLight(float deltaCameraYaw, float deltaCameraPitch);
-    void setCameraSpeed(float speed) { mCamera.setSpeed(speed); }
+    void setCameraSpeed(float speed) { m_camera.setSpeed(speed); }
+    glm::vec3 getCamPos() { return m_camera.getPosition(); }
+    const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return m_renderBuckets; }
+    const Camera& getCamera() const{ return m_camera; }
+    Light& getLight() { return m_light; }
+    glm::vec3 getDynamicObjectPosition() const {return m_dynamicObjectPosition; }
 
-
-    glm::vec3 getCamPos() { return mCamera.getPosition(); }
-
-    const std::map<Material const *, std::vector<Mesh const *> >& getRenderBuckets() const{ return mRenderBuckets;}
-
-    const Camera& getCamera() const{ return mCamera;}
-    Light& getLight() { return mLight; }
-
-    glm::vec3 getDynamicObjectPosition() const {return mDynamicObjectPosition;}
+    virtual void fillGui(); // Implementation of Controllable
 
 private:
 
-    virtual void fillGui() override; // Implementation of Controllable
-
     // Members
-    Camera mCamera;
-    Light mLight;
-    std::vector<std::unique_ptr<Material> > mMaterials;
-    std::vector<std::unique_ptr<Mesh> > mMeshes;
-    std::map<Material const *, std::vector<Mesh const *> > mRenderBuckets;
-    std::unique_ptr<Mesh> mupDynamicMesh;
-    std::unique_ptr<Material> mupDynamicMeshMaterial;
-    glm::vec3 mDynamicObjectPosition;
+    Camera m_camera;
+    Light m_light;
+    std::vector<std::unique_ptr<Material> > m_materials;
+    std::vector<std::unique_ptr<Mesh> > m_meshes;
+    std::map<Material const *, std::vector<Mesh const *> > m_renderBuckets;
+    std::unique_ptr<Mesh> m_upDynamicMesh;
+    std::unique_ptr<Material> m_upDynamicMeshMaterial;
+    glm::vec3 m_dynamicObjectPosition;
 };
 
 #endif // SCENE_H_

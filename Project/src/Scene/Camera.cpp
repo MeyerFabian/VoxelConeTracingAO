@@ -5,9 +5,9 @@
 
 Camera::Camera()
 {
-    mPosition = glm::vec3(-6.45, 56.7, -19.4);
-    mDirection = glm::normalize(glm::vec3(-1.0, -0.5, 0.5));
-    mSpeed = .3f;
+    m_position = glm::vec3(-6.45f, 56.7f, -19.4f);
+    m_direction = glm::normalize(glm::vec3(-1.0f, -0.5f, 0.5f));
+    m_speed = .3f;
 }
 
 Camera::~Camera()
@@ -15,55 +15,53 @@ Camera::~Camera()
     // Nothing to do
 }
 
-void Camera::update(direction dir, float deltaRotationYaw, float deltaRotationPitch)
+void Camera::update(Direction dir, float deltaRotationYaw, float deltaRotationPitch)
 {
-    mDirection = glm::rotate(mDirection, deltaRotationYaw, glm::vec3(0,1,0));
-    glm::vec3 sideDirection = glm::cross(mDirection, glm::vec3(0,1,0));
-    mDirection = glm::rotate(mDirection, deltaRotationPitch, sideDirection);
+    m_direction = glm::rotate(m_direction, deltaRotationYaw, glm::vec3(0,1,0));
+    glm::vec3 sideDirection = glm::cross(m_direction, glm::vec3(0,1,0));
+    m_direction = glm::rotate(m_direction, deltaRotationPitch, sideDirection);
     switch(dir)
     {
     case FORWARDS:
     {
-        mPosition += mSpeed * mDirection;
+        m_position += m_speed * m_direction;
         break;
     }
     case LEFT:
     {
-        mPosition -= mSpeed * sideDirection;
+        m_position -= m_speed * sideDirection;
         break;
     }
     case BACKWARDS:
     {
-        mPosition -= mSpeed * mDirection;
+        m_position -= m_speed * m_direction;
         break;
     }
     case RIGHT:
     {
-        mPosition += mSpeed * sideDirection;
+        m_position += m_speed * sideDirection;
         break;
     }
     case UP:
     {
-        mPosition += mSpeed * glm::vec3(0,1,0);
+        m_position += m_speed * glm::vec3(0,1,0);
         break;
     }
     case DOWN:
     {
-        mPosition -= mSpeed * glm::vec3(0,1,0);
+        m_position -= m_speed * glm::vec3(0,1,0);
         break;
     }
     case NONE:
     {
         break;
     }
-
-
     }
 }
 
 glm::mat4 Camera::getViewMatrix() const
 {
-    return glm::lookAt(mPosition, mPosition + mDirection, glm::vec3(0, 1, 0));
+    return glm::lookAt(m_position, m_position + m_direction, glm::vec3(0, 1, 0));
 }
 
 glm::mat4 Camera::getProjection(float width, float height) const
@@ -73,5 +71,5 @@ glm::mat4 Camera::getProjection(float width, float height) const
 
 glm::vec3 Camera::getPosition() const
 {
-    return mPosition;
+    return m_position;
 }

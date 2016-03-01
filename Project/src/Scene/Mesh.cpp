@@ -3,12 +3,12 @@
 Mesh::Mesh(aiMesh const * mesh)
 {
     // Element count
-    mElementCount = mesh->mNumFaces * 3;
+    m_elementCount = mesh->mNumFaces * 3;
 
     // Vertex Array Buffer
-    mVertexArrayObject = 0;
-    glGenVertexArrays(1, &mVertexArrayObject);
-    glBindVertexArray(mVertexArrayObject);
+    m_vertexArrayObject = 0;
+    glGenVertexArrays(1, &m_vertexArrayObject);
+    glBindVertexArray(m_vertexArrayObject);
 
     // Vertices
     float *vertices = new float[mesh->mNumVertices * 3];
@@ -19,8 +19,8 @@ Mesh::Mesh(aiMesh const * mesh)
         vertices[i * 3 + 2] = mesh->mVertices[i].z * MESH_SCALE;
     }
 
-    glGenBuffers(1, &mVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
+    glGenBuffers(1, &m_vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -36,8 +36,8 @@ Mesh::Mesh(aiMesh const * mesh)
         texCoords[i * 2 + 1] = mesh->mTextureCoords[0][i].y;
     }
 
-    glGenBuffers(1, &mUVBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mUVBuffer);
+    glGenBuffers(1, &m_UVBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_UVBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 2 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(1);
@@ -54,8 +54,8 @@ Mesh::Mesh(aiMesh const * mesh)
         normals[i * 3 + 2] = mesh->mNormals[i].z;
     }
 
-    glGenBuffers(1, &mNormalBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, mNormalBuffer);
+    glGenBuffers(1, &m_normalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_normalBuffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(2);
@@ -63,23 +63,23 @@ Mesh::Mesh(aiMesh const * mesh)
 
     delete[] normals;
 
-	// Tangents
-	float *tangents = new float[mesh->mNumVertices * 3];
-	for (int i = 0; i < mesh->mNumVertices; i++)
-	{
-		tangents[i * 3] = mesh->mTangents[i].x;
-		tangents[i * 3 + 1] = mesh->mTangents[i].y;
-		tangents[i * 3 + 2] = mesh->mTangents[i].z;
-	}
+    // Tangents
+    float *tangents = new float[mesh->mNumVertices * 3];
+    for (int i = 0; i < mesh->mNumVertices; i++)
+    {
+        tangents[i * 3] = mesh->mTangents[i].x;
+        tangents[i * 3 + 1] = mesh->mTangents[i].y;
+        tangents[i * 3 + 2] = mesh->mTangents[i].z;
+    }
 
-	glGenBuffers(1, &mTangentBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, mTangentBuffer);
-	glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), tangents, GL_STATIC_DRAW);
+    glGenBuffers(1, &m_tangentBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_tangentBuffer);
+    glBufferData(GL_ARRAY_BUFFER, mesh->mNumVertices * 3 * sizeof(GLfloat), tangents, GL_STATIC_DRAW);
 
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-	delete[] tangents;
+    delete[] tangents;
 
     // Indices
     unsigned int *indices = new unsigned int[mesh->mNumFaces * 3];
@@ -90,8 +90,8 @@ Mesh::Mesh(aiMesh const * mesh)
         indices[i * 3 + 2] = mesh->mFaces[i].mIndices[2];
     }
 
-    glGenBuffers(1, &mIndexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIndexBuffer);
+    glGenBuffers(1, &m_indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->mNumFaces * 3 * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
     delete[] indices;
@@ -102,16 +102,16 @@ Mesh::Mesh(aiMesh const * mesh)
 
 Mesh::~Mesh()
 {
-    glDeleteVertexArrays(1, &mVertexArrayObject);
-    glDeleteBuffers(1, &mVertexBuffer);
-    glDeleteBuffers(1, &mNormalBuffer);
-    glDeleteBuffers(1, &mIndexBuffer);
-    glDeleteBuffers(1, &mUVBuffer);
+    glDeleteVertexArrays(1, &m_vertexArrayObject);
+    glDeleteBuffers(1, &m_vertexBuffer);
+    glDeleteBuffers(1, &m_normalBuffer);
+    glDeleteBuffers(1, &m_indexBuffer);
+    glDeleteBuffers(1, &m_UVBuffer);
 }
 
 void Mesh::draw() const
 {
-    glBindVertexArray(mVertexArrayObject);
-    glDrawElements(GL_TRIANGLES, mElementCount, GL_UNSIGNED_INT, NULL);
+    glBindVertexArray(m_vertexArrayObject);
+    glDrawElements(GL_TRIANGLES, m_elementCount, GL_UNSIGNED_INT, NULL);
     glBindVertexArray(0);
 }

@@ -19,11 +19,11 @@ Texture::Texture(std::string filepath)
     stbi_set_flip_vertically_on_load(true);
 
     // Decode image
-    unsigned char *data = stbi_load(filepath.c_str(), &mWidth, &mHeight, &channelCount, 0);
+    unsigned char *data = stbi_load(filepath.c_str(), &m_width, &m_height, &channelCount, 0);
 
     // Create OpenGL texture
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glGenTextures(1, &m_texture);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
 
     // Repeat texture later
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -32,15 +32,15 @@ Texture::Texture(std::string filepath)
     // Move it to GPU
     if(channelCount == 1)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, mWidth, mHeight, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, m_width, m_height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
     }
     else if(channelCount == 3)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     }
     else
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
 
     // Free image data
@@ -57,11 +57,11 @@ Texture::Texture(std::string filepath)
 
 Texture::~Texture()
 {
-    glDeleteTextures(1, &mTexture);
+    glDeleteTextures(1, &m_texture);
 }
 
 void Texture::bind(GLenum slot) const
 {
     glActiveTexture(slot);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
 }

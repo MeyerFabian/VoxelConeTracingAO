@@ -6,32 +6,33 @@
 class Light{
 public:
 
-	Light();
-	virtual ~Light();
+    Light();
+    virtual ~Light();
 
     void update(float deltaRotationPitch, float deltaRotationYaw);
 
     glm::mat4 getViewMatrix() const;
-
     glm::vec3 getPosition() const;
-	glm::vec3 getColor() const;
-	float getAmbientIntensity() const;
-	float getDiffuseIntensity() const;
-	void setProjectionMatrix(float width, float height);
-	glm::mat4 getProjectionMatrix() const;
-	const glm::mat4& getModelMatrix() const; 
-	float& getAmbientIntensity();
-	float& getDiffuseIntensity();
+    glm::vec3 getColor() const;
+    float getAmbientIntensity() const;
+    float getDiffuseIntensity() const;
+    void setProjectionMatrix(float width, float height);
+    glm::mat4 getProjectionMatrix() const;
+    const glm::mat4& getModelMatrix() const;
+    float& getAmbientIntensity();
+    float& getDiffuseIntensity();
+
 private:
-	float m_width;
-	float m_height;
+
     // Members
-    glm::vec3 mPosition;
-    glm::vec3 mDirection;
-	float mAmbientIntensity;
-	float mDiffuseIntensity;
-	glm::vec3 mColor;
-	glm::mat4 m_uniformModel;
+    float m_width;
+    float m_height;
+    glm::vec3 m_position;
+    glm::vec3 m_direction;
+    float m_ambientIntensity;
+    float m_diffuseIntensity;
+    glm::vec3 m_color;
+    glm::mat4 m_uniformModel;
 };
 
 #endif // LIGHT_H

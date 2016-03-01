@@ -4,6 +4,7 @@
 #include "Texture.h"
 #include <Rendering/ShaderProgram.h>
 #include <assimp/scene.h>
+
 #include <memory>
 
 class Material
@@ -18,9 +19,9 @@ public:
 private:
 
     // Members
-    std::string mName;
-    std::unique_ptr<Texture> mupDiffuse;
-    std::unique_ptr<ShaderProgram> mupShader;
+    std::string m_name;
+    std::unique_ptr<Texture> m_upDiffuse;
+    std::unique_ptr<ShaderProgram> m_upShader;
 };
 
 #endif // MATERIAL_H_
