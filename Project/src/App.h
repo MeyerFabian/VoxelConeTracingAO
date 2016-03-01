@@ -13,7 +13,7 @@
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
 #include "PointCloud/PointCloud.h"
-#include "VoxelVisualitation/Voxelcubes.h"
+#include "VoxelCubes/VoxelCubes.h"
 #include "Utilities/enums.h"
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"

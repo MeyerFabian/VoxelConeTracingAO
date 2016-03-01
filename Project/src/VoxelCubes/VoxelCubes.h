@@ -1,15 +1,17 @@
-#ifndef VOXELCUBES_H
-#define VOXELCUBES_H
+#ifndef VOXEL_CUBES_H
+#define VOXEL_CUBES_H
 
-#include <memory>
 #include "Rendering/ShaderProgram.h"
 #include "Scene/Camera.h"
 #include "SparseOctree/BrickPool.h"
 #include "SparseOctree/NodePool.h"
 
+#include <memory>
+
 class VoxelCubes
 {
 public:
+
     VoxelCubes(Camera const * pCamera);
     void draw(
         float width,
@@ -20,8 +22,8 @@ public:
 
 private:
 
-    Camera const * mpCamera;
-    std::unique_ptr<ShaderProgram> mupShaderProgram;
+    Camera const * m_pCamera;
+    std::unique_ptr<ShaderProgram> m_upShaderProgram;
 };
 
-#endif // VOXELCUBES_H
+#endif // VOXEL_CUBES_H

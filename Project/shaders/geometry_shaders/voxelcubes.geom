@@ -1,12 +1,13 @@
 #version 430
 
+// In / out
 layout(points) in;
 layout(triangle_strip, max_vertices = 24) out;
 flat out vec4 col;
 
+// Uniforms
 layout(binding = 0, r32ui) uniform readonly uimageBuffer octree;
 uniform sampler3D brickPool;
-
 uniform mat4 projection;
 uniform mat4 cameraView;
 uniform float volumeExtent;
@@ -40,6 +41,7 @@ uvec3 decodeBrickCoords(uint coded)
     return coords;
 }
 
+// Main
 void main()
 {
     // Relative position of voxel
@@ -138,8 +140,6 @@ void main()
         // Only continue, if something was found
         if(col.a > 0.25)
         {
-
-
             // Size
             float size = volumeExtent / float(resolution);
             vec3 offset = vec3(size / 2.0, size / 2.0, size / 2.0);
