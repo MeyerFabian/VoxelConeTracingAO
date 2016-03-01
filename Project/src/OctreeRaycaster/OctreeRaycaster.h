@@ -1,0 +1,35 @@
+#ifndef OCTREE_RAYCASTER_H_
+#define OCTREE_RAYCASTER_H_
+
+#include "Rendering/ShaderProgram.h"
+#include "Scene/Camera.h"
+#include "SparseOctree/NodePool.h"
+#include "Rendering/GBuffer.h"
+#include "SparseOctree/BrickPool.h"
+#include "Controllable.h"
+#include "externals/gl3w/include/GL/gl3w.h"
+
+#include <memory>
+
+class OctreeRaycaster : public Controllable{
+public:
+    OctreeRaycaster(App* pApp);
+    void draw(glm::vec3 camPos,
+        NodePool& nodePool,
+        BrickPool& brickPool,
+        std::unique_ptr<GBuffer>& gbuffer,
+        GLuint screenQuad,
+        float volumeExtent) const;
+    void fillGui();
+
+private:
+    std::unique_ptr<ShaderProgram> m_upOctreeRaycasterShader;
+    GLuint m_VAO;
+    float m_stepSize;
+    float m_directionBeginScale;
+    int m_maxSteps;
+    int m_maxLevel;
+};
+
+
+#endif // OCTREE_RAYCASTER_H_

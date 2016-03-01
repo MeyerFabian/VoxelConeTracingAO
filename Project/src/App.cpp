@@ -357,7 +357,7 @@ App::App() : Controllable("App")
     m_upSVO->init();
 
     // Raycaster for visualization of octree
-    m_upOctreeRaycast = std::unique_ptr<OctreeRaycast>(new OctreeRaycast(this));
+    m_upOctreeRaycaster = std::unique_ptr<OctreeRaycaster>(new OctreeRaycaster(this));
 
     // Visualization of octree with little cubes
     m_upVoxelCubes = make_unique<VoxelCubes>(&(m_upScene->getCamera()));
@@ -440,7 +440,7 @@ void App::run()
         switch(visualization)
         {
         case Visualization::RAYCASTING:
-            m_upOctreeRaycast->draw(
+            m_upOctreeRaycaster->draw(
                     m_upScene->getCamPos(),
                     m_upSVO->getNodePool(),
                     m_upSVO->getBrickPool(),

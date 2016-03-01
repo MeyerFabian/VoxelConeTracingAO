@@ -8,7 +8,7 @@
 #include "SparseOctree/NodePool.h"
 #include "Scene/Scene.h"
 #include "Voxelization/Voxelization.h"
-#include "Raycaster/OctreeRaycast.h"
+#include "OctreeRaycaster/OctreeRaycaster.h"
 #include "Rendering/VoxelConeTracing.h"
 #include "Rendering/LightViewMap.h"
 #include "Rendering/FullScreenQuad.h"
@@ -55,7 +55,7 @@ private:
     std::unique_ptr<Scene> m_upScene;
     std::unique_ptr<Voxelization> m_upVoxelization;
     std::unique_ptr<FragmentList> m_upFragmentList;
-    std::unique_ptr<OctreeRaycast> m_upOctreeRaycast;
+    std::unique_ptr<OctreeRaycaster> m_upOctreeRaycaster;
     std::unique_ptr<VoxelConeTracing> m_upVoxelConeTracing;
     std::unique_ptr<LightViewMap> m_upLightViewMap;
     std::unique_ptr<FullScreenQuad> m_upFullScreenQuad;
