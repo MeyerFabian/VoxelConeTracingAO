@@ -3,6 +3,7 @@
 #include "externals/ImGui/imgui_impl_glfw_gl3.h"
 
 #include <iostream>
+#include <src/Utilities/errorUtils.h>
 
 using namespace std;
 

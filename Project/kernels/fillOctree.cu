@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
+#include <src/Utilities/errorUtils.h>
 
 #include "globalResources.cuh"
 #include "fillOctree.cuh"
@@ -171,18 +172,14 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     value = nodePool[offset].value;
 
     // Get color from volume
-    uchar4 color = make_uchar4(0,0,0,0);
-    surf3Dread(&color, colorVolumeSurface, (voxelPosition.x) * sizeof(uchar4), voxelPosition.y, voxelPosition.z);
+    uint1 color = make_uint1(0);
+    color = tex3D(colorVolumeTexture, voxelPosition.x, voxelPosition.y, voxelPosition.z);
 
-  //  if(index < 10000)
-    //    printf("ADRESSE: %d %d\n", offset, maxLevel);
-    // we have a valid brick => fill it
+    //color.x = static_cast<unsigned int>(0xff00ffff);
 
-    //uchar4 tmp = getColorRGBA8ToUCHAR4(color);
-    if(color.x != 0)
-        printf("FARBE: %d\n", color.x);
+    uchar4 tmp = getColorRGBA8ToUCHAR4(color.x);
 
-    fillBrickCorners(decodeBrickCoords(value), position,color);
+    fillBrickCorners(decodeBrickCoords(value), position, tmp);
     setBit(value, 31);
 
     __syncthreads();
@@ -488,11 +485,11 @@ cudaError_t buildSVO(node *nodePool,
 
     int blockCount = fragmentListSize / threadsPerBlockFragmentList + 1;
 
-    errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
+    cudaErrorCheck(cudaBindSurfaceToArray(colorBrickPool, brickPool));
 
     // Bind volumes with information about colors and normals to surface
-    errorCode = cudaBindSurfaceToArray(colorVolumeSurface, colorVolumeArray);
-    errorCode = cudaBindSurfaceToArray(normalVolumeSurface, normalVolumeArray);
+    cudaErrorCheck(cudaBindTextureToArray(colorVolumeTexture, colorVolumeArray));
+    cudaErrorCheck(cudaBindTextureToArray(normalVolumeTexture, normalVolumeArray));
 
     unsigned int *h_counter = new unsigned int[1];
     *h_counter = 0;
@@ -538,7 +535,7 @@ cudaError_t buildSVO(node *nodePool,
     LevelIntervalMap[maxLevel-1].end = *h_counter-1;
 
     // copy the level interval map to constant memory
-    errorCode = cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10);
+    cudaErrorCheck(cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10));
 
     cudaDeviceSynchronize();
     insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,maxLevel, fragmentListSize);

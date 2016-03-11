@@ -27,7 +27,8 @@ surface<void, cudaSurfaceType3D> colorBrickPool; // the surface representation o
 
 // Surfaces for volumes from voxelization
 surface<void, cudaSurfaceType3D> colorVolumeSurface;
-surface<void, cudaSurfaceType3D> normalVolumeSurface;
+texture<uint1, cudaTextureType3D, cudaReadModeElementType> colorVolumeTexture;
+texture<uint1, cudaTextureType3D, cudaReadModeElementType> normalVolumeTexture;
 
 // threadcounts
 const unsigned int threadsPerBlockMipMap = 256;

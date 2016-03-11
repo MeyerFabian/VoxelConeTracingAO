@@ -38,9 +38,9 @@ __device__
 uchar4 getColorRGBA8ToUCHAR4(const unsigned int codedColor)
 {
     return make_uchar4(codedColor & 0x000000FF,
-                       codedColor & 0x0000FF00 >> 8U,
-                       codedColor & 0x00FF0000 >> 16U,
-                       codedColor & 0xFF000000 >> 24U);
+                       (codedColor & 0x0000FF00) >> 8,
+                       (codedColor & 0x00FF0000) >> 16,
+                       (codedColor & 0xFF000000) >> 24);
 }
 
 #endif
