@@ -26,7 +26,6 @@ unsigned int *d_counter;
 surface<void, cudaSurfaceType3D> colorBrickPool; // the surface representation of our colorBrickPool (surface is needed for write access)
 
 // Surfaces for volumes from voxelization
-surface<void, cudaSurfaceType3D> colorVolumeSurface;
 texture<uint1, cudaTextureType3D, cudaReadModeElementType> colorVolumeTexture;
 texture<uint1, cudaTextureType3D, cudaReadModeElementType> normalVolumeTexture;
 
