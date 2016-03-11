@@ -65,6 +65,7 @@ private:
 
     bool m_voxeliseEachFrame;
     bool m_showGBuffer;
+    int m_prevVoxelizationResolution;
 };
 
 #endif // APP_H_

@@ -6,9 +6,9 @@
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
 
-FragmentList::FragmentList(GLuint maxListSize, GLuint volumeResolution)
+FragmentList::FragmentList(GLuint voxelizationResolution, GLuint maxListSize)
 {
-    mVolumeResolution = volumeResolution;
+    mVolumeResolution = voxelizationResolution;
     m_voxelCount = 0;
     m_maxListSize = maxListSize;
 
@@ -28,7 +28,6 @@ FragmentList::FragmentList(GLuint maxListSize, GLuint volumeResolution)
 
     // ### Cuda ###
 
-    // Register the texture for cuda (just once)
     // ### POSITION
     cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&m_positionFragmentList,m_positionOutputBuffer,cudaGraphicsMapFlagsReadOnly));
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_positionFragmentList, 0));
@@ -59,21 +58,19 @@ FragmentList::FragmentList(GLuint maxListSize, GLuint volumeResolution)
 
 FragmentList::~FragmentList()
 {
+    // Position
     cudaGraphicsUnregisterResource(m_positionFragmentList);
     cudaGLUnregisterBufferObject(m_positionOutputBuffer);
 
     glDeleteTextures(1, &m_positionOutputTexture);
     glDeleteBuffers(1, &m_positionOutputBuffer);
 
+    // Color and normal
+    cudaGraphicsUnregisterResource(mColorVolumeResource);
+    cudaGraphicsUnregisterResource(mNormalVolumeResource);
+
     // Delete volume textures
     deleteVolumes();
-}
-
-void FragmentList::resize(GLuint volumeResolution)
-{
-    mVolumeResolution = volumeResolution;
-    deleteVolumes();
-    createVolumes();
 }
 
 void FragmentList::reset()
@@ -228,7 +225,7 @@ cudaArray* FragmentList::getNormalVolumeArray()
     return mNormalVolumeArray;
 }
 
-GLuint FragmentList::getVolumeResolution() const
+GLuint FragmentList::getVoxelizationResolution() const
 {
     return mVolumeResolution;
 }

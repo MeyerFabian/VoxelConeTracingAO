@@ -348,7 +348,8 @@ App::App() : Controllable("App")
     m_upVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
 
     // Fragment list that gets filled up with voxel fragments
-    m_upFragmentList = make_unique<FragmentList>();
+    m_prevVoxelizationResolution = m_upVoxelization->getResolution();
+    m_upFragmentList = make_unique<FragmentList>(m_prevVoxelizationResolution);
 
     // Visualization of voxel fragments as point cloud
     m_upPointCloud = make_unique<PointCloud>(m_upFragmentList.get(), &(m_upScene->getCamera()));
@@ -427,6 +428,11 @@ void App::run()
         // Voxelization of scene
         if(m_voxeliseEachFrame)
         {
+            if(m_prevVoxelizationResolution != m_upVoxelization->getResolution())
+            {
+                m_prevVoxelizationResolution = m_upVoxelization->getResolution();
+                m_upFragmentList = make_unique<FragmentList>(m_prevVoxelizationResolution);
+            }
             voxelizeAndFillOctree();
         }
 
@@ -570,6 +576,7 @@ void App::voxelizeAndFillOctree()
     m_upSVO->buildOctree(m_upFragmentList->getPositionDevPointer(),
                        m_upFragmentList->getColorVolumeArray(),
                        m_upFragmentList->getNormalVolumeArray(),
-                       m_upFragmentList->getVoxelCount());
+                       m_upFragmentList->getVoxelCount(),
+                       m_upFragmentList->getVoxelizationResolution());
     m_upFragmentList->unmapFromCUDA();
 }

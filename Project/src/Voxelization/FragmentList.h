@@ -18,10 +18,9 @@ class FragmentList
     friend class Voxelization;  // setVoxelCount should only be called by Voxelization
 public:
 
-    FragmentList(GLuint maxListSize = 20000000, GLuint volumeResolution = 256); // TODO: read it from app
+    FragmentList(GLuint voxelizationResolution, GLuint maxListSize = 20000000);
     ~FragmentList();
 
-    void resize(GLuint volumeResolution);
     void reset();
 
     void bind();
@@ -37,7 +36,7 @@ public:
     cudaArray* getColorVolumeArray();
     cudaArray* getNormalVolumeArray();
 
-    GLuint getVolumeResolution() const;
+    GLuint getVoxelizationResolution() const;
 
 private:
 

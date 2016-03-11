@@ -24,4 +24,6 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
     cudaError_t initMemory();
 
     cudaError_t freeMemory();
+
+    cudaError_t setVoxelizationResolution(unsigned int resolution);
 }

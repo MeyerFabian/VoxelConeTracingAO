@@ -18,7 +18,7 @@ class Voxelization : public Controllable
 public:
 
     enum VoxelizeResolutions {RES_256, RES_384, RES_512, RES_1024};
-    int voxelizationResolution = RES_256;
+    int m_voxelizationResolution = RES_256;
 
     Voxelization(App *pApp);
     ~Voxelization();
@@ -26,6 +26,8 @@ public:
     void voxelize(float extent, Scene const * pScene, FragmentList* pFragmentList);
 
     virtual void fillGui();
+
+    int getResolution() const;
 
 private:
 

@@ -18,6 +18,7 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
     cudaError_t setVolumeResulution(int resolution);
     cudaError_t initMemory();
     cudaError_t freeMemory();
+    cudaError_t setVoxelizationResolution(unsigned int resolution);
 }
 
 void SparseVoxelOctree::init()
@@ -41,11 +42,12 @@ void SparseVoxelOctree::fillGui()
     ImGui::Text("Nothing so far");
 }
 
-void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList, cudaArray* colorVolumeArray, cudaArray* normalVolumeArray, int fragmentListSize)
+void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList, cudaArray* colorVolumeArray, cudaArray* normalVolumeArray, int fragmentListSize, unsigned int voxelizationResolution)
 {
     m_nodePool.mapToCUDA();
     m_brickPool.mapToCUDA();
 
+    cudaErrorCheck(setVoxelizationResolution(voxelizationResolution));
     cudaErrorCheck(buildSVO(m_nodePool.getNodePoolDevicePointer(),
              m_nodePool.getNeighbourPoolDevicePointer(),
              m_nodePool.getPoolSize(),

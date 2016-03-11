@@ -28,18 +28,12 @@ Voxelization::~Voxelization()
 void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList* pFragmentList)
 {
     // Resolution
-    int resolution = determineVoxeliseResolution(voxelizationResolution);
+    int resolution = determineVoxeliseResolution(m_voxelizationResolution);
 
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glViewport(0, 0, resolution, resolution);
-
-    // Decide, whether fragment list needs a resize
-    if(resolution != pFragmentList->getVolumeResolution())
-    {
-        pFragmentList->resize(resolution);
-    }
 
     // Use voxelization shader
     m_voxelizationShader->use();
@@ -74,7 +68,12 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList* pF
 
 void Voxelization::fillGui()
 {
-    ImGui::Combo("Resolution", &voxelizationResolution ," 256x256x256\0 384*384*384\0 512*512*512\0 1024*1024*1024\0");
+    ImGui::Combo("Resolution", &m_voxelizationResolution ," 256x256x256\0 384*384*384\0 512*512*512\0 1024*1024*1024\0");
+}
+
+int Voxelization::getResolution() const
+{
+    return determineVoxeliseResolution(m_voxelizationResolution);
 }
 
 GLuint Voxelization::readAtomicCounter() const

@@ -131,9 +131,9 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
 
     uint3 voxelPosition = make_uint3(0,0,0);
-    voxelPosition.x = position.x * 256; // TODO: right now, hardcoded voxelization volume size. Not good.
-    voxelPosition.y = position.y * 256; // TODO: right now, hardcoded voxelization volume size. Not good.
-    voxelPosition.z = position.z * 256; // TODO: right now, hardcoded voxelization volume size. Not good.
+    voxelPosition.x = position.x * constVoxelizationResolution[0];
+    voxelPosition.y = position.y * constVoxelizationResolution[0];
+    voxelPosition.z = position.z * constVoxelizationResolution[0];
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
@@ -563,8 +563,8 @@ cudaError_t buildSVO(node *nodePool,
         combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, level, i);
         cudaDeviceSynchronize();
     }
-	*/
-	filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
+    */
+    filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
     cudaDeviceSynchronize();
 
@@ -672,4 +672,10 @@ cudaError_t initMemory()
 cudaError_t freeMemory()
 {
     return cudaFree(d_counter);
+}
+
+cudaError_t setVoxelizationResolution(unsigned int resolution)
+{
+    voxelizationResolution = resolution;
+    return cudaMemcpyToSymbol(constVoxelizationResolution, &resolution, sizeof(unsigned int));
 }
