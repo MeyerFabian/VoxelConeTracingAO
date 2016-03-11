@@ -80,7 +80,7 @@ void FragmentList::reset()
     glClearTexImage(mNormalVolume, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, &clearInt);
 }
 
-void FragmentList::bind()
+void FragmentList::bind() const
 {
     glBindImageTexture(1,
                        m_positionOutputTexture,
@@ -107,7 +107,7 @@ void FragmentList::bind()
                        GL_R32UI);
 }
 
-void FragmentList::bindWriteonly()
+void FragmentList::bindWriteonly() const
 {
     glBindImageTexture(1,
                        m_positionOutputTexture,
@@ -134,7 +134,7 @@ void FragmentList::bindWriteonly()
                        GL_R32UI);
 }
 
-void FragmentList::bindReadonly()
+void FragmentList::bindReadonly() const
 {
     glBindImageTexture(1,
                        m_positionOutputTexture,
@@ -161,7 +161,7 @@ void FragmentList::bindReadonly()
                        GL_R32UI);
 }
 
-void FragmentList::bindPosition()
+void FragmentList::bindPosition() const
 {
     glBindImageTexture(1,
                        m_positionOutputTexture,

@@ -352,7 +352,7 @@ App::App() : Controllable("App")
     m_upFragmentList = make_unique<FragmentList>(m_prevVoxelizationResolution);
 
     // Visualization of voxel fragments as point cloud
-    m_upPointCloud = make_unique<PointCloud>(m_upFragmentList.get(), &(m_upScene->getCamera()));
+    m_upPointCloud = make_unique<PointCloud>(&(m_upScene->getCamera()));
 
     // Sparse Voxel Octree takes voxel fragments and builds up octree
     m_upSVO = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
@@ -459,7 +459,7 @@ void App::run()
             m_upVoxelCubes->draw(width,height, volumeExtent, m_upSVO->getNodePool(), m_upSVO->getBrickPool());
             break;
         case Visualization::POINT_CLOUD:
-            m_upPointCloud->draw(width,height, volumeExtent);
+            m_upPointCloud->draw(width, height, volumeExtent, m_upFragmentList.get());
             break;
         case Visualization::GBUFFER:
             m_showGBuffer = false;

@@ -2,11 +2,10 @@
 
 #include "externals/GLM/glm/gtx/string_cast.hpp"
 
-PointCloud::PointCloud(FragmentList* pFragmentList, Camera const * pCamera)
+PointCloud::PointCloud(Camera const * pCamera)
 {
-    mpFragmentList = pFragmentList;
-    mpCamera = pCamera;
-    mupShaderProgram = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/point.vert", "/fragment_shaders/point.frag"));
+    m_pCamera = pCamera;
+    m_upShaderProgram = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/point.vert", "/fragment_shaders/point.frag"));
     glPointSize(15.f);
 }
 
@@ -16,7 +15,7 @@ PointCloud::~PointCloud()
     // Nothing to do
 }
 
-void PointCloud::draw(float width, float height, float volumeExtent)
+void PointCloud::draw(float width, float height, float volumeExtent, FragmentList const * pFragmentList)
 {
     // Prepare OpenGL
     glDepthMask(GL_TRUE);
@@ -24,21 +23,21 @@ void PointCloud::draw(float width, float height, float volumeExtent)
 
     // Bind shader and no VAO
     glBindVertexArray(0);
-    mupShaderProgram->use();
+    m_upShaderProgram->use();
 
     // Set view and projection matrix
-    mupShaderProgram->updateUniform("cameraView", mpCamera->getViewMatrix());
-    mupShaderProgram->updateUniform("projection", mpCamera->getProjection(width, height));
+    m_upShaderProgram->updateUniform("cameraView", m_pCamera->getViewMatrix());
+    m_upShaderProgram->updateUniform("projection", m_pCamera->getProjection(width, height));
 
     // Volume center and extent for scaling
-    mupShaderProgram->updateUniform("volumeExtent", volumeExtent);
+    m_upShaderProgram->updateUniform("volumeExtent", volumeExtent);
 
     // Bind fragment lists
-    mpFragmentList->bindReadonly();
+    pFragmentList->bindReadonly();
 
     // Draw points
-    glDrawArrays(GL_POINTS, 0, mpFragmentList->getVoxelCount());
+    glDrawArrays(GL_POINTS, 0, pFragmentList->getVoxelCount());
 
     // Unbind shader
-    mupShaderProgram->disable();
+    m_upShaderProgram->disable();
 }

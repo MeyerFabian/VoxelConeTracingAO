@@ -11,15 +11,14 @@ class PointCloud
 {
 public:
 
-    PointCloud(FragmentList* pFragmentList, Camera const * pCamera);
+    PointCloud(Camera const * pCamera);
     virtual ~PointCloud();
-    void draw(float width,float height, float volumeExtent);
+    void draw(float width, float height, float volumeExtent, FragmentList const * pFragmentList);
 
 private:
 
-    FragmentList* mpFragmentList;
-    Camera const * mpCamera;
-    std::unique_ptr<ShaderProgram> mupShaderProgram;
+    Camera const * m_pCamera;
+    std::unique_ptr<ShaderProgram> m_upShaderProgram;
 };
 
 #endif // POINT_CLOUD_H_

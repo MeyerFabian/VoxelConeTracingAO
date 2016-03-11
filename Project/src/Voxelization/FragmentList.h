@@ -23,10 +23,10 @@ public:
 
     void reset();
 
-    void bind();
-    void bindWriteonly();
-    void bindReadonly();
-    void bindPosition();
+    void bind() const;
+    void bindWriteonly() const;
+    void bindReadonly() const;
+    void bindPosition() const;
     int getVoxelCount() const;
 
     void mapToCUDA();
