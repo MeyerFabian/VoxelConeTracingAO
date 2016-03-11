@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelisation")
+Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelization")
 {
     // ### Shader program ###
     m_voxelizationShader = std::unique_ptr<ShaderProgram>(
