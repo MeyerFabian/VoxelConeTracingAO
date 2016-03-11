@@ -24,7 +24,10 @@ LevelInterval LevelIntervalMap[10]; // we save the memory positions of every oct
 unsigned int *d_counter;
 
 surface<void, cudaSurfaceType3D> colorBrickPool; // the surface representation of our colorBrickPool (surface is needed for write access)
-surface<void, cudaSurfaceType3D> normalBrickPool; // same as above, but for normals
+
+// Surfaces for volumes from voxelization
+surface<void, cudaSurfaceType3D> colorVolumeSurface;
+surface<void, cudaSurfaceType3D> normalVolumeSurface;
 
 // threadcounts
 const unsigned int threadsPerBlockMipMap = 256;

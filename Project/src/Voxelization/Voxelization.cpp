@@ -27,10 +27,19 @@ Voxelization::~Voxelization()
 
 void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList* pFragmentList)
 {
+    // Resolution
+    int resolution = determineVoxeliseResolution(voxelizationResolution);
+
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glViewport(0, 0, determineVoxeliseResolution(voxelizationResolution), determineVoxeliseResolution(voxelizationResolution));
+    glViewport(0, 0, resolution, resolution);
+
+    // Decide, whether fragment list needs a resize
+    if(resolution != pFragmentList->getVolumeResolution())
+    {
+        pFragmentList->resize(resolution);
+    }
 
     // Use voxelization shader
     m_voxelizationShader->use();
@@ -43,18 +52,11 @@ void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList* pF
     // Reset the atomic counter
     resetAtomicCounter();
 
-    // Bind correct texture slots
-    GLint positionOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(m_voxelizationShader->getShaderProgramHandle()), "positionOutputImage");
-    glUniform1i(positionOutputUniformPosition, 1);
-    GLint normalOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(m_voxelizationShader->getShaderProgramHandle()), "normalOutputImage");
-    glUniform1i(normalOutputUniformPosition, 2);
-    GLint colorOutputUniformPosition = glGetUniformLocation(static_cast<GLuint>(m_voxelizationShader->getShaderProgramHandle()), "colorOutputImage");
-    glUniform1i(colorOutputUniformPosition, 3);
-
     // Give shader the pixel size for conservative rasterization
-    glUniform1f(glGetUniformLocation(static_cast<GLuint>(m_voxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / determineVoxeliseResolution(voxelizationResolution));
+    glUniform1f(glGetUniformLocation(static_cast<GLuint>(m_voxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / resolution);
 
     // Bind fragment list with output textures / buffers
+    pFragmentList->reset();
     pFragmentList->bindWriteonly();
 
     // Draw it with custom shader

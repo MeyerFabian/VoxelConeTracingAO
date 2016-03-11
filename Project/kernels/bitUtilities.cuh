@@ -34,4 +34,13 @@ void getVoxelPositionUINTtoFLOAT3(const unsigned int codedPosition, float3 &posi
     position.z = ((codedPosition >> 20) & (mask_bits)) / 1023.f;
 }
 
+__device__
+uchar4 getColorRGBA8ToUCHAR4(const unsigned int codedColor)
+{
+    return make_uchar4(codedColor & 0x000000FF,
+                       codedColor & 0x0000FF00 >> 8U,
+                       codedColor & 0x00FF0000 >> 16U,
+                       codedColor & 0xFF000000 >> 24U);
+}
+
 #endif

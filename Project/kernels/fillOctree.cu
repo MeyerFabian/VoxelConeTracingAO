@@ -119,7 +119,7 @@ __global__ void filterBrickCorners(node *nodePool, int maxNodes, int maxLevel)
 
 // traverses to the bottom level and fills the 8 corners of each brick
 // note that the bricks at the bottom level represent an octree level by themselves
-__global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, uchar4* colorBufferDevPointer, unsigned int maxLevel, int fragmentListSize)
+__global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, unsigned int maxLevel, int fragmentListSize)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -128,6 +128,11 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
 
     float3 position;
     getVoxelPositionUINTtoFLOAT3(positionBuffer[index].x,position);
+
+    uint3 voxelPosition = make_uint3(0,0,0);
+    voxelPosition.x = position.x * 256; // TODO: right now, hardcoded voxelization volume size. Not good.
+    voxelPosition.y = position.y * 256; // TODO: right now, hardcoded voxelization volume size. Not good.
+    voxelPosition.z = position.z * 256; // TODO: right now, hardcoded voxelization volume size. Not good.
 
     unsigned int nodeOffset = 0;
     unsigned int childPointer = 0;
@@ -165,10 +170,19 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     // now we fill the corners of our bricks at the last level. This level is represented with 8 values inside a brick
     value = nodePool[offset].value;
 
+    // Get color from volume
+    uchar4 color = make_uchar4(0,0,0,0);
+    surf3Dread(&color, colorVolumeSurface, (voxelPosition.x) * sizeof(uchar4), voxelPosition.y, voxelPosition.z);
+
   //  if(index < 10000)
     //    printf("ADRESSE: %d %d\n", offset, maxLevel);
     // we have a valid brick => fill it
-    fillBrickCorners(decodeBrickCoords(value), position, colorBufferDevPointer[index]);
+
+    //uchar4 tmp = getColorRGBA8ToUCHAR4(color);
+    if(color.x != 0)
+        printf("FARBE: %d\n", color.x);
+
+    fillBrickCorners(decodeBrickCoords(value), position,color);
     setBit(value, 31);
 
     __syncthreads();
@@ -461,8 +475,8 @@ cudaError_t buildSVO(node *nodePool,
                      cudaArray *brickPool,
                      dim3 textureDim,
                      uint1* positionDevPointer,
-                     uchar4* colorBufferDevPointer,
-                     uchar4* normalDevPointer,
+                     cudaArray *colorVolumeArray,
+                     cudaArray *normalVolumeArray,
                      int fragmentListSize)
 {
     cudaError_t errorCode = cudaSuccess;
@@ -475,6 +489,10 @@ cudaError_t buildSVO(node *nodePool,
     int blockCount = fragmentListSize / threadsPerBlockFragmentList + 1;
 
     errorCode = cudaBindSurfaceToArray(colorBrickPool, brickPool);
+
+    // Bind volumes with information about colors and normals to surface
+    errorCode = cudaBindSurfaceToArray(colorVolumeSurface, colorVolumeArray);
+    errorCode = cudaBindSurfaceToArray(normalVolumeSurface, normalVolumeArray);
 
     unsigned int *h_counter = new unsigned int[1];
     *h_counter = 0;
@@ -523,7 +541,7 @@ cudaError_t buildSVO(node *nodePool,
     errorCode = cudaMemcpyToSymbol(constLevelIntervalMap, LevelIntervalMap, sizeof(LevelInterval)*10);
 
     cudaDeviceSynchronize();
-    insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,colorBufferDevPointer,maxLevel, fragmentListSize);
+    insertVoxelsInLastLevel<<<blockCount,threadsPerBlockFragmentList>>>(nodePool,positionDevPointer,maxLevel, fragmentListSize);
 
     unsigned int nodeCount = static_cast<unsigned int>(pow(8,maxLevel-1));
 

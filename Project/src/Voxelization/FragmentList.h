@@ -18,8 +18,11 @@ class FragmentList
     friend class Voxelization;  // setVoxelCount should only be called by Voxelization
 public:
 
-    FragmentList(GLuint maxListSize = 20000000);
+    FragmentList(GLuint maxListSize = 20000000, GLuint volumeResolution = 256); // TODO: read it from app
     ~FragmentList();
+
+    void resize(GLuint volumeResolution);
+    void reset();
 
     void bind();
     void bindWriteonly();
@@ -31,36 +34,42 @@ public:
     void unmapFromCUDA();
 
     uint1* getPositionDevPointer();
-    uchar4* getColorBufferDevPointer();
-    uchar4* getNormalDevPointer();
+    cudaArray* getColorVolumeArray();
+    cudaArray* getNormalVolumeArray();
+
+    GLuint getVolumeResolution() const;
 
 private:
 
     void setVoxelCount(int count);
 
+    void createVolumes();
+    void deleteVolumes() const;
+
     // 32bit, 10 per axis, 2 unused
     GLuint m_positionOutputBuffer;
     GLuint m_positionOutputTexture;
 
-    // RGBA 8
-    GLuint m_normalOutputBuffer;
-    GLuint m_normalOutputTexture;
-
-    // RGBA8
-    GLuint m_colorOutputBuffer;
-    GLuint m_colorOutputTexture;
+    // 32bit uint for RGB colors with 8 bit per channel (alpha used for blending)
+    GLuint mColorVolume;
+    GLuint mNormalVolume;
 
     int m_voxelCount;
     size_t m_maxListSize;
 
-    cudaGraphicsResource_t  m_positionFragmentList;
+    // Position for cuda
+    cudaGraphicsResource_t m_positionFragmentList;
     uint1 *m_positionDevPointer;
 
-    cudaGraphicsResource_t  m_colorFragmentList;
-    uchar4 *m_colorDevPointer;
+    // Color for cuda
+    cudaGraphicsResource_t mColorVolumeResource;
+    cudaArray *mColorVolumeArray;
 
-    cudaGraphicsResource_t  m_normalFragmentList;
-    uchar4 *m_normalDevPointer;
+    // Normal for cuda
+    cudaGraphicsResource_t mNormalVolumeResource;
+    cudaArray *mNormalVolumeArray;
+
+    GLuint mVolumeResolution;
 };
 
 #endif //FRAGMENTLIST_H

@@ -11,8 +11,8 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
                          cudaArray *brickPool,
                          dim3 textureDim,
                          uint1 *positionDevPointer,
-                         uchar4 *colorBufferDevPointer,
-                         uchar4 *normalDevPointer,
+                         cudaArray *colorVolumeArray,
+                         cudaArray *normalVolumeArray,
                          int fragmentListSize);
 
     cudaError_t setVolumeResulution(int resolution);
@@ -41,7 +41,7 @@ void SparseVoxelOctree::fillGui()
     ImGui::Text("Nothing so far");
 }
 
-void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize)
+void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList, cudaArray* colorVolumeArray, cudaArray* normalVolumeArray, int fragmentListSize)
 {
     m_nodePool.mapToCUDA();
     m_brickPool.mapToCUDA();
@@ -52,8 +52,8 @@ void SparseVoxelOctree::buildOctree(uint1 *positionFragmentList,uchar4 *colorFra
              m_brickPool.getBrickPoolArray(),
              m_brickPool.getResolution(),
              positionFragmentList,
-             colorFragmentList,
-             normalFragmentList,
+             colorVolumeArray,
+             normalVolumeArray,
              fragmentListSize);
 
     m_brickPool.unmapFromCUDA();

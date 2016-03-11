@@ -14,8 +14,8 @@ extern "C" // this is not necessary imho, but gives a better idea on where the f
                          cudaArray *brickPool,
                          dim3 textureDim,
                          uint1* positionDevPointer,
-                         uchar4* colorBufferDevPointer,
-                         uchar4* normalDevPointer,
+                         cudaArray *colorVolumeArray,
+                         cudaArray *normalVolumeArray,
                          int fragmentListSize);
 
 // sets the volume resolution within the constant memory

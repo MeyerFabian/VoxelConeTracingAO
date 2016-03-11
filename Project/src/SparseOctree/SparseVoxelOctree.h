@@ -16,7 +16,7 @@ public:
     ~SparseVoxelOctree();
     void init();
     void clearOctree();
-    void buildOctree(uint1 *positionFragmentList,uchar4 *colorFragmentList,uchar4 *normalFragmentList, int fragmentListSize);
+    void buildOctree(uint1 *positionFragmentList, cudaArray* colorVolumeArray, cudaArray* normalVolumeArray, int fragmentListSize);
     NodePool& getNodePool() { return m_nodePool; }
     BrickPool& getBrickPool() { return m_brickPool; }
 

@@ -567,8 +567,8 @@ void App::voxelizeAndFillOctree()
     m_upSVO->clearOctree();
     m_upFragmentList->mapToCUDA();
     m_upSVO->buildOctree(m_upFragmentList->getPositionDevPointer(),
-                       m_upFragmentList->getColorBufferDevPointer(),
-                       m_upFragmentList->getNormalDevPointer(),
+                       m_upFragmentList->getColorVolumeArray(),
+                       m_upFragmentList->getNormalVolumeArray(),
                        m_upFragmentList->getVoxelCount());
     m_upFragmentList->unmapFromCUDA();
 }
