@@ -54,7 +54,6 @@ private:
     std::unique_ptr<SparseVoxelOctree> m_upSVO;
     std::unique_ptr<Scene> m_upScene;
     std::unique_ptr<Voxelization> m_upVoxelization;
-    std::unique_ptr<FragmentList> m_upFragmentList;
     std::unique_ptr<OctreeRaycaster> m_upOctreeRaycaster;
     std::unique_ptr<VoxelConeTracing> m_upVoxelConeTracing;
     std::unique_ptr<LightViewMap> m_upLightViewMap;
@@ -65,7 +64,6 @@ private:
 
     bool m_voxeliseEachFrame;
     bool m_showGBuffer;
-    int m_prevVoxelizationResolution;
 };
 
 #endif // APP_H_

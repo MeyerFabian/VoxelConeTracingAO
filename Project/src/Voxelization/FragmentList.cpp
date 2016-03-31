@@ -210,17 +210,17 @@ void FragmentList::unmapFromCUDA()
     cudaErrorCheck(cudaGraphicsUnmapResources(1, &mNormalVolumeResource, 0));
 }
 
-uint1 *FragmentList::getPositionDevPointer()
+uint1 *FragmentList::getPositionDevPointer() const
 {
     return m_positionDevPointer;
 }
 
-cudaArray* FragmentList::getColorVolumeArray()
+cudaArray* FragmentList::getColorVolumeArray() const
 {
     return mColorVolumeArray;
 }
 
-cudaArray* FragmentList::getNormalVolumeArray()
+cudaArray* FragmentList::getNormalVolumeArray() const
 {
     return mNormalVolumeArray;
 }

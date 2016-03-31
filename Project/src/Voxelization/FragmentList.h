@@ -32,9 +32,9 @@ public:
     void mapToCUDA();
     void unmapFromCUDA();
 
-    uint1* getPositionDevPointer();
-    cudaArray* getColorVolumeArray();
-    cudaArray* getNormalVolumeArray();
+    uint1* getPositionDevPointer() const;
+    cudaArray* getColorVolumeArray() const;
+    cudaArray* getNormalVolumeArray() const;
 
     GLuint getVoxelizationResolution() const;
 

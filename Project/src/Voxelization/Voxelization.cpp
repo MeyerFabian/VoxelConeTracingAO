@@ -3,11 +3,24 @@
 
 #include <iostream>
 
+// Easier creation of unique pointers
+#ifdef __unix__
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+#endif
+
 Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelization")
 {
+    m_resolution = determineVoxeliseResolution(m_voxelizationResolution);
+
     // ### Shader program ###
-    m_voxelizationShader = std::unique_ptr<ShaderProgram>(
+    m_upVoxelizationShader = std::unique_ptr<ShaderProgram>(
             new ShaderProgram("/vertex_shaders/voxelization.vert","/fragment_shaders/voxelization.frag", "/geometry_shaders/voxelization.geom"));
+
+    // ### Fragment list ###
+    m_upFragmentList = make_unique<FragmentList>(m_resolution);
 
     // ### Atomic counter #####
     // Generate atomic buffer
@@ -25,45 +38,51 @@ Voxelization::~Voxelization()
 }
 
 
-void Voxelization::voxelize(float extent, Scene const * pScene, FragmentList* pFragmentList)
+void Voxelization::voxelize(float extent, Scene const * pScene)
 {
     // Resolution
     int resolution = determineVoxeliseResolution(m_voxelizationResolution);
 
+    if(resolution != m_resolution)
+    {
+        m_resolution = resolution;
+        m_upFragmentList = make_unique<FragmentList>(resolution);
+    }
+
     // Setup OpenGL for voxelization
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glViewport(0, 0, resolution, resolution);
+    glViewport(0, 0, m_resolution, m_resolution);
 
     // Use voxelization shader
-    m_voxelizationShader->use();
+    m_upVoxelizationShader->use();
 
     // Orthographic projections
     float halfExtent = extent / 2.f;
     glm::mat4 orthographicProjection = glm::ortho(-halfExtent, halfExtent, -halfExtent, halfExtent, -halfExtent, halfExtent);
-    m_voxelizationShader->updateUniform("orthographicProjection", orthographicProjection);
+    m_upVoxelizationShader->updateUniform("orthographicProjection", orthographicProjection);
 
     // Reset the atomic counter
     resetAtomicCounter();
 
     // Give shader the pixel size for conservative rasterization
-    glUniform1f(glGetUniformLocation(static_cast<GLuint>(m_voxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / resolution);
+    glUniform1f(glGetUniformLocation(static_cast<GLuint>(m_upVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / m_resolution);
 
     // Bind fragment list with output textures / buffers
-    pFragmentList->reset();
-    pFragmentList->bindWriteonly();
+    m_upFragmentList->reset();
+    m_upFragmentList->bindWriteonly();
 
     // Draw it with custom shader
-    pScene->draw(m_voxelizationShader.get(), "model");
+    pScene->draw(m_upVoxelizationShader.get(), "model");
 
     // Wait until finished
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
     // Remember count
-    pFragmentList->setVoxelCount(readAtomicCounter());
+    m_upFragmentList->setVoxelCount(readAtomicCounter());
 
-    // Disable shade
-    m_voxelizationShader->disable();
+    // Disable shader
+    m_upVoxelizationShader->disable();
 }
 
 void Voxelization::fillGui()
@@ -74,6 +93,21 @@ void Voxelization::fillGui()
 int Voxelization::getResolution() const
 {
     return determineVoxeliseResolution(m_voxelizationResolution);
+}
+
+FragmentList const * Voxelization::getFragmentList() const
+{
+    return m_upFragmentList.get();
+}
+
+void Voxelization::mapFragmentListToCUDA()
+{
+    m_upFragmentList->mapToCUDA();
+}
+
+void Voxelization::unmapFragmentListFromCUDA()
+{
+    m_upFragmentList->unmapFromCUDA();
 }
 
 GLuint Voxelization::readAtomicCounter() const

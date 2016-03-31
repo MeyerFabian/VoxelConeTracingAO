@@ -23,11 +23,16 @@ public:
     Voxelization(App *pApp);
     ~Voxelization();
 
-    void voxelize(float extent, Scene const * pScene, FragmentList* pFragmentList);
+    void voxelize(float extent, Scene const * pScene);
 
     virtual void fillGui();
 
     int getResolution() const;
+
+    FragmentList const * getFragmentList() const;
+
+    void mapFragmentListToCUDA();
+    void unmapFragmentListFromCUDA();
 
 private:
 
@@ -36,8 +41,10 @@ private:
     unsigned int determineVoxeliseResolution(int res) const;
 
     // Members
-    std::unique_ptr<ShaderProgram> m_voxelizationShader;
+    std::unique_ptr<ShaderProgram> m_upVoxelizationShader;
+    std::unique_ptr<FragmentList> m_upFragmentList;
     GLuint m_atomicBuffer;
+    GLint m_resolution;
 };
 
 #endif // VOXELIZATION_H_

@@ -347,10 +347,6 @@ App::App() : Controllable("App")
     // Voxelization class (takes polygons and fills fragment list)
     m_upVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
 
-    // Fragment list that gets filled up with voxel fragments
-    m_prevVoxelizationResolution = m_upVoxelization->getResolution();
-    m_upFragmentList = make_unique<FragmentList>(m_prevVoxelizationResolution);
-
     // Visualization of voxel fragments as point cloud
     m_upPointCloud = make_unique<PointCloud>(&(m_upScene->getCamera()));
 
@@ -428,11 +424,6 @@ void App::run()
         // Voxelization of scene
         if(m_voxeliseEachFrame)
         {
-            if(m_prevVoxelizationResolution != m_upVoxelization->getResolution())
-            {
-                m_prevVoxelizationResolution = m_upVoxelization->getResolution();
-                m_upFragmentList = make_unique<FragmentList>(m_prevVoxelizationResolution);
-            }
             voxelizeAndFillOctree();
         }
 
@@ -459,7 +450,7 @@ void App::run()
             m_upVoxelCubes->draw(width,height, volumeExtent, m_upSVO->getNodePool(), m_upSVO->getBrickPool());
             break;
         case Visualization::POINT_CLOUD:
-            m_upPointCloud->draw(width, height, volumeExtent, m_upFragmentList.get());
+            m_upPointCloud->draw(width, height, volumeExtent, m_upVoxelization->getFragmentList());
             break;
         case Visualization::GBUFFER:
             m_showGBuffer = false;
@@ -570,13 +561,14 @@ void App::handleCamera(GLfloat deltaTime)
 
 void App::voxelizeAndFillOctree()
 {
-    m_upVoxelization->voxelize(volumeExtent, m_upScene.get(), m_upFragmentList.get());
+    m_upVoxelization->voxelize(volumeExtent, m_upScene.get());
     m_upSVO->clearOctree();
-    m_upFragmentList->mapToCUDA();
-    m_upSVO->buildOctree(m_upFragmentList->getPositionDevPointer(),
-                       m_upFragmentList->getColorVolumeArray(),
-                       m_upFragmentList->getNormalVolumeArray(),
-                       m_upFragmentList->getVoxelCount(),
-                       m_upFragmentList->getVoxelizationResolution());
-    m_upFragmentList->unmapFromCUDA();
+    m_upVoxelization->mapFragmentListToCUDA();
+    m_upSVO->buildOctree(
+                        m_upVoxelization->getFragmentList()->getPositionDevPointer(),
+                        m_upVoxelization->getFragmentList()->getColorVolumeArray(),
+                        m_upVoxelization->getFragmentList()->getNormalVolumeArray(),
+                        m_upVoxelization->getFragmentList()->getVoxelCount(),
+                        m_upVoxelization->getFragmentList()->getVoxelizationResolution());
+    m_upVoxelization->mapFragmentListToCUDA();
 }
