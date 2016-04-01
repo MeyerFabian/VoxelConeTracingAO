@@ -1,16 +1,12 @@
-//
-// Created by nils1990 on 03.12.15.
-//
-
-#ifndef NODEPOOL_H
-#define NODEPOOL_H
+#ifndef NODE_POOL_H
+#define NODE_POOL_H
 
 #include "externals/GLM/glm/glm.hpp"
-#include <driver_types.h>
-#include <vector_types.h>
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
 
+#include <driver_types.h>
+#include <vector_types.h>
 
 struct node
 {
@@ -38,8 +34,7 @@ class NodePool
 public:
     NodePool(){}
     ~NodePool();
-    void init(int nodeCount = 2150000);
-                                         // copying global to const memory before traversal might improve the performance
+    void init(int nodeCount = 2150000); // copying global to const memory before traversal might improve the performance
     void updateConstMemory();
     void clearNodePool();
 
@@ -76,4 +71,4 @@ private:
 };
 
 
-#endif //REALTIMERENDERING_NODEPOOL_H
+#endif // NODE_POOL_H
