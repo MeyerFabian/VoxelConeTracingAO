@@ -305,7 +305,7 @@ App::App() : Controllable("App")
 {
     // Initialize members
     m_showGBuffer = false;
-    m_voxeliseEachFrame = false;
+    m_voxelizeEachFrame = false;
 
     // Initialize GLFW and OpenGL
     glfwSetErrorCallback(errorCallback);
@@ -422,7 +422,7 @@ void App::run()
         m_upScene->updateDynamicObject(dynamicObjectDelta * deltaTime * DYNAMIC_OBJECT_SPEED);
 
         // Voxelization of scene
-        if(m_voxeliseEachFrame)
+        if(m_voxelizeEachFrame)
         {
             voxelizeAndFillOctree();
         }
@@ -510,8 +510,8 @@ void App::fillGui()
 {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("VolumeExtent", &volumeExtent, 300.f, 1024.f, "%0.5f");
-    ImGui::Checkbox("Voxelize each frame",&m_voxeliseEachFrame);
-    ImGui::Combo("Visualisation", &visualization, "RayCasting\0VoxelCubes\0PointCloud\0GBuffer\0Phong\0AmbientOcclusion\0VoxelConeTracing\0LightViewMap\0VoxelGlow\0");
+    ImGui::Checkbox("Voxelize each frame",&m_voxelizeEachFrame);
+    ImGui::Combo("Visualization", &visualization, "Raycasting\0VoxelCubes\0PointCloud\0GBuffer\0Phong\0AmbientOcclusion\0VoxelConeTracing\0LightViewMap\0VoxelGlow\0");
     ImGui::Checkbox("Show GBuffer", &m_showGBuffer);
     ImGui::Text("Controls:\n1: Voxel Cone Tracing \n2: Raycasting \n3: Voxel Cubes \n4: Point Cloud \n5: Gbuffer \n6: Phong \n7: Ambient Occlusion \n8: Shadow Map \n9: Voxel Glow");
 }
@@ -570,5 +570,5 @@ void App::voxelizeAndFillOctree()
                         m_upVoxelization->getFragmentList()->getNormalVolumeArray(),
                         m_upVoxelization->getFragmentList()->getVoxelCount(),
                         m_upVoxelization->getFragmentList()->getVoxelizationResolution());
-    m_upVoxelization->mapFragmentListToCUDA();
+    m_upVoxelization->unmapFragmentListFromCUDA();
 }

@@ -38,7 +38,7 @@ private:
 
     void resetAtomicCounter() const;
     GLuint readAtomicCounter() const;
-    unsigned int determineVoxeliseResolution(int res) const;
+    unsigned int determineVoxelizeResolution(int res) const;
 
     // Members
     std::unique_ptr<ShaderProgram> m_upVoxelizationShader;

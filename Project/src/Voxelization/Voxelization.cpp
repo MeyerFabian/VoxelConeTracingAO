@@ -13,7 +13,7 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 
 Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelization")
 {
-    m_resolution = determineVoxeliseResolution(m_voxelizationResolution);
+    m_resolution = determineVoxelizeResolution(m_voxelizationResolution);
 
     // ### Shader program ###
     m_upVoxelizationShader = std::unique_ptr<ShaderProgram>(
@@ -41,7 +41,7 @@ Voxelization::~Voxelization()
 void Voxelization::voxelize(float extent, Scene const * pScene)
 {
     // Resolution
-    int resolution = determineVoxeliseResolution(m_voxelizationResolution);
+    int resolution = determineVoxelizeResolution(m_voxelizationResolution);
 
     if(resolution != m_resolution)
     {
@@ -92,7 +92,7 @@ void Voxelization::fillGui()
 
 int Voxelization::getResolution() const
 {
-    return determineVoxeliseResolution(m_voxelizationResolution);
+    return determineVoxelizeResolution(m_voxelizationResolution);
 }
 
 FragmentList const * Voxelization::getFragmentList() const
@@ -144,7 +144,7 @@ void Voxelization::resetAtomicCounter() const
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, 0);
 }
 
-unsigned int Voxelization::determineVoxeliseResolution(int res) const
+unsigned int Voxelization::determineVoxelizeResolution(int res) const
 {
     switch (res)
     {

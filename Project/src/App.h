@@ -3,25 +3,26 @@
 
 #include "Controllable.h"
 
-#include "SparseOctree/SparseVoxelOctree.h"
-#include "SparseOctree/BrickPool.h"
-#include "SparseOctree/NodePool.h"
-#include "Scene/Scene.h"
-#include "Voxelization/Voxelization.h"
-#include "OctreeRaycaster/OctreeRaycaster.h"
-#include "Rendering/VoxelConeTracing.h"
-#include "Rendering/LightViewMap.h"
-#include "Rendering/FullScreenQuad.h"
-#include "PointCloud/PointCloud.h"
-#include "VoxelCubes/VoxelCubes.h"
-#include "Utilities/enums.h"
+#include "src/SparseOctree/SparseVoxelOctree.h"
+#include "src/SparseOctree/BrickPool.h"
+#include "src/SparseOctree/NodePool.h"
+#include "src/Scene/Scene.h"
+#include "src/Voxelization/Voxelization.h"
+#include "src/OctreeRaycaster/OctreeRaycaster.h"
+#include "src/Rendering/VoxelConeTracing.h"
+#include "src/Rendering/LightViewMap.h"
+#include "src/Rendering/FullScreenQuad.h"
+#include "src/PointCloud/PointCloud.h"
+#include "src/VoxelCubes/VoxelCubes.h"
+#include "src/Utilities/enums.h"
+#include "src/Rendering/SSR.h"
 #include "externals/gl3w/include/GL/gl3w.h"
 #include "externals/GLFW/include/GLFW/glfw3.h"
 #include "externals/GLM/glm/glm.hpp"
 
 #include <vector>
 #include <memory>
-#include <src/Rendering/SSR.h>
+
 
 // Available visualizations
 enum Visualization { RAYCASTING, VOXEL_CUBES, POINT_CLOUD, GBUFFER, PHONG, AMBIENT_OCCLUSION, VOXEL_CONE_TRACING, SHADOW_MAP,VOXEL_GLOW };
@@ -62,7 +63,7 @@ private:
     std::unique_ptr<VoxelCubes> m_upVoxelCubes;
     std::unique_ptr<SSR> m_upSSR;
 
-    bool m_voxeliseEachFrame;
+    bool m_voxelizeEachFrame;
     bool m_showGBuffer;
 };
 

@@ -50,8 +50,8 @@ private:
     GLuint m_positionOutputTexture;
 
     // 32bit uint for RGB colors with 8 bit per channel (alpha used for blending)
-    GLuint mColorVolume;
-    GLuint mNormalVolume;
+    GLuint m_colorVolume;
+    GLuint m_normalVolume;
 
     int m_voxelCount;
     size_t m_maxListSize;
@@ -61,14 +61,14 @@ private:
     uint1 *m_positionDevPointer;
 
     // Color for cuda
-    cudaGraphicsResource_t mColorVolumeResource;
-    cudaArray *mColorVolumeArray;
+    cudaGraphicsResource_t m_colorVolumeResource;
+    cudaArray *m_colorVolumeArray;
 
     // Normal for cuda
-    cudaGraphicsResource_t mNormalVolumeResource;
-    cudaArray *mNormalVolumeArray;
+    cudaGraphicsResource_t m_normalVolumeResource;
+    cudaArray *m_normalVolumeArray;
 
-    GLuint mVolumeResolution;
+    GLuint m_volumeResolution;
 };
 
 #endif //FRAGMENTLIST_H
