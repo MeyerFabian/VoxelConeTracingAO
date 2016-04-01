@@ -1,12 +1,10 @@
-//
-// Created by nils1990 on 03.12.15.
-//
+#include "NodePool.h"
+
+#include "src/Utilities/errorUtils.h"
 
 #include <driver_types.h>
 #include <cuda_runtime.h>
-#include <Utilities/errorUtils.h>
 #include <cuda_gl_interop.h>
-#include "NodePool.h"
 
 extern "C" // this is not necessary imho, but gives a better idea on where the function comes from
 {
