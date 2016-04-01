@@ -7,8 +7,7 @@ OctreeRaycaster::OctreeRaycaster(App* pApp) : Controllable(pApp, "Raycasting")
     m_directionBeginScale = 0.5f;
     m_maxSteps = 100;
     m_maxLevel = 8;
-    m_upOctreeRaycasterShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/octreeRaycast.vert",
-                                                                              "/fragment_shaders/octreeRaycast.frag"));
+    m_upOctreeRaycasterShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/octreeRaycast.vert",                                                                           "/fragment_shaders/octreeRaycast.frag"));
 }
 
 void OctreeRaycaster::draw(glm::vec3 camPos,

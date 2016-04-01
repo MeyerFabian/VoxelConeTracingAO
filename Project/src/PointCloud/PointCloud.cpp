@@ -9,7 +9,6 @@ PointCloud::PointCloud(Camera const * pCamera)
     glPointSize(15.f);
 }
 
-
 PointCloud::~PointCloud()
 {
     // Nothing to do
@@ -21,7 +20,7 @@ void PointCloud::draw(float width, float height, float volumeExtent, FragmentLis
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
 
-    // Bind shader and no VAO
+    // Bind shader and random VAO in slot 0
     glBindVertexArray(0);
     m_upShaderProgram->use();
 

@@ -1,3 +1,5 @@
+/* Visualization of voxel fragment list as point per position. */
+
 #ifndef POINT_CLOUD_H_
 #define POINT_CLOUD_H_
 
