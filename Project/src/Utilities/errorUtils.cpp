@@ -1,9 +1,6 @@
-//
-// Created by nils1990 on 04.12.15.
-//
-
 #include "errorUtils.h"
-#include "CudaException.h"
+
+#include "src/Utilities/CudaException.h"
 
 #include <iostream>
 

@@ -1,9 +1,9 @@
 #ifndef POINT_CLOUD_H_
 #define POINT_CLOUD_H_
 
-#include "Voxelization/FragmentList.h"
-#include "Scene/Camera.h"
-#include "Rendering/ShaderProgram.h"
+#include "src/Voxelization/FragmentList.h"
+#include "src/Scene/Camera.h"
+#include "src/Rendering/ShaderProgram.h"
 
 #include <memory>
 

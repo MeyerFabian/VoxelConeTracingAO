@@ -1,3 +1,6 @@
+/* App contains initialization of all major objects and render loop. Initializes
+also OpenGL */
+
 #ifndef APP_H_
 #define APP_H_
 
@@ -45,12 +48,13 @@ public:
 
 private:
 
+    // Methods
     void handleCamera(GLfloat deltaTime);
     void voxelizeAndFillOctree();
 
+    // Members
     GLFWwindow* m_pWindow;
     GLfloat m_prevTime;
-
     std::vector<Controllable*> m_controllables;
     std::unique_ptr<SparseVoxelOctree> m_upSVO;
     std::unique_ptr<Scene> m_upScene;
@@ -62,7 +66,6 @@ private:
     std::unique_ptr<PointCloud> m_upPointCloud;
     std::unique_ptr<VoxelCubes> m_upVoxelCubes;
     std::unique_ptr<SSR> m_upSSR;
-
     bool m_voxelizeEachFrame;
     bool m_showGBuffer;
 };

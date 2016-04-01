@@ -22,18 +22,15 @@ Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelization")
     // ### Fragment list ###
     m_upFragmentList = make_unique<FragmentList>(m_resolution);
 
-    // ### Atomic counter #####
-    // Generate atomic buffer
+    // ### Atomic counter ###
     glGenBuffers(1, &m_atomicBuffer);
     glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, m_atomicBuffer);
     glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
-
     resetAtomicCounter();
 }
 
 Voxelization::~Voxelization()
 {
-    // TODO: Delete all the OpenGL stuff
     glDeleteBuffers(1, &m_atomicBuffer);
 }
 
@@ -65,7 +62,7 @@ void Voxelization::voxelize(float extent, Scene const * pScene)
     // Reset the atomic counter
     resetAtomicCounter();
 
-    // Give shader the pixel size for conservative rasterization
+    // Give shader the pixel size for conservative rasterization (not used at the moment?)
     glUniform1f(glGetUniformLocation(static_cast<GLuint>(m_upVoxelizationShader->getShaderProgramHandle()), "pixelSize"), 2.f / m_resolution);
 
     // Bind fragment list with output textures / buffers
@@ -88,11 +85,6 @@ void Voxelization::voxelize(float extent, Scene const * pScene)
 void Voxelization::fillGui()
 {
     ImGui::Combo("Resolution", &m_voxelizationResolution ," 256x256x256\0 384*384*384\0 512*512*512\0 1024*1024*1024\0");
-}
-
-int Voxelization::getResolution() const
-{
-    return determineVoxelizeResolution(m_voxelizationResolution);
 }
 
 FragmentList const * Voxelization::getFragmentList() const

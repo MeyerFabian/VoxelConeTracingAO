@@ -1,6 +1,7 @@
 #include "Controllable.h"
 #include "App.h"
 
+// Prohibit spamming of warnings
 #pragma GCC diagnostic ignored "-Wformat-security"
 
 Controllable::Controllable(App* pApp, std::string title)
@@ -13,7 +14,6 @@ Controllable::Controllable(std::string title)
 {
     mTitle = title;
 }
-
 
 Controllable::~Controllable()
 {

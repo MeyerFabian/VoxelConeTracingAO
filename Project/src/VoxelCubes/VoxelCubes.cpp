@@ -50,5 +50,4 @@ void VoxelCubes::draw(
 
     // Disable shader
     m_upShaderProgram->disable();
-
 }

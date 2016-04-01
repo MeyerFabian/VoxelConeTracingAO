@@ -28,7 +28,7 @@ FragmentList::FragmentList(GLuint voxelizationResolution, GLuint maxListSize)
 
     // ### Cuda ###
 
-    // ### POSITION
+    // POSITION
     cudaErrorCheck(cudaGraphicsGLRegisterBuffer(&m_positionFragmentList,m_positionOutputBuffer,cudaGraphicsMapFlagsReadOnly));
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_positionFragmentList, 0));
 
@@ -40,16 +40,16 @@ FragmentList::FragmentList(GLuint voxelizationResolution, GLuint maxListSize)
 
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
-    // Volumes
+    // Volumes for color and normal
     createVolumes();
 
-    // ### COLOR
+    // COLOR
     cudaErrorCheck(cudaGraphicsGLRegisterImage(&m_colorVolumeResource, m_colorVolume, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_colorVolumeResource, 0));
     cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_colorVolumeArray, m_colorVolumeResource, 0, 0));
     cudaErrorCheck(cudaGraphicsUnmapResources(1, &m_colorVolumeResource, 0));
 
-    // ### NORMAL
+    // NORMAL
     cudaErrorCheck(cudaGraphicsGLRegisterImage(&m_normalVolumeResource, m_normalVolume, GL_TEXTURE_3D, cudaGraphicsRegisterFlagsReadOnly));
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_normalVolumeResource, 0));
     cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_normalVolumeArray, m_normalVolumeResource, 0, 0));
@@ -186,18 +186,18 @@ void FragmentList::setVoxelCount(int count)
 
 void FragmentList::mapToCUDA()
 {
-    // ### POSITION
+    // POSITION
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_positionFragmentList, 0));
 
     size_t sizePosition = m_maxListSize * sizeof(GLuint);
     cudaErrorCheck(cudaGraphicsResourceGetMappedPointer((void**)&m_positionDevPointer,
                                                         &sizePosition, m_positionFragmentList));
 
-    // ### COLOR
+    // COLOR
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_colorVolumeResource, 0));
     cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_colorVolumeArray, m_colorVolumeResource, 0, 0));
 
-    // ### NORMAL
+    // NORMAL
     cudaErrorCheck(cudaGraphicsMapResources(1, &m_normalVolumeResource, 0));
     cudaErrorCheck(cudaGraphicsSubResourceGetMappedArray(&m_normalVolumeArray, m_normalVolumeResource, 0, 0));
 

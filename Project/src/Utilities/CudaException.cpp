@@ -12,5 +12,5 @@ const char *CudaException::what() const throw()
 
 CudaException::~CudaException()
 {
-
+    // Nothing to do
 }

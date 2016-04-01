@@ -1,11 +1,9 @@
 #include "App.h"
 
+#include <src/Utilities/errorUtils.h>
 #include "externals/ImGui/imgui_impl_glfw_gl3.h"
 
 #include <iostream>
-#include <src/Utilities/errorUtils.h>
-
-using namespace std;
 
 // Easier creation of unique pointers
 #ifdef __unix__
@@ -18,8 +16,8 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 // Global variables for GLFW callbacks
 int visualization = Visualization::RAYCASTING;
 float volumeExtent = 384.f;
-int width = 1280;
-int height = 720;
+int width = 1280; // initial width of window
+int height = 720; // initial height of window
 int mouseX, mouseY = 0;
 int deltaCameraYaw = 0;
 int deltaCameraPitch = 0;
@@ -135,7 +133,7 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         moveDownwards = false;
     }
 
-    // Visualization handling
+    // ### Visualization handling ###
 
     // Voxel cone tracing
     if(key == GLFW_KEY_1& action == GLFW_PRESS)
@@ -183,7 +181,7 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
         visualization = Visualization::VOXEL_GLOW;
     }
 
-    // Dynamic object control
+    // ### Dynamic object control ###
     if (key == GLFW_KEY_I & action == GLFW_PRESS)
     {
         dynamicObjectDelta.x = 1;
@@ -247,6 +245,7 @@ static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     }
     else
     {
+        // Update camera
         deltaCameraYaw = 5 * (width/2 - xpos);
         deltaCameraPitch = 5 * (height/2 - ypos);
     }
@@ -312,6 +311,7 @@ App::App() : Controllable("App")
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
+    // Create window
     m_pWindow = glfwCreateWindow(width, height, "VoxelConeTracing", NULL, NULL);
     if (!m_pWindow)
     {
@@ -319,6 +319,7 @@ App::App() : Controllable("App")
         exit(EXIT_FAILURE);
     }
 
+    // Initialize OpenGL
     glfwMakeContextCurrent(m_pWindow);
     gl3wInit();
 
@@ -344,27 +345,27 @@ App::App() : Controllable("App")
     // Scene
     m_upScene = std::unique_ptr<Scene>(new Scene(this, "sponza"));
 
-    // Voxelization class (takes polygons and fills fragment list)
+    // Voxelization class (takes polygons and fills voxel fragment list)
     m_upVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
 
     // Visualization of voxel fragments as point cloud
     m_upPointCloud = make_unique<PointCloud>(&(m_upScene->getCamera()));
 
-    // Sparse Voxel Octree takes voxel fragments and builds up octree
+    // Sparse voxel octree takes voxel fragments and builds up octree
     m_upSVO = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
     m_upSVO->init();
 
-    // Raycaster for visualization of octree
+    // Raycaster for visualization of sparse voxel octree
     m_upOctreeRaycaster = std::unique_ptr<OctreeRaycaster>(new OctreeRaycaster(this));
 
-    // Visualization of octree with little cubes
+    // Visualization of sparse voxel octree with cubes
     m_upVoxelCubes = make_unique<VoxelCubes>(&(m_upScene->getCamera()));
 
     // Light view map
     m_upLightViewMap = make_unique<LightViewMap>(this);
     m_upLightViewMap->init();
 
-    // Voxel cone tracing (does ambient occlusion and global illumination)
+    // Voxel cone tracing (does ambient occlusion and global illumination at the moment)
     m_upVoxelConeTracing = make_unique<VoxelConeTracing>(this);
     m_upVoxelConeTracing->init(width, height);
 
@@ -401,7 +402,7 @@ void App::run()
         // ImGui new frame
         ImGui_ImplGlfwGL3_NewFrame();
 
-        //Get window resolution
+        // Get window resolution
         glfwGetWindowSize(m_pWindow, &width, &height);
 
         // Update camera
@@ -430,8 +431,10 @@ void App::run()
         // Set viewport for scene rendering
         glViewport(0, 0, width, height);
 
+        // Create shadow map
         m_upLightViewMap->shadowMapPass(m_upScene);
 
+        // Fill GBuffes with position and normals etc.
         m_upVoxelConeTracing->geometryPass(width, height, m_upScene);
 
         // Choose visualization

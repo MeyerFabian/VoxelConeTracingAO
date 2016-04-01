@@ -1,41 +1,43 @@
-/* Voxelization of scene. Creates list of fragments containing world position, normal and color.
-Scene is taken and projected orthogonal. Then, for every triangle the rotation which maximizes
-the projection area is found and applied in the geometry shader. In addition, the triangle is
-moved to the center of projection to take advantage of the available rasterization area. Results
-are save to buffer textures, collection world position, normal and color of each fragment. */
+/* Voxelization of scene. Renders each triangle with maximum area and saves
+positions as entry in buffer. Color and normal is averaged and saved in 3D
+texture. */
 
 #ifndef VOXELIZATION_H_
 #define VOXELIZATION_H_
 
-#include "Scene/Scene.h"
-#include "FragmentList.h"
+#include "src/Scene/Scene.h"
+#include "src/Voxelization/FragmentList.h"
 
 // TODO:
-// -Create own framebuffer to be independend from screen resoluation
+// -Create own framebuffer to be independend from screen resolution (otherwise,
+//  voxelization may not be higher resolution then window
 
 class Voxelization : public Controllable
 {
 public:
 
+    // Enums
     enum VoxelizeResolutions {RES_256, RES_384, RES_512, RES_1024};
-    int m_voxelizationResolution = RES_256;
 
+    // Constructor
     Voxelization(App *pApp);
+
+    // Destructor
     ~Voxelization();
 
+    // Methods
     void voxelize(float extent, Scene const * pScene);
-
     virtual void fillGui();
-
-    int getResolution() const;
-
     FragmentList const * getFragmentList() const;
-
     void mapFragmentListToCUDA();
     void unmapFragmentListFromCUDA();
 
+    // Members
+    int m_voxelizationResolution = RES_256;
+
 private:
 
+    // Methods
     void resetAtomicCounter() const;
     GLuint readAtomicCounter() const;
     unsigned int determineVoxelizeResolution(int res) const;

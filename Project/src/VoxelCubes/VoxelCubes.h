@@ -1,10 +1,13 @@
+/* Visualization of sparse voxel octree using cubes. Cubes are generated in
+ geometry shader. */
+
 #ifndef VOXEL_CUBES_H
 #define VOXEL_CUBES_H
 
-#include "Rendering/ShaderProgram.h"
-#include "Scene/Camera.h"
-#include "SparseOctree/BrickPool.h"
-#include "SparseOctree/NodePool.h"
+#include "src/Rendering/ShaderProgram.h"
+#include "src/Scene/Camera.h"
+#include "src/SparseOctree/BrickPool.h"
+#include "src/SparseOctree/NodePool.h"
 
 #include <memory>
 
