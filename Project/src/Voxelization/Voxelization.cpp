@@ -20,7 +20,7 @@ Voxelization::Voxelization(App *pApp ) :Controllable(pApp, "Voxelization")
             new ShaderProgram("/vertex_shaders/voxelization.vert","/fragment_shaders/voxelization.frag", "/geometry_shaders/voxelization.geom"));
 
     // ### Fragment list ###
-    m_upFragmentList = make_unique<FragmentList>(m_resolution);
+	m_upFragmentList = std::make_unique<FragmentList>(m_resolution);
 
     // ### Atomic counter ###
     glGenBuffers(1, &m_atomicBuffer);
@@ -43,7 +43,7 @@ void Voxelization::voxelize(float extent, Scene const * pScene)
     if(resolution != m_resolution)
     {
         m_resolution = resolution;
-        m_upFragmentList = make_unique<FragmentList>(resolution);
+		m_upFragmentList = std::make_unique<FragmentList>(resolution);
     }
 
     // Setup OpenGL for voxelization

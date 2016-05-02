@@ -8,7 +8,7 @@
 // Easier creation of unique pointers
 #ifdef __unix__
 template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
+std::unique_ptr<T> std::make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 #endif
@@ -349,7 +349,7 @@ App::App() : Controllable("App")
     m_upVoxelization = std::unique_ptr<Voxelization>(new Voxelization(this));
 
     // Visualization of voxel fragments as point cloud
-    m_upPointCloud = make_unique<PointCloud>(&(m_upScene->getCamera()));
+    m_upPointCloud = std::make_unique<PointCloud>(&(m_upScene->getCamera()));
 
     // Sparse voxel octree takes voxel fragments and builds up octree
     m_upSVO = std::unique_ptr<SparseVoxelOctree>(new SparseVoxelOctree(this));
@@ -359,21 +359,21 @@ App::App() : Controllable("App")
     m_upOctreeRaycaster = std::unique_ptr<OctreeRaycaster>(new OctreeRaycaster(this));
 
     // Visualization of sparse voxel octree with cubes
-    m_upVoxelCubes = make_unique<VoxelCubes>(&(m_upScene->getCamera()));
+    m_upVoxelCubes = std::make_unique<VoxelCubes>(&(m_upScene->getCamera()));
 
     // Light view map
-    m_upLightViewMap = make_unique<LightViewMap>(this);
+    m_upLightViewMap = std::make_unique<LightViewMap>(this);
     m_upLightViewMap->init();
 
     // Voxel cone tracing (does ambient occlusion and global illumination at the moment)
-    m_upVoxelConeTracing = make_unique<VoxelConeTracing>(this);
+    m_upVoxelConeTracing = std::make_unique<VoxelConeTracing>(this);
     m_upVoxelConeTracing->init(width, height);
 
     // Some screen spaced reflection testing
-    m_upSSR = make_unique<SSR>();
+    m_upSSR = std::make_unique<SSR>();
 
     // Many classes use the same fullscreen rendering quad
-    m_upFullScreenQuad = make_unique<FullScreenQuad>();
+    m_upFullScreenQuad = std::make_unique<FullScreenQuad>();
 
     // Voxelize scene and fill octree at least once
     voxelizeAndFillOctree();

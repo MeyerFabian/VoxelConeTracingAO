@@ -11,14 +11,14 @@
 
 #ifdef __unix__
 template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
+std::unique_ptr<T> std::make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 #endif
 
 SSR::SSR()
 {
-    mSSRShader = make_unique<ShaderProgram>("/vertex_shaders/SSR.vert", "/fragment_shaders/SSR.frag");
+    mSSRShader = std::make_unique<ShaderProgram>("/vertex_shaders/SSR.vert", "/fragment_shaders/SSR.frag");
     mCube = new Cube(10);
 }
 
