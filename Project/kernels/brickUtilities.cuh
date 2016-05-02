@@ -89,9 +89,9 @@ __device__ unsigned int addColors(const uchar4 &input, float4 &output)
 
 // filters the brick with an inverse gaussian mask to fill a brick
 // the corner bricks are used as sources
+// 19 Voxels to be filled
 __device__ void filterBrick(const uint3 &brickCoords)
 {
-	
     uchar4 colors[8];
     colors[0] = make_uchar4(0,0,0,0);
     colors[1] = make_uchar4(0,0,0,0);
@@ -112,7 +112,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
     surf3Dread(&colors[6], colorBrickPool, (insertPositions[6].x + brickCoords.x) * sizeof(uchar4), insertPositions[6].y + brickCoords.y, insertPositions[6].z + brickCoords.z);
     surf3Dread(&colors[7], colorBrickPool, (insertPositions[7].x + brickCoords.x) * sizeof(uchar4), insertPositions[7].y + brickCoords.y, insertPositions[7].z + brickCoords.z);
 	
-    // ################ center: #######################
+    // ################ center: ####################### 1. checked
     float4 tmp = make_float4(0,0,0,0);
     int counter = 0;
 
@@ -142,7 +142,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // ################### FACES ##########################
+    // ################### FACES ########################## 2. checked
     // right side: 1, 3, 5, 7
 
     /*
@@ -179,12 +179,12 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // left side: 0, 2, 4, 6
+    // left side: 0, 2, 4, 6 ### 3. error corrected
     tmp = make_float4(0,0,0,0);
     counter += addColors(colors[0], tmp);
     counter += addColors(colors[2], tmp);
     counter += addColors(colors[4], tmp);
-    counter += addColors(colors[5], tmp);
+    counter += addColors(colors[6], tmp);
 
     tmp.x /= counter;
     tmp.y /= counter;
@@ -200,7 +200,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // bottom side: 2, 3, 6, 7
+    // bottom side: 2, 3, 6, 7 ### 4. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[2], tmp);
@@ -222,7 +222,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // top side: 0, 1, 4, 5
+    // top side: 0, 1, 4, 5 ### 5. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[0], tmp);
@@ -244,7 +244,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // near side: 0, 1, 2, 3
+    // near side: 0, 1, 2, 3 ### 6. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[0], tmp);
@@ -266,7 +266,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // far side: 4, 5, 6, 7
+    // far side: 4, 5, 6, 7 ### 7. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[4], tmp);
@@ -289,7 +289,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // ####################### EDGES (FRONT) #####################
-    // top edge
+    // top edge: 0, 1 ### 8. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[0], tmp);
@@ -309,7 +309,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // bottom edge
+    // bottom edge: 2, 3 ### 9. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[2], tmp);
@@ -329,7 +329,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // left edge
+    // left edge: 0, 2 ### 10. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[0], tmp);
@@ -349,7 +349,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // right edge
+    // right edge: 1,3 ### 11. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[1], tmp);
@@ -370,7 +370,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
     // ####################### EDGES (BACK) #####################
-    // top edge
+    // top edge: 4,5 ### 12. checked
     tmp = make_float4(0,0,0,0);
     counter += addColors(colors[4], tmp);
     counter += addColors(colors[5], tmp);
@@ -389,11 +389,11 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // bottom edge
+    // bottom edge: 6,7 ### 13. error corrected
     tmp = make_float4(0,0,0,0);
 
-    counter += addColors(colors[5], tmp);
     counter += addColors(colors[6], tmp);
+    counter += addColors(colors[7], tmp);
 
     tmp.x /= counter;
     tmp.y /= counter;
@@ -409,7 +409,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // left edge
+    // left edge: 4,6 ### 14. checked
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[4], tmp);
@@ -429,7 +429,7 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
     surf3Dwrite(make_uchar4(tmp.x,tmp.y,tmp.z,tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-    // right edge
+    // right edge: 5,7 ### 15. checked 
     tmp = make_float4(0,0,0,0);
 
     counter += addColors(colors[5], tmp);
@@ -452,7 +452,28 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
 	// ####################### EDGES (LEFT) #####################
 
-	//bottom edge
+	//top edge : 0,4 ### 16. checked
+
+	tmp = make_float4(0, 0, 0, 0);
+
+	counter += addColors(colors[0], tmp);
+	counter += addColors(colors[4], tmp);
+
+	tmp.x /= counter;
+	tmp.y /= counter;
+	tmp.z /= counter;
+	tmp.w /= counter;
+
+	counter = 0;
+
+	newCoords = make_uint3(0, 0, 1);
+	newCoords.x += brickCoords.x;
+	newCoords.y += brickCoords.y;
+	newCoords.z += brickCoords.z;
+
+	surf3Dwrite(make_uchar4(tmp.x, tmp.y, tmp.z, tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
+
+	//bottom edge: 2,6 ### 17.checked 
 
 	tmp = make_float4(0, 0, 0, 0);
 
@@ -473,29 +494,30 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
 	surf3Dwrite(make_uchar4(tmp.x, tmp.y, tmp.z, tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-	//top edge
+	// ####################### EDGES (RIGHT) #####################
+
+	//top edge: 5,1 ### 18. checked
 
 	tmp = make_float4(0, 0, 0, 0);
 
-    counter += addColors(colors[0], tmp);
-    counter += addColors(colors[4], tmp);
+	counter += addColors(colors[1], tmp);
+	counter += addColors(colors[5], tmp);
 
-    tmp.x /= counter;
-    tmp.y /= counter;
-    tmp.z /= counter;
-    tmp.w /= counter;
+	tmp.x /= counter;
+	tmp.y /= counter;
+	tmp.z /= counter;
+	tmp.w /= counter;
 
-    counter = 0;
+	counter = 0;
 
-	newCoords = make_uint3(0, 0, 1);
+	newCoords = make_uint3(2, 0, 1);
 	newCoords.x += brickCoords.x;
 	newCoords.y += brickCoords.y;
 	newCoords.z += brickCoords.z;
 
 	surf3Dwrite(make_uchar4(tmp.x, tmp.y, tmp.z, tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
-	// ####################### EDGES (RIGHT) #####################
 
-	//bottom edge
+	//bottom edge: 3,7 ### 19.checked
 
 	tmp = make_float4(0, 0, 0, 0);
 
@@ -516,26 +538,6 @@ __device__ void filterBrick(const uint3 &brickCoords)
 
 	surf3Dwrite(make_uchar4(tmp.x, tmp.y, tmp.z, tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 
-	//top edge
-
-	tmp = make_float4(0, 0, 0, 0);
-
-    counter += addColors(colors[1], tmp);
-    counter += addColors(colors[5], tmp);
-
-    tmp.x /= counter;
-    tmp.y /= counter;
-    tmp.z /= counter;
-    tmp.w /= counter;
-
-    counter = 0;
-
-	newCoords = make_uint3(2, 0, 1);
-	newCoords.x += brickCoords.x;
-	newCoords.y += brickCoords.y;
-	newCoords.z += brickCoords.z;
-
-	surf3Dwrite(make_uchar4(tmp.x, tmp.y, tmp.z, tmp.w), colorBrickPool, newCoords.x*sizeof(uchar4), newCoords.y, newCoords.z);
 }
 
 

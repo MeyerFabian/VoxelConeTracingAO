@@ -557,13 +557,13 @@ cudaError_t buildSVO(node *nodePool,
    // cudaDeviceSynchronize();
 
     // filter the last level with an inverse gaussian kernel
-/*
+
     for(int i=0;i<6;i++)
     {
         combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, level, i);
         cudaDeviceSynchronize();
     }
-    */
+    
     filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level);
 
     cudaDeviceSynchronize();
