@@ -24,7 +24,6 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 endif()
-
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/src")
 
@@ -136,29 +135,22 @@ cuda_add_executable(${APPNAME} ${ALL_CODE} ${CUDAHEADERS} ${CUDAKERNELS})
 target_link_libraries(${APPNAME} ${OPENGL_LIBRARIES} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARIES} ${CUDA_CUDA_LIBRARY} ${CUDA_CUDART_LIBRARY})
 
 IF(WIN32)
-     SET(CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+     SET(CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\")
      set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo CACHE TYPE  
 INTERNAL FORCE )
     # Copy dlls
-#    add_custom_command(TARGET ${APPNAME} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND}
-#        -E copy_if_different
-#        "${ASSIMP_DLL_RELEASE}/assimp.dll"
-#        "${PROJECT_BINARY_DIR}/Release/assimp.dll"
-#        )
+    add_custom_command(TARGET ${APPNAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        -E copy_if_different
+        "${ASSIMP_DLL_RELEASE}/assimp.dll"
+        "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/assimp.dll"
+	)
 
-#    add_custom_command(TARGET ${APPNAME} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND}
-#        -E copy_if_different
-#        "${ASSIMP_DLL_DEBUG}/assimpd.dll"
-#        "${PROJECT_BINARY_DIR}/Debug/assimpd.dll"
-#        )
+     add_custom_command(TARGET ${APPNAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        -E copy_if_different
+        "${GLFW_DLL}/glfw3.dll"
+        "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/glfw3.dll"
+        )
 
- #    add_custom_command(TARGET ${APPNAME} POST_BUILD
- #       COMMAND ${CMAKE_COMMAND}
- #       -E copy_if_different
- #       "${GLFW_DLL}/glfw3.dll"
- #       "${PROJECT_BINARY_DIR}/$<CONFIGURATION>/glfw3.dll"
- #       )
-		
 ENDIF(WIN32)
