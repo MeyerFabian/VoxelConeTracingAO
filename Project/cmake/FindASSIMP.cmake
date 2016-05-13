@@ -22,10 +22,12 @@
 #############################################
 
 SET( ASSIMP_SEARCH_PATHS
+    $ENV{ASSIMP}
     $ENV{ASSIMP_ROOT}                  # ASSIMP!
     ${DEPENDENCIES_ROOT}
     ./lib/Assimp
     $ENV{PROGRAMFILES}/ASSIMP           # WINDOWS
+		C:/assimp
     ~/Library/Frameworks                # MAC
     /Library/Frameworks                 # MAC
     /usr/local                          # LINUX/MAC/UNIX
@@ -60,7 +62,30 @@ FIND_LIBRARY(ASSIMP_LIBRARIES
     DOC
         "The ASSIMP library"
 )
+IF(WIN32)
 
+    FIND_LIBRARY(ASSIMP_LIBRARIES
+        NAMES
+            assimp.lib
+        PATHS
+            ${ASSIMP_SEARCH_PATHS}
+        PATH_SUFFIXES
+	    lib/Release
+        DOC
+            "The libassimp.a library."
+    )
+
+    FIND_PATH( ASSIMP_DLL_RELEASE
+        NAMES
+            assimp.dll
+        PATHS
+            ${ASSIMP_SEARCH_PATHS}
+        PATH_SUFFIXES
+            bin/Release
+        DOC
+            "The assimp.dll library."
+    )
+ENDIF(WIN32)
 # Check if we found it!
 IF ( ASSIMP_INCLUDE_DIRS AND ASSIMP_LIBRARIES )
     SET( ASSIMP_FOUND TRUE )
