@@ -188,15 +188,12 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
         innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
 		
-        // The 32nd bit indicates whether the node has children:
-        // 1 means has children
-        // 0 means does not have children
-        // Only read from brick, if we are at aimed level in octree
         if(voxelSize >= voxelSizeOnLevel[level+1])
         {
 		
 			float parentVoxelSize = voxelSizeOnLevel[level];
 			float childVoxelSize = voxelSizeOnLevel[level+1];
+
 			// PARENT BRICK SAMPLING
 			// Brick coordinates
             uint parentBrickTile = imageLoad(octree, int(parentNodeOffset + parentPointer *16U)+1).x;
@@ -209,12 +206,14 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
             // read texture  
 			// TODO: im not sure about the volumeRes offset
             vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes+ (1.0/volumeRes)/2.0);
-
+			
+			
 			// CHILD BRICK SAMPLING
             // Brick coordinates
             uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
             vec3 brickCoords = decodeBrickCoords(brickTile);
-
+			if(getBit(brickTile, 31) == 1)
+            {
             // Here we should intersect our brick seperately
             // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
             brickCoords += 2 * innerOctreePosition;
@@ -225,7 +224,7 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 
             outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
 
-
+			}
             // Break inner loop
             break;
         }
@@ -249,14 +248,14 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 	float alpha = 0.0f;
 	float oldSamplingRate = 0.0f;
 	vec4 premultipliedColor = vec4(0,0,0,0);
-
+	
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		alpha = cosWeight * rayCastOctree(rayPosition,voxelSize).w;
-		distance += samplingRate;
 		alphaWeighting(alpha,distance);
+		distance += samplingRate;
 		premultipliedColor= vec4(1.0,1.0,1.0,1.0) * alpha;
-		color =  (1.0 - color.a) * premultipliedColor + color;
+		color = (1.0 - color.a) * premultipliedColor + color;
 	}
 	
 	while(distance < maxDistance && color.w <0.9){
