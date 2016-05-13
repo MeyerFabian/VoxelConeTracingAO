@@ -33,7 +33,7 @@ public:
     void unmapFragmentListFromCUDA();
 
     // Members
-    int m_voxelizationResolution = RES_256;
+    int m_voxelizationResolution = RES_512;
 
 private:
 

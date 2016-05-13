@@ -21,7 +21,7 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
     node = nodePool[0].nodeTilePointer;
     childPointer = node & 0x3fffffff;
 
-    for (int i = 1; i <= maxLevel+1; i++)
+    for (int i = 0; i <= maxLevel; i++)
     {
         uint3 nextOctant = make_uint3(0, 0, 0);
         // determine octant for the given voxel
@@ -39,24 +39,22 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
 
         node = nodePool[offset].nodeTilePointer;
         __syncthreads();
-        if(getBit(node,32) == 1)
+        if(getBit(node,32) == 1 && i < maxLevel )
         {
             childPointer = node & 0x3fffffff;
             foundOnLevel++;
         }
-        else if(maxLevel == 6)
-        {
-            foundOnLevel++;
-        }
+		else if (getBit(node, 32) == 0 && i == maxLevel){
+			foundOnLevel++;
+		}
         else
         {
+			offset = 0;
             foundOnLevel = 0;
             break;
         }
     }
-
-    foundOnLevel--;
-
+	foundOnLevel--;
     // return our node adress
     return offset;
 }

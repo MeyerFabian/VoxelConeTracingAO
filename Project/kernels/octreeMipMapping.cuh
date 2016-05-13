@@ -19,7 +19,7 @@ uchar4 avgColor(const uchar4 &c1, const uchar4 &c2)
 		return c2;
 	}
 	*/
-
+	//return c1;
 	if (c2.w <= 0){
 		return c1;
 	}
