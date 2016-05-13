@@ -247,7 +247,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	float voxelSize = voxelSizeOnLevel[maxLevel];
 	float alpha = 0.0f;
-	float oldSamplingRate =0.0f;
+	float oldSamplingRate = 0.0f;
 	vec4 premultipliedColor = vec4(0,0,0,0);
 
 	while(distance < distanceTillMainLoop){
@@ -303,7 +303,7 @@ void main()
 
 	//We precompute voxelsizes on the different levels, 
 	for(int level = 0; level<=maxLevel ; level++){
-		voxelSizeOnLevel[level] = volumeExtent / (pow2[level]);
+		voxelSizeOnLevel[level] = volumeExtent / (pow2[level]) *2.0/3.0;
 	}
 	
 	//consider loop unrolling

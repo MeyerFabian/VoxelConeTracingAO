@@ -10,13 +10,17 @@
 __device__
 uchar4 avgColor(const uchar4 &c1, const uchar4 &c2)
 {
-    if(c1.w < 255 && c2.w >= 255)
-        return c2;
 
-    if(c1.w >= 255 && c2.w < 255)
-        return c1;
+	if (c1.w >= 255 && c2.w < 255){
+		return c1;
+	}
 
-    return make_uchar4((c1.x+c2.x)/2.0,(c1.y+c2.y)/2.0,(c1.z+c2.z)/2.0,(c1.w+c2.w)/2.0);
+	if (c1.w < 255 && c2.w >= 255){
+		return c2;
+	}
+		
+    //return make_uchar4((c1.x+c2.x)/2.0,(c1.y+c2.y)/2.0,(c1.z+c2.z)/2.0,(c1.w+c2.w)/2.0);
+    return make_uchar4(255,0,0,255);
 }
 
 __device__
@@ -1482,7 +1486,7 @@ void combineXFace(const uint3 &brickCoords, const uint3 &nXbrickCoords, uchar4 *
     surf3Dread(&myColors[4], colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
                1 + brickCoords.z);
     surf3Dread(&neighbourColors[4], colorBrickPool, (0 + nXbrickCoords.x) * sizeof(uchar4),
-               2 + nXbrickCoords.y, 1 + nXbrickCoords.z);
+               1 + nXbrickCoords.y, 1 + nXbrickCoords.z);
 
     surf3Dread(&myColors[5], colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
                2 + brickCoords.z);
@@ -1505,7 +1509,7 @@ void combineXFace(const uint3 &brickCoords, const uint3 &nXbrickCoords, uchar4 *
                2 + nXbrickCoords.y, 2 + nXbrickCoords.z);
 
     __syncthreads();
-
+	
     //CORNER
     uchar4 tmp = avgColor(myColors[0], neighbourColors[0]);
     surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
@@ -1522,7 +1526,7 @@ void combineXFace(const uint3 &brickCoords, const uint3 &nXbrickCoords, uchar4 *
     // CORNER  => HIER GEHT IRGENDWAS SCHIEF. Wenn man myColors und neighbourcolors ohne zu mitteln schreibt, dann snid die Vorhänge besser
     tmp = avgColor(myColors[2], neighbourColors[2]);
     surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
-                0 + brickCoords.z);
+                2 + brickCoords.z);
     surf3Dwrite(tmp, colorBrickPool, (0 + nXbrickCoords.x) * sizeof(uchar4), 0 + nXbrickCoords.y,
                 2 + nXbrickCoords.z);
 
@@ -1533,9 +1537,9 @@ void combineXFace(const uint3 &brickCoords, const uint3 &nXbrickCoords, uchar4 *
                 0 + nXbrickCoords.z);
 
     tmp = avgColor(myColors[4], neighbourColors[4]);
-    surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+    surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
                 1 + brickCoords.z);
-    surf3Dwrite(tmp, colorBrickPool, (0 + nXbrickCoords.x) * sizeof(uchar4), 2 + nXbrickCoords.y,
+    surf3Dwrite(tmp, colorBrickPool, (0 + nXbrickCoords.x) * sizeof(uchar4), 1 + nXbrickCoords.y,
                 1 + nXbrickCoords.z);
 
     tmp = avgColor(myColors[5], neighbourColors[5]);
@@ -1564,7 +1568,122 @@ void combineXFace(const uint3 &brickCoords, const uint3 &nXbrickCoords, uchar4 *
                 2 + brickCoords.z);
     surf3Dwrite(tmp, colorBrickPool, (0 + nXbrickCoords.x) * sizeof(uchar4), 2 + nXbrickCoords.y,
                 2 + nXbrickCoords.z);
+				
 }
+
+
+__device__
+void combineZFace(const uint3 &brickCoords, const uint3 &nZbrickCoords, uchar4 *myColors, uchar4 *neighbourColors)
+{
+	surf3Dread(&myColors[0], colorBrickPool, (0 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[0], colorBrickPool, (0 + nZbrickCoords.x) * sizeof(uchar4),
+		0 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[1], colorBrickPool, (1 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[1], colorBrickPool, (1 + nZbrickCoords.x) * sizeof(uchar4),
+		0 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[2], colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[2], colorBrickPool, (2 + nZbrickCoords.x) * sizeof(uchar4),
+		0 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[3], colorBrickPool, (0 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[3], colorBrickPool, (0 + nZbrickCoords.x) * sizeof(uchar4),
+		1 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+
+	surf3Dread(&myColors[4], colorBrickPool, (1 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[4], colorBrickPool, (1 + nZbrickCoords.x) * sizeof(uchar4),
+		1 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[5], colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[5], colorBrickPool, (2 + nZbrickCoords.x) * sizeof(uchar4),
+		1 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[6], colorBrickPool, (0 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[6], colorBrickPool, (0 + nZbrickCoords.x) * sizeof(uchar4),
+		2 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[7], colorBrickPool, (1 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[7], colorBrickPool, (1 + nZbrickCoords.x) * sizeof(uchar4),
+		2 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	surf3Dread(&myColors[8], colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dread(&neighbourColors[8], colorBrickPool, (2 + nZbrickCoords.x) * sizeof(uchar4),
+		2 + nZbrickCoords.y, 0 + nZbrickCoords.z);
+
+	__syncthreads();
+
+	//CORNER
+	uchar4 tmp = avgColor(myColors[0], neighbourColors[0]);
+	surf3Dwrite(tmp, colorBrickPool, (0 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (0 + nZbrickCoords.x) * sizeof(uchar4), 0 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	tmp = avgColor(myColors[1], neighbourColors[1]);
+	surf3Dwrite(tmp, colorBrickPool, (1 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (1 + nZbrickCoords.x) * sizeof(uchar4), 0 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	// CORNER  => HIER GEHT IRGENDWAS SCHIEF. Wenn man myColors und neighbourcolors ohne zu mitteln schreibt, dann snid die Vorhänge besser
+	tmp = avgColor(myColors[2], neighbourColors[2]);
+	surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 0 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (2 + nZbrickCoords.x) * sizeof(uchar4), 0 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	tmp = avgColor(myColors[3], neighbourColors[3]);
+	surf3Dwrite(tmp, colorBrickPool, (0 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (0 + nZbrickCoords.x) * sizeof(uchar4), 1 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	tmp = avgColor(myColors[4], neighbourColors[4]);
+	surf3Dwrite(tmp, colorBrickPool, (1 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (1 + nZbrickCoords.x) * sizeof(uchar4), 1 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	tmp = avgColor(myColors[5], neighbourColors[5]);
+	surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 1 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (2 + nZbrickCoords.x) * sizeof(uchar4), 1 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	//CORNER
+	tmp = avgColor(myColors[6], neighbourColors[6]);
+	surf3Dwrite(tmp, colorBrickPool, (0 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (0 + nZbrickCoords.x) * sizeof(uchar4), 2 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	tmp = avgColor(myColors[7], neighbourColors[7]);
+	surf3Dwrite(tmp, colorBrickPool, (1 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (1 + nZbrickCoords.x) * sizeof(uchar4), 2 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+	// CORNER
+	tmp = avgColor(myColors[8], neighbourColors[8]);
+	// tmp = avgColor(blue, yellow);
+	surf3Dwrite(tmp, colorBrickPool, (2 + brickCoords.x) * sizeof(uchar4), 2 + brickCoords.y,
+		2 + brickCoords.z);
+	surf3Dwrite(tmp, colorBrickPool, (2 + nZbrickCoords.x) * sizeof(uchar4), 2 + nZbrickCoords.y,
+		0 + nZbrickCoords.z);
+
+}
+
 
 __global__
 void combineBrickBordersFast(node *nodePool, neighbours* neighbourPool, unsigned int level, unsigned int DIR)
@@ -1596,7 +1715,6 @@ void combineBrickBordersFast(node *nodePool, neighbours* neighbourPool, unsigned
         }
 
         // load all 6 neighbours
-        uint3 nZbrickCoords = decodeBrickCoords(nodePool[targetNeighbours.Z].value);
         uint3 nNegXbrickCoords = decodeBrickCoords(nodePool[targetNeighbours.negX].value);
 
         uint3 nNegZbrickCoords = decodeBrickCoords(nodePool[targetNeighbours.negZ].value);
@@ -1623,10 +1741,17 @@ void combineBrickBordersFast(node *nodePool, neighbours* neighbourPool, unsigned
             if (targetNeighbours.X != 0)
             {
                 uint3 nXbrickCoords = decodeBrickCoords(nodePool[targetNeighbours.X].value);
-                //combineXFace(brickCoords, nXbrickCoords, myColors, neighbourColors);
+                combineXFace(brickCoords, nXbrickCoords, myColors, neighbourColors);
             }
         }
-
+		else if (DIR == 4) // Z
+		{
+			if (targetNeighbours.Z != 0)
+			{
+				uint3 nZbrickCoords = decodeBrickCoords(nodePool[targetNeighbours.Z].value);
+				combineZFace(brickCoords, nZbrickCoords, myColors, neighbourColors);
+			}
+		}
     }
 }
 

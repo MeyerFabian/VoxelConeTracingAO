@@ -385,8 +385,8 @@ void main()
 
 	
 	//We precompute voxelsizes on the different levels, 
-	for(int level = 0; level<=maxLevel ; level++){
-		voxelSizeOnLevel[level] = volumeExtent / (pow2[level]);
+	for(int level = 0; level <=maxLevel ; level++){
+		voxelSizeOnLevel[level] = volumeExtent / (pow2[level])/3.0 *2.0;
 	}
 	
 	//consider loop unrolling
