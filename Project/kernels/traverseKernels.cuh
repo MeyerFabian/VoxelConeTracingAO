@@ -50,7 +50,6 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
         }
         else
         {
-            //printf("YJDOIAJSDOIASDJ\n");
             foundOnLevel = 0;
             break;
         }

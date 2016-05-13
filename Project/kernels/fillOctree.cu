@@ -205,7 +205,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
 		float3 positionNeighborNegY = position;
 		float3 positionNeighborNegZ = position;
 
-		double stepSize = 1.0/(pow(2.0,level+1.0));// for some reason this is faster than lookups :D
+		double stepSize = 1.0/(pow(2.0,level+1.));// for some reason this is faster than lookups :D
         // initialise all neighbours to no neighbour :P
 
         unsigned int X = 0;
