@@ -19,10 +19,10 @@ using namespace std;
 VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone Tracing")
 {
     m_gbuffer = make_unique<GBuffer>();
-    directionBeginScale = 1.0f;
-    ambientOcclusionScale = 0.5f;
+    directionBeginScale = 3.0f;
+    ambientOcclusionScale = 0.25f;
     maxDistance = 5.0f;
-    lambda = 0.5f;
+    lambda = 1.0f;
     colorBleeding = 0.0f;
 
     glGenFramebuffers(1, &mPhongFbo);

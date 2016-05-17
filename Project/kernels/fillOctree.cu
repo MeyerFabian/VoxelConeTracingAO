@@ -190,6 +190,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
+
     if(index >= fragmentListSize)
         return;
 
@@ -222,15 +223,13 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
         unsigned int nodeAdress = traverseToCorrespondingNode(nodePool, position, nodeLevel, level);
 
 
-    //if(index < 10000 && level == 2)
-      //  printf("ADRESSE: %d %d\n", nodeAdress, nodeLevel);
-
+   
         // traverse to neighbours
         if (position.x + stepSize < 1.0)
         {
             // handle X
 			positionNeighborX.x += stepSize;
-
+			
 			X = traverseToCorrespondingNode(nodePool, positionNeighborX, foundOnLevel, level);
 
             if(!(X > (constLevelIntervalMap[level].start)*8 && X < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
@@ -238,6 +237,9 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
                 X = 0;
                // WE HAVE NO NEIGHBOUR IN +X
             }
+			//if (index > 9900 && index < 10000 && level == 2)
+			//	printf("ADRESSE: %d , X-ADRESSE: %d %d\n", nodeAdress, X, nodeLevel);
+
         }
         if (position.y + stepSize < 1.0)
         {
@@ -245,6 +247,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
 			positionNeighborY.y += stepSize;
 			Y = traverseToCorrespondingNode(nodePool, positionNeighborY, foundOnLevel, level);
 
+			
             if(!(Y > (constLevelIntervalMap[level].start)*8 && Y < (constLevelIntervalMap[level].end)*8) || Y == nodeAdress)
             {
                 Y = 0;
@@ -554,12 +557,12 @@ cudaError_t buildSVO(node *nodePool,
     cudaDeviceSynchronize();
 
 	
+    const int level = 6;
     for(int i=1;i<7;i++) {
         fillNeighbours << < blockCount, threadsPerBlockFragmentList >> > (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
         cudaDeviceSynchronize();
     }
 
-    const int level = 6;
     unsigned int tmpBlock = ((LevelIntervalMap[level].end-LevelIntervalMap[level].start)*8) / threadPerBlockSpread + 1;
 
    // printf("LEVEL %d start: %d end:%d\n", 5, LevelIntervalMap[5].start*8, LevelIntervalMap[5].end*8);
@@ -596,6 +599,7 @@ cudaError_t buildSVO(node *nodePool,
         mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
         cudaDeviceSynchronize();
 
+		tmpBlock = ((LevelIntervalMap[i].end - LevelIntervalMap[i].start) * 8) / threadPerBlockSpread + 1;
 
         for(int j=0;j<6;j++)
         {

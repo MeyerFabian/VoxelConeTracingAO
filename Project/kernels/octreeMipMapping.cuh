@@ -20,14 +20,11 @@ uchar4 avgColor(const uchar4 &c1, const uchar4 &c2)
 	}
 	*/
 	//return c1;
-	if (c2.w <= 0){
+	if (c2.w <= 0)
 		return c1;
-	}
-		
-	if (c1.w <= 0){
+	if (c1.w<=0)
 		return c2;
-	}
-
+		
     return make_uchar4((c1.x+c2.x)/2.0,(c1.y+c2.y)/2.0,(c1.z+c2.z)/2.0,(c1.w+c2.w)/2.0);
 	
 }
@@ -229,7 +226,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftTopNear.z /= 0.85;
     leftTopNear.w /= 0.85;
 
-    //leftTopNear = make_float4(255,0,0,255);
+    //leftTopNear = make_float4(0,0,255,255);
 
     float4 leftBottomNear = make_float4(0,0,0,0);
 
@@ -277,7 +274,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftBottomNear.z /= 0.85;
     leftBottomNear.w /= 0.85;
 
-    //leftBottomNear = make_float4(255,0,255,255);
+   // leftBottomNear = make_float4(0,255,255,255);
 
     float4 leftTopFar = make_float4(0,0,0,0);
 
@@ -324,7 +321,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftTopFar.z /= 0.85;
     leftTopFar.w /= 0.85;
 
-    //leftTopFar = make_float4(255,0,0,255);
+  //  leftTopFar = make_float4(0,255,0,255);
 
     float4 leftBottomFar = make_float4(0,0,0,0);
 
@@ -373,7 +370,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     leftBottomFar.z /= 0.85;
     leftBottomFar.w /= 0.85;
 
-   // leftBottomFar = make_float4(255,255,0,255);
+ //   leftBottomFar = make_float4(255,0,0,255);
 
     float4 rightTopNear = make_float4(0,0,0,0);
 
@@ -421,7 +418,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightTopNear.z /= 0.85;
     rightTopNear.w /= 0.85;
 
-    //rightTopNear = make_float4(0,0,255,255);
+//    rightTopNear = make_float4(255,0,255,255);
 
     float4 rightBottomNear = make_float4(0,0,0,0);
 
@@ -469,7 +466,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightBottomNear.z /= 0.85;
     rightBottomNear.w /= 0.85;
 
-    //rightBottomNear = make_float4(0,255,0,255);
+//    rightBottomNear = make_float4(255,255,0,255);
 
     float4 rightTopFar = make_float4(0,0,0,0);
 
@@ -518,7 +515,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightTopFar.z /= 0.85;
     rightTopFar.w /= 0.85;
 
-    //rightTopFar = make_float4(255,0,0,255);
+ //   rightTopFar = make_float4(255,255,255,255);
 
     float4 rightBottomFar = make_float4(0,0,0,0);
 
@@ -567,6 +564,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     rightBottomFar.z /= 0.85;
     rightBottomFar.w /= 0.85;
 
+//	rightBottomFar = make_float4(127, 127, 127, 255);
     //mipmap FACES
     // FRONT FACE
     float4 frontFace = make_float4(0,0,0,0);
@@ -1712,9 +1710,14 @@ void combineBrickBordersFast(node *nodePool, neighbours* neighbourPool, unsigned
     // load the target node that should be filled by mipmapping
     node targetNode = nodePool[index];
 
-    if((getBit(targetNode.nodeTilePointer,32) == 0 && level == 6) || (getBit(targetNode.nodeTilePointer,32) == 1 && level < 6) && getBit(31,targetNode.value) == 1)
+	neighbours targetNeighbours = neighbourPool[index];
+
+	int startIndex = (constLevelIntervalMap[level].start) * 8;
+
+    if(((getBit(targetNode.nodeTilePointer,32) == 0 && level == 6) || (getBit(targetNode.nodeTilePointer,32) == 1 && level < 6)))
     {
-        neighbours targetNeighbours = neighbourPool[index];
+		if (index > startIndex && index <startIndex + 200 && level == 5)
+			printf("ADRESSE: %d , Neighbor-ADRESSE: %d \n", index, targetNeighbours.X);
 
         // here we have our brick
         uint3 brickCoords = decodeBrickCoords(targetNode.value);
