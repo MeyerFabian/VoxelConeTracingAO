@@ -20,11 +20,12 @@ uchar4 avgColor(const uchar4 &c1, const uchar4 &c2)
 	}
 	*/
 	//return c1;
+	/*
 	if (c2.w <= 0)
 		return c1;
 	if (c1.w<=0)
 		return c2;
-		
+		*/
     return make_uchar4((c1.x+c2.x)/2.0,(c1.y+c2.y)/2.0,(c1.z+c2.z)/2.0,(c1.w+c2.w)/2.0);
 	
 }

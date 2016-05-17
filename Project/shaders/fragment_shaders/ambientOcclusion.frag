@@ -188,55 +188,50 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
         innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
 		
-		if(getBit(nodeTile, 32) == 1){
-			if(voxelSize >= voxelSizeOnLevel[level+1]  )
-			{
+		if(voxelSize >= voxelSizeOnLevel[level+1]  )
+		{
 		
-				float parentVoxelSize = voxelSizeOnLevel[level];
-				float childVoxelSize = voxelSizeOnLevel[level+1];
+			float parentVoxelSize = voxelSizeOnLevel[level];
+			float childVoxelSize = voxelSizeOnLevel[level+1];
 
-				// PARENT BRICK SAMPLING
-				// Brick coordinates
-				uint parentBrickTile = imageLoad(octree, int(parentNodeOffset + parentPointer *16U)+1).x;
-				vec3 parentBrickCoords = decodeBrickCoords(parentBrickTile);
- 
-				// Here we should intersect our brick seperately
-				// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-				parentBrickCoords+= 2.0 * parentInnerOctreePosition;
+			// PARENT BRICK SAMPLING
+			// Brick coordinates
+			uint parentBrickTile = imageLoad(octree, int(parentNodeOffset + parentPointer *16U)+1).x;
+			vec3 parentBrickCoords = decodeBrickCoords(parentBrickTile);
+			// CHILD BRICK SAMPLING
+			// Brick coordinates
+			uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
+			vec3 brickCoords = decodeBrickCoords(brickTile);
 
-				// read texture  
-				// TODO: im not sure about the volumeRes offset
-				vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes );
-			
-			
-				// CHILD BRICK SAMPLING
-				// Brick coordinates
-				uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
-				vec3 brickCoords = decodeBrickCoords(brickTile);
-				if(getBit(brickTile, 31) == 1)
-                {
-					// Here we should intersect our brick seperately
-					// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-					brickCoords += 2.0 * innerOctreePosition;
-					// read texture
-					vec4 childSrc = texture(brickPool, brickCoords/volumeRes);
+			if(getBit(brickTile, 31) == 1 && getBit(parentBrickTile, 31) == 1)
+            {
 
-					float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
+			// Here we should intersect our brick seperately
+			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+			parentBrickCoords +=  parentInnerOctreePosition;
+			// Here we should intersect our brick seperately
+			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+			brickCoords +=  innerOctreePosition;
 
-					outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
-				}
-				// Break inner loop
-				break;
+			// read texture  
+			// TODO: im not sure about the volumeRes offset
+			vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes);
+			// read texture
+			vec4 childSrc = texture(brickPool, brickCoords/volumeRes);
+
+			float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
+
+			outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
 			}
-			else
-			{
-				// If the node has children we read the pointer to the next nodetile
-				childPointer = nodeTile & uint(0x3fffffff);
-			}
-		}
-		else{
+			// Break inner loop
 			break;
 		}
+		else
+		{
+			// If the node has children we read the pointer to the next nodetile
+			childPointer = nodeTile & uint(0x3fffffff);
+		}
+		
     }
 	return outputColor;
 }
