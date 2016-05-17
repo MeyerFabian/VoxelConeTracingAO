@@ -13,12 +13,12 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
 	unsigned int childPointer = 0;
 	unsigned int offset = 0;
 	unsigned int node = 0;
-	unsigned int value = 0;
 
 	float3 pos = position;
 
 	// load first level manually
 	node = nodePool[0].nodeTilePointer;
+
 	childPointer = node & 0x3fffffff;
 
 	for (int i = 1; i <= maxLevel + 1; i++)
@@ -39,18 +39,13 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
 
 		node = nodePool[offset].nodeTilePointer;
 		__syncthreads();
-		if (getBit(node, 32) == 1)
+		if (getBit(node, 32) == 1 )
 		{
 			childPointer = node & 0x3fffffff;
 			foundOnLevel++;
 		}
-		else if (maxLevel == 6)
-		{
-			foundOnLevel++;
-		}
 		else
 		{
-			//printf("YJDOIAJSDOIASDJ\n");
 			foundOnLevel = 0;
 			break;
 		}

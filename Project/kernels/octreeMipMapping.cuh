@@ -1714,11 +1714,8 @@ void combineBrickBordersFast(node *nodePool, neighbours* neighbourPool, unsigned
 
 	int startIndex = (constLevelIntervalMap[level].start) * 8;
 
-    if(((getBit(targetNode.nodeTilePointer,32) == 0 && level == 6) || (getBit(targetNode.nodeTilePointer,32) == 1 && level < 6)))
+	if (((getBit(targetNode.nodeTilePointer, 32) == 0 && level == 6) || (getBit(targetNode.nodeTilePointer, 32) == 1 && level < 6)) && getBit(targetNode.value, 31) == 1)
     {
-		if (index > startIndex && index <startIndex + 200 && level == 5)
-			printf("ADRESSE: %d , Neighbor-ADRESSE: %d \n", index, targetNeighbours.X);
-
         // here we have our brick
         uint3 brickCoords = decodeBrickCoords(targetNode.value);
 
