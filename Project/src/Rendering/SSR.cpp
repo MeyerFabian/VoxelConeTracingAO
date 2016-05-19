@@ -9,16 +9,10 @@
 
 #include "SSR.h"
 
-#ifdef __unix__
-template<typename T, typename... Args>
-std::unique_ptr<T> std::make_unique(Args&&... args) {
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-#endif
 
 SSR::SSR()
 {
-    mSSRShader = std::make_unique<ShaderProgram>("/vertex_shaders/SSR.vert", "/fragment_shaders/SSR.frag");
+    mSSRShader = std::unique_ptr<ShaderProgram>(new ShaderProgram("/vertex_shaders/SSR.vert", "/fragment_shaders/SSR.frag"));
     mCube = new Cube(10);
 }
 
