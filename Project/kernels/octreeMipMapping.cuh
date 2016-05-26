@@ -992,8 +992,22 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     bottomFace.z /= 0.5;
     bottomFace.w /= 0.5;
 
-
-    centerColor.w = 255;
+	/*
+	centerColor.w = 255;
+	leftTopNear.w = 255;
+	leftTopFar.w = 255;
+	leftFace.w = 255;
+	leftBottomNear.w = 255;
+	topFace.w = 255;
+	leftBottomNear.w = 255;
+	frontFace.w = 255;
+	backFace.w = 255;
+	bottomFace.w = 255;
+	rightTopNear.w = 255;
+	rightTopFar.w = 255;
+	rightFace.w = 255;
+	rightBottomFar.w = 255;
+	*/
     // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
@@ -1001,7 +1015,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y + 1,
                 targetBrick.z + 1);
 
-    leftTopNear.w = 255;
     //0,0,0 leftTopNear // seems ok
     surf3Dwrite(make_uchar4(leftTopNear.x,leftTopNear.y,leftTopNear.z,leftTopNear.w),
                 colorBrickPool,
@@ -1016,7 +1029,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y,
                 targetBrick.z+1);
 
-    leftTopFar.w = 255;
     // 0,0,2 leftTopFar // seems to work
     surf3Dwrite(make_uchar4(leftTopFar.x,leftTopFar.y,leftTopFar.z,leftTopFar.w),
                 colorBrickPool,
@@ -1031,7 +1043,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+1,
                 targetBrick.z);
 
-    leftFace.w = 255;
     // 0,1,1
     surf3Dwrite(make_uchar4(leftFace.x,leftFace.y,leftFace.z,leftFace.w),
                 colorBrickPool,
@@ -1046,7 +1057,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y+1,
                 targetBrick.z+2);
 
-    leftBottomNear.w = 255;
     // 0,2,0 leftBottomNear // seems to work
     surf3Dwrite(make_uchar4(leftBottomNear.x,leftBottomNear.y,leftBottomNear.z,leftBottomNear.w),
                 colorBrickPool,
@@ -1062,7 +1072,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z+1);
 
     // 0,2,2 leftBottomFar // seems to work
-    leftBottomNear.w = 255;
     surf3Dwrite(make_uchar4(leftBottomFar.x,leftBottomFar.y,leftBottomFar.z,leftBottomFar.w),
                 colorBrickPool,
                 (targetBrick.x) * sizeof(uchar4),
@@ -1076,7 +1085,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.y,
                 targetBrick.z);
     // 1,0,1
-    topFace.w = 255;
     surf3Dwrite(make_uchar4(topFace.x,topFace.y,topFace.z,topFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
@@ -1091,7 +1099,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z+2);
 
     // 1,1,0
-    frontFace.w = 255;
     surf3Dwrite(make_uchar4(frontFace.x,frontFace.y,frontFace.z,frontFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
@@ -1099,7 +1106,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 1,1,2
-    backFace.w = 255;
     surf3Dwrite(make_uchar4(backFace.x,backFace.y,backFace.z,backFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
@@ -1114,7 +1120,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 1,2,1
-    bottomFace.w = 255;
     surf3Dwrite(make_uchar4(bottomFace.x,bottomFace.y,bottomFace.z,bottomFace.w),
                 colorBrickPool,
                 (targetBrick.x+1) * sizeof(uchar4),
@@ -1129,7 +1134,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z+2);
 
     // 2,0,0 rightTopNear // seems to work
-    rightTopNear.w = 255;
     surf3Dwrite(make_uchar4(rightTopNear.x,rightTopNear.y,rightTopNear.z,rightTopNear.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -1144,7 +1148,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z+1);
 
     // 2,0,2 rightTopFar // might be empty?
-    rightTopFar.w = 255;
     surf3Dwrite(make_uchar4(rightTopFar.x,rightTopFar.y,rightTopFar.z,rightTopFar.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -1159,7 +1162,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z);
 
     // 2,1,1
-    rightFace.w = 255;
     surf3Dwrite(make_uchar4(rightFace.x,rightFace.y,rightFace.z,rightFace.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),
@@ -1189,7 +1191,6 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
                 targetBrick.z+1);
 
     // 2,2,2 rightBottomFar // we have a winner it does not work
-    rightBottomFar.w = 255;
     surf3Dwrite(make_uchar4(rightBottomFar.x,rightBottomFar.y,rightBottomFar.z,rightBottomFar.w),
                 colorBrickPool,
                 (targetBrick.x+2) * sizeof(uchar4),

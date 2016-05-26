@@ -174,11 +174,11 @@ __global__ void insertVoxelsInLastLevel(node *nodePool, uint1 *positionBuffer, u
     // Get color from volume
     uint1 color = make_uint1(0);
     color = tex3D(colorVolumeTexture, voxelPosition.x, voxelPosition.y, voxelPosition.z);
-
+	
     //color.x = static_cast<unsigned int>(0xff00ffff);
 
     uchar4 tmp = getColorRGBA8ToUCHAR4(color.x);
-
+	tmp.w = 255;
     fillBrickCorners(decodeBrickCoords(value), position, tmp);
     setBit(value, 31);
 

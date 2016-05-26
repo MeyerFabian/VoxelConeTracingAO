@@ -154,11 +154,11 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
     nodeTile = imageLoad(octree, int(0)).x;
     uint firstChildPointer = nodeTile & uint(0x3fffffff);
 
-	
-    vec3 innerOctreePosition = getVolumePos(rayPosition);
 	vec3 parentInnerOctreePosition = vec3(0,0,0);
 	uint parentNodeOffset = 0;
 	uint parentPointer = 0;
+	
+    vec3 innerOctreePosition = getVolumePos(rayPosition);
 
     // Reset child pointer
     childPointer = firstChildPointer;
@@ -167,17 +167,20 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
     for(int level = 1; level < maxLevel; level++)
     {
         // Determine, in which octant the searched position is
-        uvec3 nextOctant = uvec3(0, 0, 0);
-        nextOctant.x = uint(2 * innerOctreePosition.x);
-        nextOctant.y = uint(2 * innerOctreePosition.y);
-        nextOctant.z = uint(2 * innerOctreePosition.z);
+        vec3 nextOctant = vec3(0, 0, 0);
+        nextOctant.x = floor(2 * innerOctreePosition.x);
+        nextOctant.y = floor(2 * innerOctreePosition.y);
+        nextOctant.z = floor(2 * innerOctreePosition.z);
 
+		//Update ParentInfo => Make previous child parent now
 		parentNodeOffset = nodeOffset;
 		parentPointer = childPointer;
 		parentInnerOctreePosition = innerOctreePosition;
+
 		
+
         // Make the octant position 1D for the linear memory
-        nodeOffset = 2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z);
+        nodeOffset = uint(2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z));
         nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
 
         // Update position in volume
@@ -185,54 +188,52 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
         innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
 		
-        // The 32nd bit indicates whether the node has children:
-        // 1 means has children
-        // 0 means does not have children
-        // Only read from brick, if we are at aimed level in octree
-        if(voxelSize >= voxelSizeOnLevel[level+1])
-        {
+		if(voxelSize >= voxelSizeOnLevel[level] )
+		{
 		
-			float parentVoxelSize = voxelSizeOnLevel[level];
-			float childVoxelSize = voxelSizeOnLevel[level+1];
+			float parentVoxelSize = voxelSizeOnLevel[level-1];
+			float childVoxelSize = voxelSizeOnLevel[level];
+
 			// PARENT BRICK SAMPLING
 			// Brick coordinates
-            uint parentBrickTile = imageLoad(octree, int(parentNodeOffset + parentPointer *16U)+1).x;
-            vec3 parentBrickCoords = decodeBrickCoords(parentBrickTile);
- 
-            // Here we should intersect our brick seperately
-            // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-            parentBrickCoords+= 2 * parentInnerOctreePosition;
-            // read texture
-            vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes+ (1.0/volumeRes)/2.0);
+			uint parentBrickTile = imageLoad(octree, int(parentNodeOffset + parentPointer *16U)+1).x;
+			vec3 parentBrickCoords = decodeBrickCoords(parentBrickTile);
 
 			// CHILD BRICK SAMPLING
-            // Brick coordinates
-            uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
-            vec3 brickCoords = decodeBrickCoords(brickTile);
+			// Brick coordinates
+			uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
+			vec3 brickCoords = decodeBrickCoords(brickTile);
 
-            // Here we should intersect our brick seperately
-            // Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-            brickCoords += 2 * innerOctreePosition;
-            // read texture
-            vec4 childSrc = texture(brickPool, brickCoords/volumeRes+ (1.0/volumeRes)/2.0);
+			if(getBit(brickTile, 31) == 1)
+            {
+			// Here we should intersect our brick seperately
+			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+			parentBrickCoords +=  2.0*parentInnerOctreePosition;
 
+			// Here we should intersect our brick seperately
+			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+			brickCoords += 2.0* innerOctreePosition;
+
+			vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes + (1.0/volumeRes)/2.0);
+
+			vec4 childSrc = texture(brickPool, brickCoords/volumeRes + (1.0/volumeRes)/2.0);
+			
 			float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
 
-            outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
-
-
-            // Break inner loop
-            break;
-        }
-        else
-        {
-            // If the node has children we read the pointer to the next nodetile
-            childPointer = nodeTile & uint(0x3fffffff);
-        }
+			outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
+			}
+			// Break inner loop
+			break;
+		}
+		else
+		{
+			// If the node has children we read the pointer to the next nodetile
+			childPointer = nodeTile & uint(0x3fffffff);
+		}
+		
     }
 	return outputColor;
 }
-
 // perimeterDirection seems to be calulcated right :)
 vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture){
     float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLevel[maxLevel]);
