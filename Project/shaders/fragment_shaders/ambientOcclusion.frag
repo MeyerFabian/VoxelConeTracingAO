@@ -335,7 +335,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 		samplingRate = voxelSize;
 		distance += samplingRate/2.0;
 		rayPosition = perimeterStart + distance * perimeterDirection;
-		alpha = cosWeight * rayCastOctreeTrilinear(rayPosition,voxelSize).w;
+		alpha = cosWeight * rayCastOctree(rayPosition,voxelSize).w;
 		alphaWeighting(alpha,distance);
 		alphaCorrection(alpha,oldSamplingRate,samplingRate);
 		distance += samplingRate/2.0;
