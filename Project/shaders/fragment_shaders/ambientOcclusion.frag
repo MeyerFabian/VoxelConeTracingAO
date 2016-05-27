@@ -322,7 +322,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		alpha =  cosWeight * rayCastOctree(rayPosition,voxelSize).w;
-		alphaWeigwhting(alpha,distance);
+		alphaWeighting(alpha,distance);
 		distance += samplingRate;
 		premultipliedColor= vec4(1.0,1.0,1.0,1.0) * alpha;
 		color = (1.0 - color.a) * premultipliedColor + color;
