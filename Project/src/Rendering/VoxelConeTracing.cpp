@@ -22,7 +22,7 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
     directionBeginScale = 3.0f;
     ambientOcclusionScale = 0.25f;
     maxDistance = 5.0f;
-    lambda = 1.0f;
+    lambda = 0.25f;
     colorBleeding = 0.0f;
 
     glGenFramebuffers(1, &mPhongFbo);
