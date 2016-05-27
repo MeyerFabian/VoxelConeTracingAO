@@ -13,11 +13,13 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
 	unsigned int childPointer = 0;
 	unsigned int offset = 0;
 	unsigned int node = 0;
+	unsigned int value = 0;
 
 	float3 pos = position;
 
 	// load first level manually
 	node = nodePool[0].nodeTilePointer;
+	value = nodePool[0].value;
 
 	childPointer = node & 0x3fffffff;
 
@@ -38,21 +40,32 @@ unsigned int traverseToCorrespondingNode(const node* nodePool, const float3 posi
 		offset = nodeOffset + childPointer * 8;
 
 		node = nodePool[offset].nodeTilePointer;
+		value = nodePool[offset].value;
 		__syncthreads();
-		if (getBit(node, 32) == 1 )
+		if (getBit(node, 32) == 1)
 		{
 			childPointer = node & 0x3fffffff;
+			foundOnLevel++;
+		}
+		else if (getBit(node, 32) == 0 && maxLevel == 6){
 			foundOnLevel++;
 		}
 		else
 		{
 			foundOnLevel = 0;
+			offset = 0;
 			break;
 		}
 	}
 
-	foundOnLevel--;
+	// We check if our supposed neighbor even has a brick, 
+	// if not the neighbor is fully discarded
+	if (getBit(value, 32) ==0){
+		foundOnLevel = 0;
+		offset = 0;
+	}
 
+	foundOnLevel--;
 	// return our node adress
 	return offset;
 }

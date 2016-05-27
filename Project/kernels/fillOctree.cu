@@ -232,7 +232,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
 			
 			X = traverseToCorrespondingNode(nodePool, positionNeighborX, foundOnLevel, level);
 
-            if(!(X > (constLevelIntervalMap[level].start)*8 && X < (constLevelIntervalMap[level].end)*8) || X == nodeAdress)
+			if (!(X >(constLevelIntervalMap[level].start) * 8 && X < (constLevelIntervalMap[level].end) * 8) || X == nodeAdress)
             {
                 X = 0;
                // WE HAVE NO NEIGHBOUR IN +X
@@ -258,13 +258,12 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
             // handle Z
 			positionNeighborZ.z += stepSize;
 			Z = traverseToCorrespondingNode(nodePool, positionNeighborZ, foundOnLevel, level);
-
             if(!(Z > (constLevelIntervalMap[level].start)*8 && Z < (constLevelIntervalMap[level].end)*8) || Z == nodeAdress)
             {
                 Z = 0;
             }
         }
-
+		/*
         if (position.x - stepSize > 0.0)
         {
             // handle negX
@@ -298,7 +297,7 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
                 negZ = 0;
             }
         }
-
+		*/
         __syncthreads();// probably not necessary
 
         neighbourPool[nodeAdress].X = X;
@@ -572,7 +571,12 @@ cudaError_t buildSVO(node *nodePool,
 
 	// takes one side from a brick and averages it with the corresponding opposite side of the neighbors brick
 	
-	
+
+	// filters voxel corner values into inner voxels of the block
+	filterBrickCornersFast << <tmpBlock, threadPerBlockSpread >> >(nodePool, level); // ## checked seems to be right now
+
+	cudaDeviceSynchronize();
+
 	for(int i=0;i<6;i++)
     {
 		combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, level, i); // ## checked, should work for y now and only on the lowest level
@@ -580,10 +584,6 @@ cudaError_t buildSVO(node *nodePool,
     }
     
 	
-	// filters voxel corner values into inner voxels of the block
-	filterBrickCornersFast<<<tmpBlock,threadPerBlockSpread>>>(nodePool,level); // ## checked seems to be right now
-
-    cudaDeviceSynchronize();
 
     unsigned int combineBlockCount = static_cast<unsigned int>(pow(8,maxLevel-1)) / threadsPerBlockCombineBorders;
 
