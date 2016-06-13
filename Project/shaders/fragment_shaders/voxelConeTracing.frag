@@ -254,10 +254,10 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 }
 
 // perimeterDirection seems to be calulcated right :)
-vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture, float cosWeight){
+vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture, float cosWeight,float samplingDistanceModifier){
     float distanceTillMainLoop = distanceByVoxelSize(coneAperture,voxelSizeOnLevel[maxLevel]);
 	float samplingRate = voxelSizeOnLevel[maxLevel];
-	float distance = samplingRate/2.0;
+	float distance = samplingRate/2.0*samplingDistanceModifier;
 	vec3 rayPosition = vec3(0.0);
 	vec4 color = vec4(0.0,0.0,0.0,0.0);
 	float voxelSize = voxelSizeOnLevel[maxLevel];
@@ -280,13 +280,13 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
 		oldSamplingRate = samplingRate;
 		samplingRate = voxelSize;
-		distance += samplingRate/2.0;
+		distance += samplingRate/2.0*samplingDistanceModifier;
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 volColor  = cosWeight * rayCastOctree(rayPosition,voxelSize);
 		alpha = volColor.w;
 		alphaWeighting(alpha,distance);
 		alphaCorrection(alpha,oldSamplingRate,samplingRate);
-		distance += samplingRate/2.0;
+		distance += samplingRate/2.0*samplingDistanceModifier;
 		premultipliedColor = vec4(volColor.xyz,1.0) * alpha;
 		color =  (1.0 - color.a) * premultipliedColor + color;
 	}
@@ -400,10 +400,29 @@ void main()
 		vec3 coneDirection = OutOfTangentSpace * cones[i];
 		float cosWeight = abs(dot(normal.xyz,coneDirection));
 
+		
+		/*
+		* Target: scale the samplingDistance of a cone by its relative angle to the voxel grid axes
+		* Why? Reduces sampling artifats because the voxel grid is orthogonal but our sampling is not.
+		* We set the coneDirection into the first octant and calculate the distance between the x-axis.
+		* Will be somewhere inbetween 0 and 90 degrees.
+		* We actually only want to restrict ourselves to angles of < 45 degrees, which splits the octant in half again.
+		* The inverted cos of the angle between the adjusted coneDirection and x-Axis is the scale we want to adjust our samplingDistance to.
+		*/
+		float angleAxisCone = acos(dot(vec3(abs(coneDirection.x),abs(coneDirection.y),abs(coneDirection.z)), vec3(1,0,0))); 
+		if(angleAxisCone >= 45.0){
+			angleAxisCone = 90.0 - angleAxisCone;
+		}
+		float samplingDistanceModifier = 1.0;
+
+		if(angleAxisCone >=1.0){
+		samplingDistanceModifier = 1.0/(cos(angleAxisCone));
+		}
+
 		float coneAperture = aperture[i];
 
 		// finalColor will be accumulated due to cone tracing in the octree 
-		vec4 tempColor = coneTracing(coneStart, coneDirection,coneAperture,cosWeight) / (NUM_CONES);
+		vec4 tempColor = coneTracing(coneStart, coneDirection,coneAperture,cosWeight,samplingDistanceModifier) / (NUM_CONES);
 		finalColor.xyz -= ambientOcclusionScale* vec3(tempColor.w);
 		finalColor.xyz += colorBleeding * tempColor.xyz;
 	}

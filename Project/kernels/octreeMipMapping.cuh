@@ -997,23 +997,8 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
     bottomFace.z /= 0.5;
     bottomFace.w /= 0.5;
 
+	
 	/*
-	centerColor.w = 255;
-	leftTopNear.w = 255;
-	leftTopFar.w = 255;
-	leftFace.w = 255;
-	leftBottomNear.w = 255;
-	topFace.w = 255;
-	leftBottomNear.w = 255;
-	frontFace.w = 255;
-	backFace.w = 255;
-	bottomFace.w = 255;
-	rightTopNear.w = 255;
-	rightTopFar.w = 255;
-	rightFace.w = 255;
-	rightBottomFar.w = 255;
-	rightBottomNear.w = 255;
-	*/
 	centerColor.w *= 255;
 	leftTopNear.w *= 255;
 	leftTopFar.w *= 255;
@@ -1029,6 +1014,7 @@ void mipMapIsotropic(const uint3 &targetBrick, const uint3 *sourceBricks)
 	rightFace.w *= 255;
 	rightBottomFar.w *= 255;
 	rightBottomNear.w *= 255;
+	*/
     // center (1,1,1)
     surf3Dwrite(make_uchar4(centerColor.x,centerColor.y,centerColor.z,centerColor.w),
                 colorBrickPool,
