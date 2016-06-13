@@ -263,7 +263,6 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
                 Z = 0;
             }
         }
-		/*
         if (position.x - stepSize > 0.0)
         {
             // handle negX
@@ -297,7 +296,6 @@ __global__ void fillNeighbours(node* nodePool, neighbours* neighbourPool, uint1*
                 negZ = 0;
             }
         }
-		*/
         __syncthreads();// probably not necessary
 
         neighbourPool[nodeAdress].X = X;
@@ -573,15 +571,15 @@ cudaError_t buildSVO(node *nodePool,
 	
 
 	// filters voxel corner values into inner voxels of the block
+	filterBrickCornersFast << <tmpBlock, threadPerBlockSpread >> >(nodePool, level); // ## checked seems to be right now
 
+	cudaDeviceSynchronize();
 	for(int i=0;i<6;i++)
     {
 		combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, level, i); // ## checked, should work for y now and only on the lowest level
         cudaDeviceSynchronize();
     }
-	filterBrickCornersFast << <tmpBlock, threadPerBlockSpread >> >(nodePool, level); // ## checked seems to be right now
 
-	cudaDeviceSynchronize();
 
 	
 
