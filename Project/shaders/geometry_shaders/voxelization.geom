@@ -8,6 +8,13 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
+struct TempVertex
+{
+    vec3 posDevice;
+    vec3 normal;
+    vec2 uv;
+};
+
 // Input vertex from vertex shader
 in Vertex
 {
@@ -82,6 +89,11 @@ void main()
     vec3 orientationHelper = cross(
                                 vec3(pos[1],0) - vec3(pos[0],0),
                                 vec3(pos[2],0) - vec3(pos[0],0));
+
+	TempVertex temp[3];
+	for(int i=0;i<3;i++){
+	temp[i] = TempVertex(In[i].posDevice,In[i].normal,In[i].uv);
+	}
     if(orientationHelper.z < 0)
     {
         // Change orientation of triangle
@@ -93,16 +105,16 @@ void main()
         pos[1] = tmp2;
 
         tmp3 = In[2].posDevice;
-        In[2].posDevice = In[1].posDevice;
-        In[1].posDevice = tmp3;
+        temp[2].posDevice = temp[1].posDevice;
+        temp[1].posDevice = tmp3;
 
         tmp3 = In[2].normal;
-        In[2].normal = In[1].normal;
-        In[1].normal = tmp3;
+        temp[2].normal = temp[1].normal;
+        temp[1].normal = tmp3;
 
         tmp2 = In[2].uv;
-        In[2].uv = In[1].uv;
-        In[1].uv = tmp2;
+        temp[2].uv = temp[1].uv;
+        temp[1].uv = tmp2;
     }
 
     // Set bounding box for clipping
@@ -139,23 +151,23 @@ void main()
     pos[2].xy += e2 * dot(n1_abs, diag) / d12 + e1 * dot(n2_abs, diag) / d21; */
 
     // First vertex
-    Out.posDevice = In[0].posDevice;
-    Out.normal = In[0].normal;
-    Out.uv = In[0].uv;
+    Out.posDevice = temp[0].posDevice;
+    Out.normal = temp[0].normal;
+    Out.uv = temp[0].uv;
     gl_Position = vec4(pos[0],0,1);
     EmitVertex();
 
     // Second vertex
-    Out.posDevice = In[1].posDevice;
-    Out.normal = In[1].normal;
-    Out.uv = In[1].uv;
+    Out.posDevice = temp[1].posDevice;
+    Out.normal = temp[1].normal;
+    Out.uv = temp[1].uv;
     gl_Position = vec4(pos[1],0,1);
     EmitVertex();
 
     // Third vertex
-    Out.posDevice = In[2].posDevice;
-    Out.normal = In[2].normal;
-    Out.uv = In[2].uv;
+    Out.posDevice = temp[2].posDevice;
+    Out.normal = temp[2].normal;
+    Out.uv = temp[2].uv;
     gl_Position = vec4(pos[2],0,1);
     EmitVertex();
 

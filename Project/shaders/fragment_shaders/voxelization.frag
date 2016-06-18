@@ -152,8 +152,9 @@ void main()
     uint idx = atomicCounterIncrement(index);
 
     // Store position
-    In.posDevice.z = -In.posDevice.z; // Left hand to right hand system
-    vec3 relativePosition = (In.posDevice + 1) * 0.5;
+    vec3 posDevicezMirrored = In.posDevice;
+	posDevicezMirrored.z = -posDevicezMirrored.z; // Left hand to right hand system
+    vec3 relativePosition = (posDevicezMirrored + 1) * 0.5;
     uvec3 position10Bit = uvec3(relativePosition* 1023);
     imageStore(positionOutputImage, int(idx), uvec4(vec3ToUintXYZ10(position10Bit)));
 

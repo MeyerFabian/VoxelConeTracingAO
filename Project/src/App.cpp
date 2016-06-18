@@ -334,6 +334,7 @@ App::App() : Controllable("App")
     // Register app as controllable
     this->registerControllable(this);
 
+
     // Scene
     m_upScene = std::unique_ptr<Scene>(new Scene(this, "sponza"));
 
@@ -362,14 +363,13 @@ App::App() : Controllable("App")
     m_upVoxelConeTracing->init(width, height);
 
     // Some screen spaced reflection testing
-    m_upSSR = std::unique_ptr<SSR>(new SSR());
+    //m_upSSR = std::unique_ptr<SSR>(new SSR());
 
     // Many classes use the same fullscreen rendering quad
     m_upFullScreenQuad = std::unique_ptr<FullScreenQuad>(new FullScreenQuad());
 
     // Voxelize scene and fill octree at least once
-    voxelizeAndFillOctree();
-}
+    voxelizeAndFillOctree();}
 
 App::~App()
 {
@@ -556,14 +556,18 @@ void App::handleCamera(GLfloat deltaTime)
 
 void App::voxelizeAndFillOctree()
 {
+
     m_upVoxelization->voxelize(volumeExtent, m_upScene.get());
     m_upSVO->clearOctree();
+	
     m_upVoxelization->mapFragmentListToCUDA();
+
     m_upSVO->buildOctree(
                         m_upVoxelization->getFragmentList()->getPositionDevPointer(),
                         m_upVoxelization->getFragmentList()->getColorVolumeArray(),
                         m_upVoxelization->getFragmentList()->getNormalVolumeArray(),
                         m_upVoxelization->getFragmentList()->getVoxelCount(),
                         m_upVoxelization->getFragmentList()->getVoxelizationResolution());
-    m_upVoxelization->unmapFragmentListFromCUDA();
+
+	m_upVoxelization->unmapFragmentListFromCUDA();
 }
