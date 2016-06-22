@@ -556,7 +556,7 @@ cudaError_t buildSVO(node *nodePool,
 	
     const int level = 6;
     for(int i=1;i<7;i++) {
-        fillNeighbours << < blockCount, threadsPerBlockFragmentList >> > (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
+       fillNeighbours << < blockCount, threadsPerBlockFragmentList >> > (nodePool, neighbourPool, positionDevPointer, poolSize, fragmentListSize, i);
         cudaDeviceSynchronize();
     }
 
