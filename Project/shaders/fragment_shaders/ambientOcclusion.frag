@@ -261,6 +261,7 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         // Make the octant position 1D for the linear memory
         nodeOffset = uint(2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z));
         nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
+		nodeValue = imageLoad(octree, int(childPointer * 16U + nodeOffset)).y;
         // Update position in volume
         innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
@@ -284,21 +285,21 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 
 			if( getBit(brickTile, 31) == 1 )
             {
-			// Here we should intersect our brick seperately
-			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-			parentBrickCoords +=  2.0*parentInnerOctreePosition;
+				// Here we should intersect our brick seperately
+				// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+				parentBrickCoords +=  2.0*parentInnerOctreePosition;
 
-			// Here we should intersect our brick seperately
-			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-			brickCoords += 2.0* innerOctreePosition;
+				// Here we should intersect our brick seperately
+				// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+				brickCoords += 2.0* innerOctreePosition;
 
-			vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes + (1.0/volumeRes)/2.0);
+				vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes + (1.0/volumeRes)/2.0);
 
-			vec4 childSrc = texture(brickPool, brickCoords/volumeRes + (1.0/volumeRes)/2.0);
+				vec4 childSrc = texture(brickPool, brickCoords/volumeRes + (1.0/volumeRes)/2.0);
 			
-			float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
+				float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
 			
-			outputColor =parentSrc;
+				outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
 			
 			}
 			// Break inner loop
@@ -311,6 +312,10 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 		}
 		}
     }
+	
+	if(getBit(nodeValue,32)==1)
+	outputColor = vec4(0.0,0.0,0.0,0.0);
+
 	return outputColor;
 }
 // perimeterDirection seems to be calulcated right :)
@@ -336,8 +341,8 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 	}
 	*/
 	distance = distanceTillMainLoop;
+	voxelSize = 1.0;
 	while(distance < maxDistance && color.w <0.9){
-		voxelSize = voxelSizeByDistance(distance,coneAperture);
 		oldSamplingRate = samplingRate;
 		samplingRate = voxelSize;
 
@@ -350,6 +355,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 		distance += samplingRate/2.0*samplingDistanceModifier ;
 		premultipliedColor= vec4(1.0,1.0,1.0,1.0) * alpha;
 		color =  (1.0 - color.a) * premultipliedColor + color;
+		voxelSize *=2.0;
 	}
 	return color;
 }

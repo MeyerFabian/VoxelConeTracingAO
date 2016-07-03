@@ -594,14 +594,14 @@ cudaError_t buildSVO(node *nodePool,
         if(threadsPerBlockMipMap < intervalWidth)
             blockCountMipMap = intervalWidth / threadsPerBlockMipMap+1;
 
-       // mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
+        mipMapOctreeLevel<<<blockCountMipMap,threadsPerBlockMipMap>>>(nodePool, i);
         cudaDeviceSynchronize();
 
 		tmpBlock = ((LevelIntervalMap[i].end - LevelIntervalMap[i].start) * 8) / threadPerBlockSpread + 1;
 
         for(int j=0;j<6;j++)
         {
-          //  combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, i, j);
+            combineBrickBordersFast << < tmpBlock, threadPerBlockSpread >> > (nodePool, neighbourPool, i, j);
             cudaDeviceSynchronize();
         }
     }
