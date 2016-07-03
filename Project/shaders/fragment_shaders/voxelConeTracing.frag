@@ -206,11 +206,11 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
         innerOctreePosition.z = 2 * innerOctreePosition.z - nextOctant.z;
 		
-		if(voxelSize >= voxelSizeOnLevel[level] )
+		if(voxelSize >= voxelSizeOnLevel[level+1])
 		{
 		
-			float parentVoxelSize = voxelSizeOnLevel[level-1];
-			float childVoxelSize = voxelSizeOnLevel[level];
+			float parentVoxelSize = voxelSizeOnLevel[level];
+			float childVoxelSize = voxelSizeOnLevel[level+1];
 
 			// PARENT BRICK SAMPLING
 			// Brick coordinates
@@ -264,7 +264,6 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 	float alpha = 0.0f;
 	float oldSamplingRate =0.0f;
 	vec4 premultipliedColor = vec4(0,0,0,0);
-	/*
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 volColor = cosWeight * rayCastOctree(rayPosition,voxelSize);
@@ -274,8 +273,6 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 		premultipliedColor= vec4(volColor.xyz,1.0) * alpha;
 		color =  (1.0 - color.a) * premultipliedColor + color;
 	}
-	*/
-	distance=distanceTillMainLoop;
 	while(distance < maxDistance && color.w <0.9){
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
 		oldSamplingRate = samplingRate;
