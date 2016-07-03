@@ -386,7 +386,8 @@ void VoxelConeTracing::drawVoxelGlow(float width, float height, GLuint ScreenQua
     m_voxelGlow->updateUniform("beginningVoxelSize", beginningVoxelSize);
     m_voxelGlow->updateUniform("directionBeginScale", directionBeginScale);
     m_voxelGlow->updateUniform("maxDistance", maxDistance);
-    m_voxelGlow->updateUniform("volumeExtent", volumeExtent);
+	m_voxelGlow->updateUniform("volumeExtent", volumeExtent);
+	m_voxelGlow->updateUniform("lambda", lambda);
     m_voxelGlow->updateUniform("volumeRes", static_cast<float>(brickPool.getResolution().x));
 
     //GBUFFER TEXTURES

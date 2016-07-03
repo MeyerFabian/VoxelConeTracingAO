@@ -167,7 +167,7 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
     uint nodeOffset = 0;
     uint childPointer = 0;
     uint nodeTile;
-
+	uint nodeValue=0;
     // Get first child pointer
     nodeTile = imageLoad(octree, int(0)).x;
     uint firstChildPointer = nodeTile & uint(0x3fffffff);
@@ -184,23 +184,28 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
     // Go through octree
     for(int level = 1; level < maxLevel; level++)
     {
+		
+		if(getBit(nodeTile, 32) == 1 ){
+		
+		//Update ParentInfo => Make previous child parent now
+		parentNodeOffset = nodeOffset;
+		parentPointer = childPointer;
+		parentInnerOctreePosition = innerOctreePosition;
+
+
         // Determine, in which octant the searched position is
         vec3 nextOctant = vec3(0, 0, 0);
         nextOctant.x = floor(2 * innerOctreePosition.x);
         nextOctant.y = floor(2 * innerOctreePosition.y);
         nextOctant.z = floor(2 * innerOctreePosition.z);
 
-		//Update ParentInfo => Make previous child parent now
-		parentNodeOffset = nodeOffset;
-		parentPointer = childPointer;
-		parentInnerOctreePosition = innerOctreePosition;
 
 		
 
         // Make the octant position 1D for the linear memory
         nodeOffset = uint(2 * (nextOctant.x + 2 * nextOctant.y + 4 * nextOctant.z));
         nodeTile = imageLoad(octree, int(childPointer * 16U + nodeOffset)).x;
-
+		nodeValue = imageLoad(octree, int(childPointer * 16U + nodeOffset)).y;
         // Update position in volume
         innerOctreePosition.x = 2 * innerOctreePosition.x - nextOctant.x;
         innerOctreePosition.y = 2 * innerOctreePosition.y - nextOctant.y;
@@ -222,23 +227,24 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 			uint brickTile = imageLoad(octree, int(nodeOffset + childPointer *16U)+1).x;
 			vec3 brickCoords = decodeBrickCoords(brickTile);
 
-			if(getBit(brickTile, 31) == 1)
+			if( getBit(brickTile, 31) == 1 )
             {
-			// Here we should intersect our brick seperately
-			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-			parentBrickCoords +=  2.0*parentInnerOctreePosition;
+				// Here we should intersect our brick seperately
+				// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+				parentBrickCoords +=  2.0*parentInnerOctreePosition;
 
-			// Here we should intersect our brick seperately
-			// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
-			brickCoords += 2.0* innerOctreePosition;
+				// Here we should intersect our brick seperately
+				// Go one octant deeper in this inner loop cicle to determine exact brick coordinate
+				brickCoords += 2.0* innerOctreePosition;
 
-			vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes + (1.0/volumeRes)/2.0);
+				vec4 parentSrc = texture(brickPool, parentBrickCoords/volumeRes + (1.0/volumeRes)/2.0);
 
-			vec4 childSrc = texture(brickPool, brickCoords/volumeRes + (1.0/volumeRes)/2.0);
+				vec4 childSrc = texture(brickPool, brickCoords/volumeRes + (1.0/volumeRes)/2.0);
 			
-			float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
-
-			outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
+				float quadrilinearT = (voxelSize- childVoxelSize)/(parentVoxelSize - childVoxelSize);
+			
+				outputColor = (1.0 - quadrilinearT) * childSrc + quadrilinearT * parentSrc;
+			
 			}
 			// Break inner loop
 			break;
@@ -248,8 +254,12 @@ vec4 rayCastOctree(vec3 rayPosition,float voxelSize){
 			// If the node has children we read the pointer to the next nodetile
 			childPointer = nodeTile & uint(0x3fffffff);
 		}
-		
+		}
     }
+	
+	if(getBit(nodeValue,32)==1)
+	outputColor = vec4(0.0,0.0,0.0,0.0);
+
 	return outputColor;
 }
 
@@ -264,6 +274,7 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 	float alpha = 0.0f;
 	float oldSamplingRate =0.0f;
 	vec4 premultipliedColor = vec4(0,0,0,0);
+	/*
 	while(distance < distanceTillMainLoop){
 		rayPosition = perimeterStart + distance * perimeterDirection;
 		vec4 volColor = cosWeight * rayCastOctree(rayPosition,voxelSize);
@@ -273,6 +284,8 @@ vec4 coneTracing(vec3 perimeterStart,vec3 perimeterDirection,float coneAperture,
 		premultipliedColor= vec4(volColor.xyz,1.0) * alpha;
 		color =  (1.0 - color.a) * premultipliedColor + color;
 	}
+	*/
+	distance = distanceTillMainLoop;
 	while(distance < maxDistance && color.w <0.9){
 		voxelSize = voxelSizeByDistance(distance,coneAperture);
 		oldSamplingRate = samplingRate;
@@ -398,23 +411,10 @@ void main()
 		float cosWeight = abs(dot(normal.xyz,coneDirection));
 
 		
-		/*
-		* Target: scale the samplingDistance of a cone by its relative angle to the voxel grid axes
-		* Why? Reduces sampling artifats because the voxel grid is orthogonal but our sampling is not.
-		* We set the coneDirection into the first octant and calculate the distance between the x-axis.
-		* Will be somewhere inbetween 0 and 90 degrees.
-		* We actually only want to restrict ourselves to angles of < 45 degrees, which splits the octant in half again.
-		* The inverted cos of the angle between the adjusted coneDirection and x-Axis is the scale we want to adjust our samplingDistance to.
-		*/
-		float angleAxisCone = acos(dot(vec3(abs(coneDirection.x),abs(coneDirection.y),abs(coneDirection.z)), vec3(1,0,0))); 
-		if(angleAxisCone >= 45.0){
-			angleAxisCone = 90.0 - angleAxisCone;
-		}
+		
 		float samplingDistanceModifier = 1.0;
 
-		if(angleAxisCone >=1.0){
-		samplingDistanceModifier = 1.0/(cos(angleAxisCone));
-		}
+		
 
 		float coneAperture = aperture[i];
 
