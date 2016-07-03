@@ -399,9 +399,24 @@ void main()
 		vec3 coneDirection = OutOfTangentSpace * cones[i];
 		float cosWeight = abs(dot(normal,coneDirection));
 
+		/*
+		* Target: scale the samplingDistance of a cone by its relative angle to the voxel grid axes
+		* Why? Reduces sampling artifats because the voxel grid is orthogonal but our sampling is not.
+		* We set the coneDirection into the first octant and calculate the distance between the x-axis.
+		* Will be somewhere inbetween 0 and 90 degrees.
+		* We actually only want to restrict ourselves to angles of < 45 degrees, which splits the octant in half again.
+		* The inverted cos of the angle between the adjusted coneDirection and x-Axis is the scale we want to adjust our samplingDistance to.
 		
+		float angleAxisCone = degrees(acos(dot(vec3(abs(coneDirection.x),abs(coneDirection.y),abs(coneDirection.z)), vec3(1,0,0)))); 
+		
+		if(angleAxisCone >= 45.0){
+			angleAxisCone = 90.0 - angleAxisCone;
+			
+		}
+		angleAxisCone = clamp(0.0,45.0,angleAxisCone);
+		*/
 		float samplingDistanceModifier = 1.0;
-
+		//samplingDistanceModifier = 1.0/(cos(radians(angleAxisCone)));
 
 		float coneAperture = aperture[i];
 
