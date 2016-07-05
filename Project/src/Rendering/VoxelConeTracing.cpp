@@ -20,9 +20,9 @@ VoxelConeTracing::VoxelConeTracing(App* pApp) : Controllable(pApp, "Voxel Cone T
 {
     m_gbuffer = make_unique<GBuffer>();
     directionBeginScale = 3.0f;
-    ambientOcclusionScale = 0.25f;
-    maxDistance = 2.0f;
-    lambda = 0.1f;
+    ambientOcclusionScale = 0.1f;
+    maxDistance = 20.0f;
+    lambda = 0.2f;
     colorBleeding = 0.0f;
 
     glGenFramebuffers(1, &mPhongFbo);
@@ -322,7 +322,6 @@ void VoxelConeTracing::drawAmbientOcclusion(float width, float height, GLuint Sc
     m_ambientOcclusion->updateUniform("screenSize", glm::vec2(width, height));
 
     //Cone Tracing Uniforms
-    m_ambientOcclusion->updateUniform("beginningVoxelSize", beginningVoxelSize);
     m_ambientOcclusion->updateUniform("directionBeginScale", directionBeginScale);
     m_ambientOcclusion->updateUniform("maxDistance", maxDistance);
     m_ambientOcclusion->updateUniform("volumeExtent", volumeExtent);

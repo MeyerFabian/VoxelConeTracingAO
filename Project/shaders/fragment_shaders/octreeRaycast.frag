@@ -140,11 +140,12 @@ void main()
                     //outputColor.a += (1.0 - outputColor.a) * src.a;
 
                     // More or less: if you hit something, exit
-                    if(outputColor.a >= 0.001)
-                    {
+                    
                         //outputColor = src;
-                        finished = true;
-                    }
+					if(outputColor.r>0.01 || outputColor.g>0.01 || outputColor.b>0.01 )
+                    {
+						finished = true;
+					}
                 }
 
                 // Break inner loop
